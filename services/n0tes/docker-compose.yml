@@ -1,0 +1,17 @@
+version: '3'
+services:
+  nginx:
+    image: 'n0tes/nginx'
+    build: nginx
+    container_name: n0tes_nginx
+    restart: unless-stopped
+    ports:
+      - 8080:80
+    links:
+      - app
+
+  app:
+    image: 'n0tes/app'
+    build: app
+    container_name: n0tes_app
+    restart: unless-stopped
