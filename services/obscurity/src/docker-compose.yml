@@ -1,0 +1,36 @@
+version: '2.0'
+services:
+  obscurity:
+    build: .
+    network_mode: "host"
+    volumes:
+      - ./index.html:/home/obscurity/index.html
+      - ./api.php:/home/obscurity/api.php
+      - pg-volume:/var/run/postgresql
+    restart: on-failure
+    mem_limit: 2048m
+    logging:
+        driver: "json-file"
+        options:
+            max-file: "10"
+            max-size: "10m"    
+  postgres:
+    image: postgres:13.7-alpine3.16
+    network_mode: "none"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - pg-volume:/var/run/postgresql
+    restart: on-failure
+    mem_limit: 2048m
+    command:
+      ["postgres", "-c", "listen_addresses="]
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    logging:
+        driver: "json-file"
+        options:
+            max-file: "10"
+            max-size: "10m"
+
+volumes:
+  pg-volume:
