@@ -24,7 +24,7 @@ namespace App
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute("admin", "{controller=Admin}/{action=Index}")
-                    .RequireHost("admin.n0tes.hitb.org");
+                    .RequireHost(Constants.AdminHost);
                 endpoints.MapControllerRoute("default", "{controller=User}/{action=Index}");
             });
         }

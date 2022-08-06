@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Routing;
 
 namespace App.Controllers
 {
-    [Host("admin.n0tes.hitb.org")]
+   
+    [Host(Constants.AdminHost)]
     public class AdminController : Controller
     {
         public IActionResult Index()
