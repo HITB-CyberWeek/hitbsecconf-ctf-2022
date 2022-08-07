@@ -54,6 +54,7 @@ def call_api(s, ip, params):
 
 
 def gen_login():
+    ABC = "abcdefghijklmnopqrstuvwxyz01234567890!@#$%^&*(){}'<>ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     name = "".join(random.choice(ABC) for i in range(random.randrange(6, 10)))
 
     if random.random() < 0.01:
