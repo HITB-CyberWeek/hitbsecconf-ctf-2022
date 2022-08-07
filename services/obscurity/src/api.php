@@ -260,6 +260,26 @@ function handle_api($params) {
     return array("result"=>"error", "error"=>"bad action");
 }
 
+function decrypt($text) {
+    $N = gmp_init("b3aefb131cf5485561fe3e3408bbc7d466ee79573efb3a3a1333f84110959cb256b15ebec238356995408d42d7421cc25d4b7cb3b3fd015153eee433b66cf559fd194cc5e674b3f1597db275eede5de63abfa4b7067701474f87c947af70470d57a61237a22a73318e96edde0b777c7a4eb570a63bb47355f5db3d223ac99dec76ce338fcb2e65489d504f321307bcc77a3c62d1e73632313ae15b673fc4f946a2c0bb05201007cb54c2dad05a56489ee5f1b5763e1b4413e3bfff954374997e89743cd7ff1cf054fd5268852c2af8eadc657e57b860e2d2e17a9c7cb3222b77c7724bb420838aebdfc91526efd754bd4f158144627e86a3d705274ea0bdbf0f", 16);
+    $d = gmp_init("357d4a1ddaf983c2732d01ec708b22062f6c1f7022fe1bcbcd0aa4050e805348ddb8e879060d408d4152999ac3c4d915dd3b0b10ddec5bd78f926699a45d543ea9333e610d65416a001784a849e72571d39c5856e9d4446bab97c30a1586698865c6b8d699ee6423650cb61beb32f339dfb370a8f3ce18a586ce70a8ff7224920e1c59589ec91114aaab880ff4ea230097c412729d4d8b7abc6f55c5457b41dd84618ffeb2559fc99b3d4ad387787a8be75c5f9de085f850df5ae8f2499806d8ab5d9da2d137572be923f6ae16a4486a368424dda4262ada09006cd33da2418225fee8a4902d0a65104eda33890b05becdaeb5affb6081400188979357cf5401", 16);
+    $num = gmp_init($text, 16);
+
+    $n0 = gmp_init("0", 10);
+    $n256 = gmp_init("256", 10);
+
+    $d_num = gmp_powm($num, $d, $N);
+
+
+    $ans = "";
+    while (gmp_cmp($d_num, $n0)) {
+        $ans .= chr(gmp_intval(gmp_mod($d_num, $n256)));
+        $d_num = gmp_div($d_num, $n256);
+    }
+
+    return strrev($ans);
+}
+
 error_reporting(0);
 session_start();
 
@@ -270,7 +290,7 @@ if (!$db) {
     die("db error\n");
 }
 
-$params = (array) json_decode($_REQUEST["p"]);
+$params = (array) json_decode(decrypt($_REQUEST["p"]));
 $result = handle_api($params);
 print(json_encode($result));
 

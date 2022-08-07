@@ -7,6 +7,45 @@
     <meta name="viewport" content="width=600, initial-scale=1.0">
 
     <script type="text/javascript">
+        function mod_pow(base, exp, modulo) {
+            ans = 1n
+            base_pow = base
+            while(exp) {
+                if(exp % 2n == 1n) {
+                    ans *= base_pow
+                    ans %= modulo
+                }
+
+                base_pow *= base_pow
+                base_pow %= modulo
+                exp /= 2n
+            }
+
+            return ans
+        }
+
+        function encrypt(msg) {
+            var N = 22682942817806088490792499482983249893058297725590697059628791196297379319789520555471145841893097582088218362618941818374562246121628871946482739576142279729394979537252135924226624973818937934420025359028386946194369962721569595962286920366777371914185522651971600504091813834342385801227434011734766288464925576683462932360227482007932615782495402864749305506316986397644384775268096294989804496497618836120417078104760925049060903059657716665316876950367855040887482051239755079833012091006887424760733003929758403525332964099659102363798025158213011852242241143491401516092147525884233208685139179269001796501263n
+            var E = 65537n
+
+            var msg_as_num = 0n
+
+            for (var i = 0; i < msg.length; i += 1) {
+                msg_as_num <<= 8n
+                msg_as_num += BigInt(msg.charCodeAt(i))
+            }
+
+            if(msg_as_num > N) {
+                console.log("attempted to encode too big message")
+                return ""
+            }
+
+            var encrypted = mod_pow(msg_as_num, E, N)
+
+            return encrypted.toString(16)
+        }
+
+
         function log_in() {
             var login = $("#login").val()
             var password = $("#password").val()
@@ -14,11 +53,11 @@
             var ajax_request = $.ajax({
                 url: "api.php",
                 method: "POST",
-                data: {p: JSON.stringify({
+                data: {p: encrypt(JSON.stringify({
                     action: "login",
                     login: login,
                     password: password
-                })}
+                }))}
             }).done(function(data) {
                 console.log(data)
                 if (data["error"]) {
@@ -42,11 +81,11 @@
             var ajax_request = $.ajax({
                 url: "api.php",
                 method: "POST",
-                data: {p: JSON.stringify({
+                data: {p: encrypt(JSON.stringify({
                     action: "register",
                     login: login,
                     password: password
-                })}
+                }))}
             }).done(function(data) {
                 console.log(data)
                 if (data["error"]) {
@@ -95,14 +134,14 @@
             var ajax_request = $.ajax({
                 url: "api.php",
                 method: "POST",
-                data: {p: JSON.stringify({
+                data: {p: encrypt(JSON.stringify({
                     action: "add_action",
                     action_data: {
                         color: color,
                         tool: tool,
                         params: params
                     }
-                })}
+                }))}
             }).done(function(data) {
                 if (data["result"] == "ok") {
                     var actions = data["actions"];
@@ -143,9 +182,9 @@
             var ajax_request = $.ajax({
                 url: "api.php",
                 method: "POST",
-                data: {p: JSON.stringify({
+                data: {p: encrypt(JSON.stringify({
                     action: "get_actions",
-                })}
+                }))}
             }).done(function(data) {
                 if (data["result"] == "ok") {
                     var actions = data["actions"];
@@ -168,9 +207,9 @@
             var ajax_request = $.ajax({
                 url: "api.php",
                 method: "POST",
-                data: {p: JSON.stringify({
+                data: {p: encrypt(JSON.stringify({
                     action: "is_logged",
-                })}
+                }))}
             }).done(function(data) {
                 console.log(data)
                 if (data["result"] == "ok") {
@@ -208,9 +247,9 @@
             var ajax_request = $.ajax({
                 url: "api.php",
                 method: "POST",
-                data: {p: JSON.stringify({
+                data: {p: encrypt(JSON.stringify({
                     action: "logout",
-                })}
+                }))}
             }).done(function(data) {
                 reinit()
             });

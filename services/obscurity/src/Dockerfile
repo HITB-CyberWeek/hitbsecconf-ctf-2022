@@ -1,6 +1,6 @@
 FROM php:8.1.8-apache
 
-RUN apt-get update && apt-get install -y libpq-dev && docker-php-ext-configure pgsql && docker-php-ext-install pgsql
+RUN apt-get update && apt-get install -y libpq-dev libgmp-dev && docker-php-ext-configure pgsql && docker-php-ext-install pgsql gmp
 
 RUN useradd obscurity -u 1000
 

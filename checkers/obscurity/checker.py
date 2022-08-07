@@ -36,8 +36,21 @@ def info():
     verdict(OK, "vulns: 1\npublic_flag_description: Flag ID is user ID, flag is in picture\n")
 
 
+def encrypt(s):
+    N = 0xb3aefb131cf5485561fe3e3408bbc7d466ee79573efb3a3a1333f84110959cb256b15ebec238356995408d42d7421cc25d4b7cb3b3fd015153eee433b66cf559fd194cc5e674b3f1597db275eede5de63abfa4b7067701474f87c947af70470d57a61237a22a73318e96edde0b777c7a4eb570a63bb47355f5db3d223ac99dec76ce338fcb2e65489d504f321307bcc77a3c62d1e73632313ae15b673fc4f946a2c0bb05201007cb54c2dad05a56489ee5f1b5763e1b4413e3bfff954374997e89743cd7ff1cf054fd5268852c2af8eadc657e57b860e2d2e17a9c7cb3222b77c7724bb420838aebdfc91526efd754bd4f158144627e86a3d705274ea0bdbf0f
+    E = 65537
+
+    msg_as_num = 0
+    for i in range(0, len(s)):
+        msg_as_num <<= 8
+        msg_as_num += ord(s[i])
+
+    encrypted = pow(msg_as_num, E, N)
+    return "%x" % encrypted
+
+
 def call_api(s, ip, params):
-    return s.post(f"http://{ip}:3255/api.php", data={"p": json.dumps(params)}).json()
+    return s.post(f"http://{ip}:3255/api.php", data={"p": encrypt(json.dumps(params))}).json()
 
 
 def gen_login():
