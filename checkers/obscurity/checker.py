@@ -15,7 +15,7 @@ OK, CORRUPT, MUMBLE, DOWN, CHECKER_ERROR = 101, 102, 103, 104, 110
 PORT = 3255
 TIMEOUT = 10
 
-ABC = "".join(chr(i) for i in range(1, 127))
+ABC = "".join(chr(i) for i in range(1, 127) if chr(i) != "'")
 
 
 def gen_rand_string(l=12):
