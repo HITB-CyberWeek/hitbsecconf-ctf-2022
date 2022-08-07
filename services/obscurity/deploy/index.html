@@ -1,0 +1,373 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Online Painter</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <meta name="viewport" content="width=600, initial-scale=1.0">
+
+    <script type="text/javascript">
+        function mod_pow(base, exp, modulo) {
+            ans = 1n
+            base_pow = base
+            while(exp) {
+                if(exp % 2n == 1n) {
+                    ans *= base_pow
+                    ans %= modulo
+                }
+
+                base_pow *= base_pow
+                base_pow %= modulo
+                exp /= 2n
+            }
+
+            return ans
+        }
+
+        function encrypt(msg) {
+            var N = 22682942817806088490792499482983249893058297725590697059628791196297379319789520555471145841893097582088218362618941818374562246121628871946482739576142279729394979537252135924226624973818937934420025359028386946194369962721569595962286920366777371914185522651971600504091813834342385801227434011734766288464925576683462932360227482007932615782495402864749305506316986397644384775268096294989804496497618836120417078104760925049060903059657716665316876950367855040887482051239755079833012091006887424760733003929758403525332964099659102363798025158213011852242241143491401516092147525884233208685139179269001796501263n
+            var E = 65537n
+
+            var msg_as_num = 0n
+
+            for (var i = 0; i < msg.length; i += 1) {
+                msg_as_num <<= 8n
+                msg_as_num += BigInt(msg.charCodeAt(i))
+            }
+
+            if(msg_as_num > N) {
+                console.log("attempted to encode too big message")
+                return ""
+            }
+
+            var encrypted = mod_pow(msg_as_num, E, N)
+
+            return encrypted.toString(16)
+        }
+
+
+        function log_in() {
+            var login = $("#login").val()
+            var password = $("#password").val()
+
+            var ajax_request = $.ajax({
+                url: "api.php",
+                method: "POST",
+                data: {p: encrypt(JSON.stringify({
+                    action: "login",
+                    login: login,
+                    password: password
+                }))}
+            }).done(function(data) {
+                console.log(data)
+                if (data["error"]) {
+                    $("#success").hide()
+                    $("#error").show().text(data["error"])
+                } else if (data["result"] == "ok") {
+                    $("#error").hide()
+                    $("#success").show().text("logged in, user id " + data["userid"])
+                    reinit()
+                } else {
+                    $("#success").hide()
+                    $("#error").show().text("protocol error")
+                }
+            });
+        }
+
+        function register() {
+            var login = $("#login").val()
+            var password = $("#password").val()
+
+            var ajax_request = $.ajax({
+                url: "api.php",
+                method: "POST",
+                data: {p: encrypt(JSON.stringify({
+                    action: "register",
+                    login: login,
+                    password: password
+                }))}
+            }).done(function(data) {
+                console.log(data)
+                if (data["error"]) {
+                    $("#success").hide()
+                    $("#error").show().text(data["error"])
+                } else if (data["result"] == "ok") {
+                    $("#error").hide()
+                    $("#success").show().text("registered, user id " + data["userid"])
+                    reinit()
+                } else {
+                    $("#success").hide()
+                    $("#error").show().text("protocol error")
+                }
+            });
+        }
+
+        function random_int_from_interval(min, max) {
+          return Math.floor(Math.random() * (max - min + 1) + min)
+        }
+
+
+        function canvas_clicked(canvas, e) {
+            var rect = canvas.getBoundingClientRect()
+            var x = Math.round(event.clientX - rect.left)
+            var y = Math.round(event.clientY - rect.top)
+
+            var tool = $("input[name='tool']:checked").val()
+            var color = $("input[name='color']:checked").val()
+
+            var params = {x: x, y: y}
+
+
+            if (tool == "circle") {
+                params["r"] = random_int_from_interval(10, 100)
+            } else if (tool == "line") {
+                params["x2"] = x + random_int_from_interval(-50, 50)
+                params["y2"] = y + random_int_from_interval(-50, 50)
+            } else if (tool == "rect") {
+                params["w"] = random_int_from_interval(20, 100)
+                params["h"] = random_int_from_interval(20, 100)
+            } else if (tool == "text") {
+                params["t"] = prompt("text");
+            }
+
+
+            var ajax_request = $.ajax({
+                url: "api.php",
+                method: "POST",
+                data: {p: encrypt(JSON.stringify({
+                    action: "add_action",
+                    action_data: {
+                        color: color,
+                        tool: tool,
+                        params: params
+                    }
+                }))}
+            }).done(function(data) {
+                if (data["result"] == "ok") {
+                    var actions = data["actions"];
+                    console.log(data)
+                    update_canvas()
+                }
+            });
+
+
+        }
+
+        function apply_action(action, ctx) {
+            ctx.fillStyle = action["color"]
+            ctx.strokeStyle = action["color"]
+
+            var params = action["params"]
+
+            if(action["tool"] == "rect") {
+                ctx.fillRect(params["x"], params["y"], params["w"], params["h"])
+            } else if(action["tool"] == "line") {
+                ctx.moveTo(params["x"], params["y"])
+                ctx.lineTo(params["x2"], params["y2"]);
+                ctx.stroke();
+            } else if(action["tool"] == "circle") {
+                ctx.beginPath();
+                ctx.arc(params["x"], params["y"], params["r"], 0, 2 * Math.PI);
+                ctx.stroke()
+            } else if(action["tool"] == "point") {
+                ctx.fillRect(params["x"], params["y"], 1, 1)
+            } else if(action["tool"] == "text") {
+                ctx.font = "48px serif"
+                ctx.strokeText(params["t"], params["x"], params["y"]);
+            }
+        }
+
+        function update_canvas() {
+
+            var ajax_request = $.ajax({
+                url: "api.php",
+                method: "POST",
+                data: {p: encrypt(JSON.stringify({
+                    action: "get_actions",
+                }))}
+            }).done(function(data) {
+                if (data["result"] == "ok") {
+                    var actions = data["actions"];
+
+                    var canvas = $("#canvas")[0];
+                    var ctx = canvas.getContext("2d");
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    for (var i=0; i<actions.length; i+=1) {
+                        apply_action(JSON.parse(actions[i]["action"]), ctx);
+                    }
+
+                    // console.log(actions)
+
+                }
+            });
+        }
+
+        function reinit() {
+            var ajax_request = $.ajax({
+                url: "api.php",
+                method: "POST",
+                data: {p: encrypt(JSON.stringify({
+                    action: "is_logged",
+                }))}
+            }).done(function(data) {
+                console.log(data)
+                if (data["result"] == "ok") {
+                    if (data["userid"] > 0) {
+                        $("#login_form").hide()
+                        $("#error").hide()
+                        $("#success").hide()
+                        $("#logged-text").text("logged in as " + data["login"] + ", id " + data["userid"])
+                        $("#logged").show()
+                        $("#paint").show()
+                    } else {
+                        $("#login_form").show()
+                        $("#error").hide()
+                        $("#success").hide()
+                        $("#logged-text").text("logged in as " + data["login"] + ", id " + data["userid"])
+                        $("#logged").hide()
+                        $("#paint").hide()
+                    }
+                } else if (data["error"]) {
+                    $("#login_form").show()
+                    $("#success").hide()
+                    $("#error").show().text(data["error"])
+                    $("#paint").hide()
+                } else {
+                    $("#login_form").show()
+                    $("#success").hide()
+                    $("#error").show().text("protocol error")
+                    $("#paint").hide()
+                }
+                update_canvas()
+            });
+        }
+
+        function logout() {
+            var ajax_request = $.ajax({
+                url: "api.php",
+                method: "POST",
+                data: {p: encrypt(JSON.stringify({
+                    action: "logout",
+                }))}
+            }).done(function(data) {
+                reinit()
+            });
+        }
+
+
+    </script>
+
+</head>
+<body class="justify-content-center align-items-center container-fluid" style="max-width: 900px; padding-left: 15px; padding-right: 15px;">
+
+<h1>The Obscure Collab Painter</h1>
+<form action="javascript:void(0)" id="login_form">
+<div class="form-group">
+<input class="form-control" id="login" spellcheck="false" autocomplete="off" placeholder="Login" oninput="">
+<input class="form-control" type="text" id="password" spellcheck="false" autocomplete="off" placeholder="Password" oninput="">
+<div class="row">
+    <div class="col">
+        <button class="form-control btn btn-secondary" onclick="register();return false">Register</button>
+    </div>
+    <div class="col">
+        <button class="form-control btn btn-primary" onclick="log_in();return false">Log in</button>
+    </div>
+</div>
+</div>
+</form>
+
+<div class="alert alert-danger" role="alert" id="error" style="display: none"></div>
+<div class="alert alert-success" role="alert" id="success" style="display: none"></div>
+
+<div>
+<!-- <div class="" id="logged" style=""> -->
+<nav id="logged" class="navbar navbar-expand-lg navbar-light bg-light justify-content-between">
+    <span class="" role="alert" id="logged-text" style="">
+
+    </span>
+    <button class="btn btn-outline-secondary btn-sm" onclick="logout();return false">Log out</button>
+
+</nav>
+</div>
+
+<div id="paint" style="display:none">
+    <canvas id="canvas" width="800" height="500" style="border:solid 1px black"></canvas>
+
+    <div class="row">
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="tool" id="t1" value="circle" checked>
+              <label class="form-check-label" for="t1">Circle</label>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="tool" id="t2" value="point">
+              <label class="form-check-label" for="t2">Point</label>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="tool" id="t3" value="rect">
+              <label class="form-check-label" for="t3">Rect</label>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="tool" id="t4" value="line">
+              <label class="form-check-label" for="t4">Line</label>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="tool" id="t5" value="text">
+              <label class="form-check-label" for="t5">Text</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="color" id="c1" value="#000000" checked>
+              <label class="form-check-label" for="c1">Black</label>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="color" id="c2" value="#ff0000">
+              <label class="form-check-label" for="c2" style="color: #ff0000">Red</label>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="color" id="c3" value="#00ff00">
+              <label class="form-check-label" for="c3" style="color: #00ff00">Green</label>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="color" id="c4" value="#0000ff">
+              <label class="form-check-label" for="c4" style="color: #0000ff">Blue</label>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="color" id="c5" value="#800080">
+              <label class="form-check-label" for="c5" style="color: #800080">Purple</label>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+    $("#canvas").on("click", function (e) {canvas_clicked(this, e);})
+    reinit()
+
+    setInterval(update_canvas, 5000);
+</script>
+
+</body>
