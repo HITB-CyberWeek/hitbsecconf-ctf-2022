@@ -8,5 +8,10 @@ namespace App.Controllers
         {
             return View();
         }
+
+        public IActionResult Edit()
+        {
+            return View();
+        }
     }
 }

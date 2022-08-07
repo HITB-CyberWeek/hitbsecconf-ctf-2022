@@ -1,0 +1,11 @@
+@section Navbar
+{
+    <div class="navbar-collapse collapse">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <a class="btn btn-outline-success btn-sm" href="@Url.Action("Edit")">+</a>
+                <span>@User.Identity!.Name | <a href="@Url.Action("Logout", "Account")">Logout</a></span>
+            </li>
+        </ul>
+    </div>
+}
