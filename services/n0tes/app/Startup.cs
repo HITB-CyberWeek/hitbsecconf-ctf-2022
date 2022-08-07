@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -12,13 +11,13 @@ namespace App
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IAuthenticationService, AuthenticationService>();
+
             services.AddMvc();
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-                {
-                    options.LoginPath = "/account/login";
-                });
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
+                    options => { options.LoginPath = "/account/login"; });
 
             services.AddAuthorization(options =>
             {

@@ -11,6 +11,13 @@ namespace App.Controllers;
 
 public class AccountController : Controller
 {
+    private readonly IAuthenticationService _authService;
+
+    public AccountController(IAuthenticationService authService)
+    {
+        _authService = authService;
+    }
+
     [HttpGet]
     [AllowAnonymous]
     public IActionResult Login(string returnUrl = null)
@@ -28,13 +35,8 @@ public class AccountController : Controller
             return View(model);
         }
 
-        if (model.Username != "user")
-        {
-            ModelState.AddModelError(nameof(LoginModel.Username), "Unknown user");
-            return View(model);
-        }
-
-        if (model.Password != "user")
+        var state = _authService.LoginOrRegister(model.Username, model.Password);
+        if (state == AuthenticationState.WrongPassword)
         {
             ModelState.AddModelError(nameof(LoginModel.Password), "Wrong password");
             return View(model);
@@ -56,8 +58,6 @@ public class AccountController : Controller
 
         return RedirectToAction("Index", "Notes");
     }
-
-    // TODO add Register method
 
     public async Task<IActionResult> Logout(string returnUrl = null)
     {
