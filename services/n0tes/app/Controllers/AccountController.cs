@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using App.ViewModels;
+using App.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -28,17 +28,17 @@ public class AccountController : Controller
 
     [HttpPost]
     [AllowAnonymous]
-    public async Task<IActionResult> Login(LoginModel model)
+    public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        var state = _authService.LoginOrRegister(model.Username, model.Password);
+        var state = await _authService.LoginOrRegisterAsync(model.Username, model.Password);
         if (state == AuthenticationState.WrongPassword)
         {
-            ModelState.AddModelError(nameof(LoginModel.Password), "Wrong password");
+            ModelState.AddModelError(nameof(LoginViewModel.Password), "Wrong password");
             return View(model);
         }
 

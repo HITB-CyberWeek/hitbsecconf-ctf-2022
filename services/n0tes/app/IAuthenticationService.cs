@@ -1,6 +1,8 @@
+using System.Threading.Tasks;
+
 namespace App;
 
 public interface IAuthenticationService
 {
-    AuthenticationState LoginOrRegister(string username, string password);
+    Task<AuthenticationState> LoginOrRegisterAsync(string username, string password);
 }

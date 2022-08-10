@@ -1,9 +1,14 @@
+using App.Models;
+using App.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MongoDB.Driver;
 
 namespace App
 {
@@ -11,13 +16,31 @@ namespace App
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IAuthenticationService, AuthenticationService>();
+            services.AddSingleton<IConfiguration>(sp =>
+                new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .AddEnvironmentVariables()
+                    .Build());
 
-            services.AddMvc();
+            services.AddSingleton(sp =>
+            {
+                var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("MongoDb");
+                var mongoUrl = new MongoUrl(connectionString);
+                var mongoClient = new MongoClient(MongoClientSettings.FromUrl(mongoUrl));
+                return mongoClient.GetDatabase(mongoUrl.DatabaseName);
+            });
+
+            services.AddSingleton(sp =>
+                sp.GetRequiredService<IMongoDatabase>().GetCollection<UserMongoDocument>("users"));
+            services.AddSingleton(sp =>
+                sp.GetRequiredService<IMongoDatabase>().GetCollection<NoteMongoDocument>("notes"));
+
+            services.AddSingleton<IUserRepository, UserRepository>();
+            services.AddSingleton<IAuthenticationService, AuthenticationService>();
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
-                    options => { options.LoginPath = "/account/login"; });
+                    options => { options.LoginPath = new PathString("/account/login"); });
 
             services.AddAuthorization(options =>
             {
@@ -25,6 +48,8 @@ namespace App
                     .RequireAuthenticatedUser()
                     .Build();
             });
+
+            services.AddMvc();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -1,8 +1,8 @@
 using System;
 
-namespace App.ViewModels;
+namespace App.Models;
 
-public class NoteModel
+public class NoteViewModel
 {
     public Guid Id { get; set; }
 
