@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using App.Models;
 using MongoDB.Driver;
@@ -18,6 +20,12 @@ public class NoteRepository : INoteRepository
     {
         var indexKeys = Builders<NoteMongoDocument>.IndexKeys.Ascending(d => d.User);
         await _collection.Indexes.CreateOneAsync(new CreateIndexModel<NoteMongoDocument>(indexKeys));
+    }
+
+    public async Task<IEnumerable<Note>> GetAllAsync(string user)
+    {
+        var filter = Builders<NoteMongoDocument>.Filter.Eq(d => d.User, user);
+        return (await _collection.FindAsync(filter)).ToEnumerable().Select(d => d.ToNote());
     }
 
     public async Task<Note> GetAsync(Guid id, string user)

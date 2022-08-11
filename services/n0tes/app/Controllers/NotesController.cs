@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using App.Models;
 using App.Repositories;
@@ -17,9 +18,11 @@ namespace App.Controllers
 
         [HttpGet]
         [Route("")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var notes = (await _repository.GetAllAsync(User.Identity!.Name))
+                .Select(NoteListItemViewModel.From).ToArray();
+            return View(notes);
         }
 
         [HttpGet]
