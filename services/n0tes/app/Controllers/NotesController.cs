@@ -73,7 +73,6 @@ namespace App.Controllers
             }
 
             var note = model.ToNote(noteId);
-            note.UpdatedUtcDate = DateTime.UtcNow;
             if (!await _repository.SaveAsync(note, User.Identity!.Name))
             {
                 return BadRequest();

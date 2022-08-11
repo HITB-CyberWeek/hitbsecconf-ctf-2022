@@ -19,6 +19,10 @@ public class NoteMongoDocument
     [BsonElement("content")]
     public string Content { get; set; }
 
+    [BsonElement("created")]
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime CreatedUtcDate { get; set; }
+
     [BsonElement("updated")]
     [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
     public DateTime UpdatedUtcDate { get; set; }
