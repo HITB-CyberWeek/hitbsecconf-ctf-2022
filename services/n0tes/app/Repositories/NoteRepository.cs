@@ -18,14 +18,17 @@ public class NoteRepository : INoteRepository
 
     public async Task BuildIndexesAsync()
     {
-        var indexKeys = Builders<NoteMongoDocument>.IndexKeys.Ascending(d => d.User);
+        var indexKeys = Builders<NoteMongoDocument>.IndexKeys.Ascending(d => d.User)
+            .Descending(d => d.UpdatedUtcDate);
         await _collection.Indexes.CreateOneAsync(new CreateIndexModel<NoteMongoDocument>(indexKeys));
     }
 
     public async Task<IEnumerable<Note>> GetAllAsync(string user)
     {
         var filter = Builders<NoteMongoDocument>.Filter.Eq(d => d.User, user);
-        return (await _collection.FindAsync(filter)).ToEnumerable().Select(d => d.ToNote());
+        var sort = Builders<NoteMongoDocument>.Sort.Descending(d => d.UpdatedUtcDate);
+        var options = new FindOptions<NoteMongoDocument> { Sort = sort };
+        return (await _collection.FindAsync(filter, options)).ToEnumerable().Select(d => d.ToNote());
     }
 
     public async Task<Note> GetAsync(Guid id, string user)
@@ -45,7 +48,8 @@ public class NoteRepository : INoteRepository
             Builders<NoteMongoDocument>.Filter.Eq(d => d.Id, note.Id),
             Builders<NoteMongoDocument>.Filter.Eq(d => d.User, user));
         var update = Builders<NoteMongoDocument>.Update.Set(d => d.Title, note.Title)
-            .Set(d => d.Content, note.Content);
+            .Set(d => d.Content, note.Content)
+            .Set(d => d.UpdatedUtcDate, note.UpdatedUtcDate);
         try
         {
             await _collection.UpdateOneAsync(filter, update, new UpdateOptions { IsUpsert = true });

@@ -8,12 +8,15 @@ public class NoteListItemViewModel
 
     public string Title { get; set; }
 
+    public DateTime UpdatedUtcDate { get; set; }
+
     public static NoteListItemViewModel From(Note note)
     {
         return new NoteListItemViewModel
         {
             NoteId = note.Id,
-            Title = note.Title
+            Title = note.Title,
+            UpdatedUtcDate = note.UpdatedUtcDate
         };
     }
 }

@@ -19,13 +19,18 @@ public class NoteMongoDocument
     [BsonElement("content")]
     public string Content { get; set; }
 
+    [BsonElement("updated")]
+    [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+    public DateTime UpdatedUtcDate { get; set; }
+
     public Note ToNote()
     {
         return new Note
         {
             Id = Id,
             Title = Title,
-            Content = Content
+            Content = Content,
+            UpdatedUtcDate = UpdatedUtcDate
         };
     }
 
@@ -36,7 +41,8 @@ public class NoteMongoDocument
             Id = note.Id,
             User = user,
             Title = note.Title,
-            Content = note.Content
+            Content = note.Content,
+            UpdatedUtcDate = note.UpdatedUtcDate
         };
     }
 }

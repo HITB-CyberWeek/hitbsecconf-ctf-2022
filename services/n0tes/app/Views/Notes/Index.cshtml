@@ -25,7 +25,7 @@
         {
             <tr>
                 <td><a asp-action="EditNote" asp-route-noteIdStr="@item.NoteId">@item.Title</a></td>
-                <td>Otto</td>
+                <td>@item.UpdatedUtcDate.ToString("MM/dd/yyyy HH:mm:ss")</td>
             </tr>
         }
         </tbody>
