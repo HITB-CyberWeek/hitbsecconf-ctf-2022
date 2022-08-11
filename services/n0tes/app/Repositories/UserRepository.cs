@@ -6,22 +6,22 @@ namespace App.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private readonly IMongoCollection<UserMongoDocument> _repository;
+    private readonly IMongoCollection<UserMongoDocument> _collection;
 
-    public UserRepository(IMongoCollection<UserMongoDocument> repository)
+    public UserRepository(IMongoCollection<UserMongoDocument> collection)
     {
-        _repository = repository;
+        _collection = collection;
     }
 
     public async Task<string> GetPasswordHashAsync(string username)
     {
         var filter = Builders<UserMongoDocument>.Filter.Eq(d => d.Username, username);
-        return (await _repository.FindAsync(filter)).FirstOrDefault()?.PasswordHash;
+        return (await _collection.FindAsync(filter)).FirstOrDefault()?.PasswordHash;
     }
 
     public async Task AddUser(string username, string passwordHash)
     {
         var doc = new UserMongoDocument { Username = username, PasswordHash = passwordHash };
-        await _repository.InsertOneAsync(doc);
+        await _collection.InsertOneAsync(doc);
     }
 }

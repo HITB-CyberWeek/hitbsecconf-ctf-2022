@@ -36,6 +36,7 @@ namespace App
                 sp.GetRequiredService<IMongoDatabase>().GetCollection<NoteMongoDocument>("notes"));
 
             services.AddSingleton<IUserRepository, UserRepository>();
+            services.AddSingleton<INoteRepository, NoteRepository>();
             services.AddSingleton<IAuthenticationService, AuthenticationService>();
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

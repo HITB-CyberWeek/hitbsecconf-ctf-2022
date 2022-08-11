@@ -1,4 +1,9 @@
-﻿@model App.Models.NoteViewModel
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, App
+@using App.Models
+@using Microsoft.AspNetCore.Mvc.ModelBinding
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model App.Models.NoteViewModel
 
 @section Navbar
 {
@@ -12,11 +17,11 @@
 }
 
 <div class="col-md-8 offset-md-2 mt-3 text-center">
-    <form autocomplete="off" asp-route="Edit" asp-antiforgery="false">
-        @* TODO: move id to path (/edit/<id>) *@
-        <input type="hidden" asp-for="Id"/>
+    <form autocomplete="off" asp-route="EditNote" asp-antiforgery="false">
         <div class="card border-0">
-            <input type="text" class="form-control" placeholder="Title" asp-for="Title">
+            <input type="text" class="form-control" placeholder="Title" asp-for="Title"
+                   has-errors="@(ViewData.ModelState.GetValidationState(nameof(NoteViewModel.Title)) == ModelValidationState.Invalid)">
+            <span asp-validation-for="Title" class="invalid-feedback"></span>
             <textarea class="form-control mt-3" placeholder="Content" asp-for="Content" rows="10"></textarea>
         </div>
         <p class="mt-3">
