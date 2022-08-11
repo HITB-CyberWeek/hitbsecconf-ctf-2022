@@ -21,7 +21,7 @@ public class NoteRepository : INoteRepository
         var userIndex = Builders<NoteMongoDocument>.IndexKeys.Ascending(d => d.User)
             .Descending(d => d.UpdatedUtcDate);
         var ttlIndex = Builders<NoteMongoDocument>.IndexKeys.Ascending(d => d.CreatedUtcDate);
-        var ttlOptions = new CreateIndexOptions<NoteMongoDocument> { ExpireAfter = TimeSpan.FromMinutes(1) };
+        var ttlOptions = new CreateIndexOptions<NoteMongoDocument> { ExpireAfter = TimeSpan.FromMinutes(20) };
         await _collection.Indexes.CreateManyAsync(new[]
         {
             new CreateIndexModel<NoteMongoDocument>(userIndex),

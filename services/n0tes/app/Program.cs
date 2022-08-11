@@ -11,6 +11,7 @@ namespace App
         public static async Task Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
+            await host.Services.GetRequiredService<IUserRepository>().BuildIndexesAsync();
             await host.Services.GetRequiredService<INoteRepository>().BuildIndexesAsync();
             await host.RunAsync();
         }
