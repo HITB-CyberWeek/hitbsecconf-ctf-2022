@@ -20,6 +20,7 @@ public class AccountController : Controller
 
     [HttpGet]
     [AllowAnonymous]
+    [Route("/login")]
     public IActionResult Login(string returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
@@ -28,6 +29,7 @@ public class AccountController : Controller
 
     [HttpPost]
     [AllowAnonymous]
+    [Route("/login")]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (!ModelState.IsValid)
@@ -59,6 +61,8 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Notes");
     }
 
+    [HttpGet]
+    [Route("/logout")]
     public async Task<IActionResult> Logout(string returnUrl = null)
     {
         await HttpContext.SignOutAsync();

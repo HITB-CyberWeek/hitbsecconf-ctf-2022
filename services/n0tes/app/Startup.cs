@@ -41,7 +41,7 @@ namespace App
 
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
-                    options => { options.LoginPath = new PathString("/account/login"); });
+                    options => { options.LoginPath = new PathString("/login"); });
 
             services.AddAuthorization(options =>
             {
