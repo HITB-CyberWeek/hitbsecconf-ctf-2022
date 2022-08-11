@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using App.Models;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 
 namespace App.Repositories;
@@ -8,16 +9,18 @@ namespace App.Repositories;
 public class UserRepository : IUserRepository
 {
     private readonly IMongoCollection<UserMongoDocument> _collection;
+    private readonly TimeSpan _ttl;
 
-    public UserRepository(IMongoCollection<UserMongoDocument> collection)
+    public UserRepository(IMongoCollection<UserMongoDocument> collection, IConfiguration configuration)
     {
         _collection = collection;
+        _ttl = configuration.GetValue<TimeSpan>("TTL");
     }
 
     public async Task BuildIndexesAsync()
     {
         var ttlIndex = Builders<UserMongoDocument>.IndexKeys.Ascending(d => d.CreatedUtcDate);
-        var ttlOptions = new CreateIndexOptions<UserMongoDocument> { ExpireAfter = TimeSpan.FromMinutes(20) };
+        var ttlOptions = new CreateIndexOptions<UserMongoDocument> { ExpireAfter = _ttl };
         await _collection.Indexes.CreateOneAsync(new CreateIndexModel<UserMongoDocument>(ttlIndex, ttlOptions));
     }
 

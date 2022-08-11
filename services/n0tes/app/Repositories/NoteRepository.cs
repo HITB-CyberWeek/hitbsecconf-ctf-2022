@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using App.Models;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 
 namespace App.Repositories;
@@ -10,10 +11,12 @@ namespace App.Repositories;
 public class NoteRepository : INoteRepository
 {
     private readonly IMongoCollection<NoteMongoDocument> _collection;
+    private readonly TimeSpan _ttl;
 
-    public NoteRepository(IMongoCollection<NoteMongoDocument> collection)
+    public NoteRepository(IMongoCollection<NoteMongoDocument> collection, IConfiguration configuration)
     {
         _collection = collection;
+        _ttl = configuration.GetValue<TimeSpan>("TTL");
     }
 
     public async Task BuildIndexesAsync()
@@ -21,7 +24,7 @@ public class NoteRepository : INoteRepository
         var userIndex = Builders<NoteMongoDocument>.IndexKeys.Ascending(d => d.User)
             .Descending(d => d.UpdatedUtcDate);
         var ttlIndex = Builders<NoteMongoDocument>.IndexKeys.Ascending(d => d.CreatedUtcDate);
-        var ttlOptions = new CreateIndexOptions<NoteMongoDocument> { ExpireAfter = TimeSpan.FromMinutes(20) };
+        var ttlOptions = new CreateIndexOptions<NoteMongoDocument> { ExpireAfter = _ttl };
         await _collection.Indexes.CreateManyAsync(new[]
         {
             new CreateIndexModel<NoteMongoDocument>(userIndex),
