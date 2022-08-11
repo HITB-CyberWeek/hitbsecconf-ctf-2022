@@ -14,7 +14,11 @@ public class NoteRepository : INoteRepository
         _collection = collection;
     }
 
-    // TODO build indexes by user
+    public async Task BuildIndexesAsync()
+    {
+        var indexKeys = Builders<NoteMongoDocument>.IndexKeys.Ascending(d => d.User);
+        await _collection.Indexes.CreateOneAsync(new CreateIndexModel<NoteMongoDocument>(indexKeys));
+    }
 
     public async Task<Note> GetAsync(Guid id, string user)
     {

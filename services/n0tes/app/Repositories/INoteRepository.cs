@@ -6,6 +6,7 @@ namespace App.Repositories;
 
 public interface INoteRepository
 {
+    Task BuildIndexesAsync();
     Task<Note> GetAsync(Guid id, string user);
     Task<bool> SaveAsync(Note note, string user);
 }
