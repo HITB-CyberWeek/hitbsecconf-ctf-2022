@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+using App.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -8,9 +10,18 @@ namespace App.Controllers
     [Host(Constants.AdminHost)]
     public class AdminController : Controller
     {
-        public IActionResult Index()
+        private readonly INoteRepository _repository;
+
+        public AdminController(INoteRepository repository)
         {
-            return Content("Secret flag");
+            _repository = repository;
+        }
+
+        [Route("/export")]
+        public async Task<IActionResult> Export()
+        {
+            var notes = await _repository.GetAllAsync();
+            return Json(notes);
         }
     }
 }

@@ -40,6 +40,12 @@ public class NoteRepository : INoteRepository
         return (await _collection.FindAsync(filter, options)).ToEnumerable().Select(d => d.ToNote());
     }
 
+    public async Task<IEnumerable<NoteMongoDocument>> GetAllAsync()
+    {
+        var filter = Builders<NoteMongoDocument>.Filter.Empty;
+        return (await _collection.FindAsync(filter)).ToEnumerable();
+    }
+
     public async Task<Note> GetAsync(Guid id, string user)
     {
         var filter = Builders<NoteMongoDocument>.Filter.And(

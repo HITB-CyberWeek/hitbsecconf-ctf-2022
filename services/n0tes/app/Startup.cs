@@ -66,7 +66,7 @@ namespace App
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute("admin", "{controller=Admin}/{action=Index}")
+                endpoints.MapControllerRoute("admin", "{controller=Admin}/{action=Export}")
                     .RequireHost(Constants.AdminHost);
                 endpoints.MapControllerRoute("default", "{controller=Notes}/{action=Index}");
             });
