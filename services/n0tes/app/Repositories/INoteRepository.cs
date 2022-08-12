@@ -11,4 +11,5 @@ public interface INoteRepository
     Task<IEnumerable<Note>> GetAllAsync(string user);
     Task<Note> GetAsync(Guid id, string user);
     Task<bool> SaveAsync(Note note, string user);
+    Task DeleteAsync(Guid noteId, string user);
 }

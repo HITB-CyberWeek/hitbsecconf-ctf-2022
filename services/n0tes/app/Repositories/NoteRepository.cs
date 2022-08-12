@@ -70,4 +70,12 @@ public class NoteRepository : INoteRepository
             return false;
         }
     }
+
+    public async Task DeleteAsync(Guid noteId, string user)
+    {
+        var filter = Builders<NoteMongoDocument>.Filter.And(
+            Builders<NoteMongoDocument>.Filter.Eq(d => d.Id, noteId),
+            Builders<NoteMongoDocument>.Filter.Eq(d => d.User, user));
+        await _collection.DeleteOneAsync(filter);
+    }
 }

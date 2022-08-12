@@ -80,5 +80,18 @@ namespace App.Controllers
 
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        [Route("/notes/delete/{noteIdStr}")]
+        public async Task<IActionResult> DeleteNote(string noteIdStr)
+        {
+            if (!Guid.TryParse(noteIdStr, out var noteId))
+            {
+                return BadRequest();
+            }
+
+            await _repository.DeleteAsync(noteId, User.Identity!.Name);
+            return RedirectToAction("Index");
+        }
     }
 }

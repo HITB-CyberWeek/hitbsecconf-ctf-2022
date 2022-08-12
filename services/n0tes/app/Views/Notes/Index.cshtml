@@ -18,6 +18,7 @@
         <tr>
             <th scope="col">Title</th>
             <th scope="col">Updated</th>
+            <th scope="col"></th>
         </tr>
         </thead>
         <tbody>
@@ -26,6 +27,7 @@
             <tr>
                 <td><a asp-action="EditNote" asp-route-noteIdStr="@item.NoteId">@item.Title</a></td>
                 <td>@item.UpdatedUtcDate.ToString("MM/dd/yyyy HH:mm:ss")</td>
+                <td><a class="text-decoration-none" asp-action="DeleteNote" asp-route-noteIdStr="@item.NoteId">🗙</a></td>
             </tr>
         }
         </tbody>
