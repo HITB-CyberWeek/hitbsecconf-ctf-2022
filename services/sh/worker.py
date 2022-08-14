@@ -1,0 +1,32 @@
+import docker
+import os
+
+DOCKER_API = docker.from_env()
+IMAGE = "sh:latest"
+NETWORK = "sh_s3"
+ULIMITS = [
+    docker.types.Ulimit(name="CPU", soft=10, hard=10),
+    docker.types.Ulimit(name="FSIZE", soft=10 * 1024, hard=10 * 1024),
+    docker.types.Ulimit(name="NPROC", soft=50, hard=50),
+    docker.types.Ulimit(name="NOFILE", soft=15, hard=15)
+]
+
+
+def run(archive, bucket):
+    volumes = {os.getenv("INPUT_PATH"): {"bind": "/data/input", "mode": "ro"}}
+    env = {
+        "MINIO_ROOT_USER": os.getenv("MINIO_ROOT_USER"),
+        "MINIO_ROOT_PASSWORD": os.getenv("MINIO_ROOT_PASSWORD")
+    }
+
+    container = DOCKER_API.containers.create(
+        IMAGE,
+        command=["python3", "make_site.py", archive, bucket],
+        volumes=volumes,
+        ulimits=ULIMITS,
+        network=NETWORK,
+        environment=env
+    )
+    container.start()
+    container.wait(timeout=15)
+    container.remove()
