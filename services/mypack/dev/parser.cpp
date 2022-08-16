@@ -5,7 +5,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define DEBUG 1
+#include <ctime>
+#include <unistd.h>
+#include <dirent.h>
+
+
+#define SLOT_COUNT 10
+char *myslots[SLOT_COUNT];
+int myslots_sizes[SLOT_COUNT];
 enum Types {TYPE_NIL,
             TYPE_INT,
             TYPE_UINT,
@@ -46,13 +53,13 @@ private:
 };
 Element * Element::TryGetKey(char * key){
     if (this->type != TYPE_MAP){
-        printf("No map %d\n",this->type);
+        //printf("No map %d\n",this->type);
         return 0;
     }
     for (int i=0; i<this->count; i++){
         auto el = this->pairs[i];
         if (el.el1->type == TYPE_STR || el.el1->type == TYPE_BIN ){
-            if (!memcmp(el.el1->buffer,key,this->buffer_len)){
+            if (!memcmp(el.el1->buffer,key,el.el1->buffer_len)){
                 return el.el2;
             }
         }
@@ -60,7 +67,7 @@ Element * Element::TryGetKey(char * key){
     return 0;
 }
 Element::~Element(){
-    printf("Destructor\n");
+//     printf("Destructor\n");
     if (type == TYPE_ARRAY){
         for (int i=0; i<this->count; i++){
             delete this->list[i];
@@ -175,7 +182,9 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
     unsigned char type;
     int pos = 0;
     if (rest_size >= 1){
-        printf("Buffer addr:%p %d %d\n",buffer,pos,buffer[pos]);
+#ifdef DEBUG
+        printf("Buffer addr:%p %d %x\n",buffer,pos,buffer[pos]);
+#endif
         type = buffer[pos];
     }
     else{
@@ -383,13 +392,13 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
         *el = el2;
         el2->buffer = new char[len+1];
         el2->buffer_len = len;
-        printf("LLEN %d\n",len);
-        memcpy(el2->buffer,buffer+pos+2,std::min(len,rest_size-2));
+//         printf("LLEN %d\n",len);
         #ifdef DEBUG
 //         printf("Element at %p\n",el2);
 //         printf("Str buffer %p\n",el2->buffer);
 //         printf("String is %s(%d) %d\n",el2->buffer,el2->buffer_len,el2->type);
         #endif
+        memcpy(el2->buffer,buffer+pos+2,std::min(len,rest_size-2));
         pos += len+2;
     }
     else if (type == 0xc4){ //  0xc4  |XXXXXXXX|  data
@@ -552,13 +561,13 @@ char * GetBytes(char * buffer){
     char *tmpbuf = new char[ulen/2];
     for (int i=0; i<ulen;i+=2){
         if (!ishex(buffer[i]) || !ishex(buffer[i+1])){
-            printf("Invalid character at %d\n",i);
+//             printf("Invalid character at %d\n",i);
             continue;
         }
         int c1 = tohex(buffer[i]);
         int c2 = tohex(buffer[i+1]);
         if (c1 ==-1 || c2 == -1){
-            printf("Invalid character at %d\n",i);
+//             printf("Invalid character at %d\n",i);
             continue;
         }
 //         printf("c %x %x %x\n",c1,c2,((c1<<4) | c2));
@@ -643,12 +652,15 @@ void Test8(){
     printf("DEBUG ptr %p\n",pel_3);
     std::cout<<pel_3->toStr()<<"\n";
 }
-#define SLOT_COUNT 10
-char *myslots[SLOT_COUNT];
+/*
+ 11111111
+ lLbQcjdBCzjC
+ YMATkAxcETWj
+ */
 void Test9(){
     char *buf = "83D9026964d9083131313131313131d904666c6167d90e7364666173646673646661736466d90870617373776f7264d9083132333435363738";
     char * buf2 = "d9FFaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad930";
-
+// "d9FF61616161616161616161616161616161000000000000000051000000000000006161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616100000000000000005100000000000000d930";
     char * buf3 = "d91033333333333333333333333333333333";
 
     char * resbuf = GetBytes(buf);
@@ -662,9 +674,6 @@ void Test9(){
 
     myslots[0] = new char[llen3];
     memcpy(myslots[0],resbuf3,llen3);
-//     Element *pel_0;
-//     ParsesAll(myslots[0] ,llen,&pel_0);
-//     delete pel_0;
 
     myslots[1] = new char[llen];
     myslots[2] = new char[llen];
@@ -701,109 +710,174 @@ m3   s2   i  d  s8    1  1  1  1  1  1  1  1
 
 void StartProcessing(){
     char buffer[65536];
+    memset(myslots,0,SLOT_COUNT * 8);
     for (int i=0; i<100; i++){
-        printf("Enter command\n");
+        printf("Enter command\n");fflush(stdout);
         char * res = fgets(buffer,1024,stdin);
         if (res ==0){
-            printf("Finishing");
+            printf("Finishing\n");fflush(stdout);
             break;
         }
         if (!strcmp(buffer,"store\n")){
-            printf("Enter pack to store\n");
-            char * res = fgets(buffer,1024,stdin);
+            printf("Enter id\n");fflush(stdout);
+            char buffer_id[1024];
+            char * res = fgets(buffer_id,1024,stdin);
             if (res ==0){
-                printf("Finishing");
+                printf("Finishing\n");fflush(stdout);
                 break;
             }
-            char * tmpbuf = GetBytes(buffer);
-            int ulen = strlen(buffer)/2;
-            Element *pel;
-            ParsesAll(tmpbuf,ulen,&pel);
-            Element * val_el = pel->TryGetKey("id");
-            if (val_el==0){
-                printf("No id\n");
-                continue;
+            printf("Enter pack to store\n");fflush(stdout);
+            res = fgets(buffer,1024,stdin);
+            if (res ==0){
+                printf("Finishing\n");fflush(stdout);
+                break;
             }
-            const char * mid = (char*)val_el->buffer;
-            printf("Storing id %s\n",val_el->buffer);
-            snprintf(buffer,1024,"data/%s",mid);
+            int ulen = strlen(buffer)/2;
+            char * tmpbuf = GetBytes(buffer);
+            sanitize(buffer_id);
+            printf("Storing id %s\n",buffer_id);fflush(stdout);
+            snprintf(buffer,1024,"data/%s",buffer_id);
             sanitize(buffer);
             FILE * f1 = fopen(buffer,"rb+");
             if (f1 !=0){
                 fclose(f1);
-                printf("Already exists\n");
-                break;
+                printf("Already exists\n");fflush(stdout);
+                continue;
             }
             FILE * f = fopen(buffer,"wb+");
             fwrite(tmpbuf,ulen,1,f);
             fclose(f);
             delete [] tmpbuf;
-            delete pel;
         }
         else if (!strcmp(buffer,"load\n")){
-            printf("Enter value to load\n");
+            printf("Enter slot number(0-%d)\n",SLOT_COUNT-1);fflush(stdout);
             char * res = fgets(buffer,1024,stdin);
             if (res ==0){
-                printf("Finishing\n");
+                printf("Finishing\n");fflush(stdout);
+                break;
+            }
+            unsigned int cur_slot = atoi(buffer);
+            if (cur_slot >= SLOT_COUNT){
+                printf("Invalid number\n");fflush(stdout);
+                continue;
+            }
+            printf("Enter id to load\n");fflush(stdout);
+            res = fgets(buffer,1024,stdin);
+            if (res ==0){
+                printf("Finishing\n");fflush(stdout);
                 break;
             }
             char buffer2[1024];
+            sanitize(buffer);
             snprintf(buffer2,1024,"data/%s",buffer);
             sanitize(buffer2);
-            printf("%s",buffer2);
+//             printf("%s",buffer2);
             FILE * f = fopen(buffer2,"rb+");
             if (!f){
-                printf("No such file\n");
+                printf("No such file\n");fflush(stdout);
                 break;
             }
-            int nbytes = fread(buffer,1,65536,f);
-            printf("%d\n",nbytes);
+            fseek(f,0,SEEK_END);
+            int size = ftell(f);
+            fseek(f,0,SEEK_SET);
+            char * cur_buffer = new char[size];
+            //printf("Slot addr %p\n",cur_buffer);
+            int nbytes = fread(cur_buffer,1,size,f);
             if (nbytes ==0){
                 printf("Empty file\n");
                 break;
             }
             fclose(f);
-            Element *pel;
-            ParsesAll(buffer,nbytes,&pel);
-            Element * val_el = pel->TryGetKey("id");
-            if (val_el==0){
-                printf("No id\n");
-                continue;
-            }
-            Element * flag_el = pel->TryGetKey("flag");
-            if (flag_el==0){
-                printf("No flag\n");
-                continue;
-            }
-            Element * password_el = pel->TryGetKey("password");
-            if (password_el==0){
-                printf("No password\n");
-                continue;
-            }
-#ifdef DEBUG
-            printf("%s %s %s \n",val_el->buffer,flag_el->buffer,password_el->buffer);
-#endif
-            printf("enter password\n");
-            res = fgets(buffer,1024,stdin);
-            sanitize(buffer);
+            myslots[cur_slot] = cur_buffer;
+            myslots_sizes[cur_slot] = nbytes;
+            printf("Loaded id %s to slot %d\n",buffer,cur_slot);fflush(stdout);
+        }
+        else if (!strcmp(buffer,"print\n")){
+            printf("Enter slot number(0-%d)\n",SLOT_COUNT-1);fflush(stdout);
+            char * res = fgets(buffer,1024,stdin);
             if (res ==0){
-                printf("No password read\n");
+                printf("Finishing\n");fflush(stdout);
                 break;
             }
-            if (strcmp(password_el->buffer,buffer)==0){
-                printf("Flag is %s\n",flag_el->buffer);
+            unsigned int cur_slot = atoi(buffer);
+            if (cur_slot >= SLOT_COUNT){
+                printf("Invalid number\n");fflush(stdout);
+                continue;
+            }
+            if (myslots[cur_slot] == 0){
+                printf("Slot is empty\n");fflush(stdout);
+                continue;
+            }
+
+            Element *pel;
+            ParsesAll(myslots[cur_slot],myslots_sizes[cur_slot],&pel);
+            Element * flag_el = pel->TryGetKey("flag");
+            Element * password_el = pel->TryGetKey("password");
+            if (flag_el==0 || password_el==0){
+                //printf("Invalid type\n");
+                std::cout<<pel->toStr()<<"\n";fflush(stdout);
             }
             else{
-                printf("Invalid password\n");
+                printf("enter password\n");fflush(stdout);
+                res = fgets(buffer,1024,stdin);
+                sanitize(buffer);
+                if (res ==0){
+                    printf("No password read\n");fflush(stdout);
+                    break;
+                }
+                if (memcmp(password_el->buffer,buffer,password_el->buffer_len)==0){
+                    printf("Flag is %s\n",flag_el->buffer);fflush(stdout);
+                }
+                else{
+                    printf("Invalid password\n");fflush(stdout);
+                }
             }
-            delete pel;
+            delete pel ;
+        }
+        else if (!strcmp(buffer,"unload\n")){
+            printf("Enter slot number(0-%d)\n",SLOT_COUNT-1);fflush(stdout);
+            char * res = fgets(buffer,1024,stdin);
+            if (res ==0){
+                printf("Finishing\n");fflush(stdout);
+                break;
+            }
+            unsigned int cur_slot = atoi(buffer);
+            if (cur_slot >= SLOT_COUNT){
+                printf("Invalid number\n");fflush(stdout);
+                continue;
+            }
+            delete[] myslots[cur_slot];
+            myslots[cur_slot]=0;
         }
         else if (!strcmp(buffer,"search\n")){
-            printf("Enter value to search\n");
-
+            printf("Enter substring to search\n");fflush(stdout);
+            char * res = fgets(buffer,1024,stdin);
+            if (strlen(res)<2){
+                printf("Too short substring\n");fflush(stdout);
+                continue;
+            }
+            DIR *dir;
+            struct dirent *ent;
+            if ((dir = opendir ("data")) != NULL) {
+                sanitize(buffer);
+                bool is_found=0;
+                while ((ent = readdir (dir)) != NULL) {
+                    if (strstr(ent->d_name,buffer)!=0){
+                        printf ("%s\n", ent->d_name);fflush(stdout);
+                        is_found=1;
+                    }
+                }
+                closedir (dir);
+                if (!is_found){
+                    printf("No such ids\n");fflush(stdout);
+                }
+            }
+            else {
+                printf("Cannot open dir data");fflush(stdout);
+            }
         }
         else if (!strcmp(buffer,"exit\n")){
-            printf("Finishing");
+            printf("Finishing\n");fflush(stdout);
             break;
         }
     }
@@ -811,8 +885,8 @@ void StartProcessing(){
 int main(int argc, char * argv[]){
     //Test1();
     //Test5();
-    Test9();
-//    StartProcessing();
+    //Test9();
+    StartProcessing();
     return 0;
     FILE * f = fopen(argv[1],"rb");
     if (!f){
