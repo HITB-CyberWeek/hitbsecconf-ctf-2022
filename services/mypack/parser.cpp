@@ -3,8 +3,9 @@
 #include <map>
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-
+#define DEBUG 1
 enum Types {TYPE_NIL,
             TYPE_INT,
             TYPE_UINT,
@@ -15,6 +16,11 @@ enum Types {TYPE_NIL,
             TYPE_MAP,
             TYPE_STR,
             TYPE_BIN
+};
+class Element ;
+struct My_pair {
+    Element * el1;
+    Element * el2;
 };
 
 class Element {
@@ -27,10 +33,11 @@ public:
         double m_double;
         char *buffer;
         unsigned int buffer_len;
-        std::map<Element*,Element*> m_map;
-        std::vector<Element*> m_array;
-        std::string m_string;
+        My_pair  * pairs;
+        Element ** list;
+        int count;
     Element(int type);
+    Element();
     ~Element();
     Element * TryGetKey(char * key);
     std::string toStr();
@@ -42,10 +49,11 @@ Element * Element::TryGetKey(char * key){
         printf("No map %d\n",this->type);
         return 0;
     }
-    for (auto el : this->m_map){
-        if (el.first->type == TYPE_STR){
-            if (el.first->m_string.compare(key)==0){
-                return el.second;
+    for (int i=0; i<this->count; i++){
+        auto el = this->pairs[i];
+        if (el.el1->type == TYPE_STR || el.el1->type == TYPE_BIN ){
+            if (!memcmp(el.el1->buffer,key,this->buffer_len)){
+                return el.el2;
             }
         }
     }
@@ -54,27 +62,27 @@ Element * Element::TryGetKey(char * key){
 Element::~Element(){
     printf("Destructor\n");
     if (type == TYPE_ARRAY){
-        for (Element * el : this->m_array){
-            delete el;
+        for (int i=0; i<this->count; i++){
+            delete this->list[i];
         }
+        delete this->list;
     }
     else if (type == TYPE_MAP){
-        for (auto el : this->m_map){
-            delete el.first;
-            delete el.second;
+        for (int i=0; i<this->count; i++){
+            delete this->pairs[i].el1;
+            delete this->pairs[i].el2;
         }
+        delete this->pairs;
+    }
+    else if (type == TYPE_STR || type == TYPE_BIN){
+        delete this->buffer;
     }
 }
+Element::Element(){
+    this->type=type;
+}
+
 Element::Element(int type){
-    if (type == TYPE_ARRAY){
-        this->m_array = std::vector<Element*>();
-    }
-    else if (type == TYPE_MAP){
-        this->m_map = std::map<Element*,Element*>();
-    }
-    else if (type == TYPE_STR){
-        this->m_string = std::string();
-    }
     this->type=type;
 }
 
@@ -88,9 +96,9 @@ void Element::toStr(std::string &s){
 #endif
         int idx=0;
         s+="[";
-        for (Element * el : this->m_array){
-            el->toStr(s);
-            if (idx != this->m_array.size()-1)
+        for (int i=0; i<this->count; i++){
+            this->list[i]->toStr(s);
+            if (idx != this->count-1)
                 s+=",";
             idx+=1;
         }
@@ -106,13 +114,13 @@ void Element::toStr(std::string &s){
 #endif
         s+="{";
 #ifdef DEBUG
-        printf("Map size:%d\n", this->m_map.size());
+        printf("Map size:%d\n", this->count);
 #endif
-        for (auto el : this->m_map){
-            el.first->toStr(s);
+        for (int i=0; i<this->count; i++){
+            this->pairs[i].el1->toStr(s);
             s+=":";
-            el.second->toStr(s);
-            if (idx != this->m_map.size()-1)
+            this->pairs[i].el2->toStr(s);
+            if (idx != this->count-1)
                 s+=",";
             idx+=1;
         }
@@ -144,7 +152,7 @@ void Element::toStr(std::string &s){
             s+="NIL";
         }
         else if (type == TYPE_STR){
-            s+=this->m_string;
+            s+= std::string(this->buffer,this->buffer_len);
         }
         else if (type == TYPE_BIN){
             /*for (int i=0;i<this->buffer_len; i++){
@@ -167,7 +175,7 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
     unsigned char type;
     int pos = 0;
     if (rest_size >= 1){
-        printf("D %p %d %d\n",buffer,pos,buffer[pos]);
+        printf("Buffer addr:%p %d %d\n",buffer,pos,buffer[pos]);
         type = buffer[pos];
     }
     else{
@@ -354,9 +362,12 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
         }
         auto el2 = new Element(TYPE_STR);
         *el = el2;
-        el2->m_string.assign(buffer+pos+1,len);
+        el2->buffer = new char[len+1];
+        el2->buffer_len = len;
+        memcpy(el2->buffer,buffer+pos+1,std::min(len,rest_size-1));
 #ifdef DEBUG
-        printf("String is %s(%d) %d\n",el2->m_string.c_str(),el2->m_string.length(),el2->type);
+        printf("Element at %p\n",el2);
+        printf("String is %s(%d) %d\n",el2->buffer,el2->buffer_len,el2->type);
 #endif
         pos += len+1;
     }
@@ -370,10 +381,14 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
         }
         auto el2 = new Element(TYPE_STR);
         *el = el2;
-        el2->m_string.assign(buffer+pos+2,len);
+        el2->buffer = new char[len+1];
+        el2->buffer_len = len;
+        printf("LLEN %d\n",len);
+        memcpy(el2->buffer,buffer+pos+2,std::min(len,rest_size-2));
         #ifdef DEBUG
-        printf("Str buffer %p\n",el2->m_string.c_str());
-        printf("String is %s(%d) %d\n",el2->m_string.c_str(),el2->m_string.length(),el2->type);
+//         printf("Element at %p\n",el2);
+//         printf("Str buffer %p\n",el2->buffer);
+//         printf("String is %s(%d) %d\n",el2->buffer,el2->buffer_len,el2->type);
         #endif
         pos += len+2;
     }
@@ -388,14 +403,16 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
         auto el2 = new Element(TYPE_BIN);
         *el = el2;
         #ifdef DEBUG
+        printf("Element at %p\n",el2);
         printf("Len is %d %d %d\n",len,rest_size,rest_size < len+2);
         std::cout<<len<<" "<<rest_size<<"\n";
         #endif
         el2->buffer_len = len;
-        el2->buffer = new char[len];
-        memcpy(el2->buffer,buffer+pos+2,el2->buffer_len);
+        el2->buffer = new char[len+1];
+        memcpy(el2->buffer,buffer+pos+2,std::min(len,rest_size-2));
         #ifdef DEBUG
-        printf("BIN is %s(%d) %d\n",el2->m_string.c_str(),el2->m_string.length(),el2->type);
+        printf("DEBUG bin %p\n",el2->buffer);
+        printf("BIN is %s(%d) %d\n",el2->buffer,el2->buffer_len,el2->type);
         #endif
         pos += len+2;
     }
@@ -415,9 +432,10 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
         *el = el2;
         el2->buffer_len = len;
         el2->buffer = new char[len];
-        memcpy(el2->buffer,buffer+pos+2,el2->buffer_len);
+        memcpy(el2->buffer,buffer+pos+2,std::min(len,rest_size));
         #ifdef DEBUG
-        printf("BIN2 is %s(%d) %d\n",el2->m_string.c_str(),el2->m_string.length(),el2->type);
+        printf("DEBUG bin %p\n",el2->buffer);
+        printf("BIN2 is %s(%d) %d\n",el2->buffer,el2->buffer_len,el2->type);
         #endif
         pos += len+2;
     }
@@ -426,11 +444,14 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
         auto el2 = new Element(TYPE_ARRAY);
         *el = el2;
         pos +=1;
+        el2->list = new Element * [len];
+        el2->count = len;
         if (rest_size-pos <1){
             delete el2;
             return -17;
         }
 #ifdef DEBUG
+        printf("Element at %p\n",el2);
         printf("Array of size %d\n",len);
 #endif
         for (int i=0; i<len; i++){
@@ -444,7 +465,7 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
                 return -18;
             }
             pos += new_pos;
-            el2->m_array.push_back(el_res);
+            el2->list[i] = el_res;
             if (rest_size<pos){
                 delete el2;
                 return -19;
@@ -462,8 +483,11 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
             return -20;
         }
         #ifdef DEBUG
+        printf("Element at %p\n",el2);
         printf("Map of size %d\n",len);
         #endif
+        el2 -> pairs = new My_pair [len];
+        el2->count = len;
         for (int i=0; i<len; i++){
             Element * el_key,*el_val;
 #ifdef DEBUG
@@ -493,7 +517,8 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
                 return -24;
             }
             pos += new_pos2;
-            el2->m_map[el_key] = el_val;
+            el2->pairs[i].el1 = el_key;
+            el2->pairs[i].el2 = el_val;
 #ifdef DEBUG
             printf("End pair\n");
 #endif
@@ -598,6 +623,71 @@ void Test7(){
     std::cout<<pel->toStr()<<"\n";
     delete [] resbuf;
 }
+void Test8(){
+    char *buf = "83D9026964d9083131313131313131d904666c6167d90e7364666173646673646661736466d90870617373776f7264d9083132333435363738";
+    char * resbuf = GetBytes(buf);
+    Element *pel;
+    ParsesAll(resbuf ,strlen(buf)/2,&pel);
+    printf("DEBUG ptr %p\n",pel);
+    std::cout<<pel->toStr()<<"\n";
+
+    Element *pel_2;
+    ParsesAll(resbuf ,strlen(buf)/2,&pel_2);
+    printf("DEBUG ptr %p\n",pel_2);
+    std::cout<<pel_2->toStr()<<"\n";
+
+    delete pel;
+
+    Element *pel_3;
+    ParsesAll(resbuf ,strlen(buf)/2,&pel_3);
+    printf("DEBUG ptr %p\n",pel_3);
+    std::cout<<pel_3->toStr()<<"\n";
+}
+#define SLOT_COUNT 10
+char *myslots[SLOT_COUNT];
+void Test9(){
+    char *buf = "83D9026964d9083131313131313131d904666c6167d90e7364666173646673646661736466d90870617373776f7264d9083132333435363738";
+    char * buf2 = "d9FFaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad930";
+
+    char * buf3 = "d91033333333333333333333333333333333";
+
+    char * resbuf = GetBytes(buf);
+    char * resbuf2 = GetBytes(buf2);
+    char * resbuf3 = GetBytes(buf3);
+    int llen = strlen(buf)/2;
+    int llen2 = strlen(buf2)/2;
+    int llen3 = strlen(buf3)/2;
+
+    memset(myslots,0,SLOT_COUNT * 8);
+
+    myslots[0] = new char[llen3];
+    memcpy(myslots[0],resbuf3,llen3);
+//     Element *pel_0;
+//     ParsesAll(myslots[0] ,llen,&pel_0);
+//     delete pel_0;
+
+    myslots[1] = new char[llen];
+    myslots[2] = new char[llen];
+    myslots[3] = new char[llen2];
+
+    memcpy(myslots[1],resbuf,llen);
+    memcpy(myslots[2],resbuf,llen);
+    memcpy(myslots[3],resbuf2,llen2);
+    printf("%p %p %p %p\n",myslots[0],myslots[1],myslots[2],myslots[3]);
+    delete myslots[0];
+    delete myslots[1];
+    Element *pel_3;
+    ParsesAll(myslots[3],llen2,&pel_3);
+    printf("DEBUG ptr %p\n",pel_3);
+    std::cout<<pel_3->toStr()<<"\n";
+
+    Element *pel_4;
+    ParsesAll(myslots[2],llen,&pel_4);
+    printf("DEBUG ptr %p\n",pel_4);
+    std::cout<<pel_4->toStr()<<"\n";
+
+}
+
 /*
 {
     id: "11111111",
@@ -628,14 +718,14 @@ void StartProcessing(){
             char * tmpbuf = GetBytes(buffer);
             int ulen = strlen(buffer)/2;
             Element *pel;
-            ParsesAll(tmpbuf,65536,&pel);
+            ParsesAll(tmpbuf,ulen,&pel);
             Element * val_el = pel->TryGetKey("id");
             if (val_el==0){
                 printf("No id\n");
                 continue;
             }
-            const char * mid = (char*)val_el->m_string.c_str();
-            printf("Storing id %s\n",val_el->m_string.c_str());
+            const char * mid = (char*)val_el->buffer;
+            printf("Storing id %s\n",val_el->buffer);
             snprintf(buffer,1024,"data/%s",mid);
             sanitize(buffer);
             FILE * f1 = fopen(buffer,"rb+");
@@ -651,7 +741,7 @@ void StartProcessing(){
             delete pel;
         }
         else if (!strcmp(buffer,"load\n")){
-            printf("Enter value to load to store\n");
+            printf("Enter value to load\n");
             char * res = fgets(buffer,1024,stdin);
             if (res ==0){
                 printf("Finishing\n");
@@ -691,7 +781,7 @@ void StartProcessing(){
                 continue;
             }
 #ifdef DEBUG
-            printf("%s %s %s \n",val_el->m_string.c_str(),flag_el->m_string.c_str(),password_el->m_string.c_str());
+            printf("%s %s %s \n",val_el->buffer,flag_el->buffer,password_el->buffer);
 #endif
             printf("enter password\n");
             res = fgets(buffer,1024,stdin);
@@ -700,8 +790,8 @@ void StartProcessing(){
                 printf("No password read\n");
                 break;
             }
-            if (password_el->m_string.compare(buffer)==0){
-                printf("Flag is %s\n",flag_el->m_string.c_str());
+            if (strcmp(password_el->buffer,buffer)==0){
+                printf("Flag is %s\n",flag_el->buffer);
             }
             else{
                 printf("Invalid password\n");
@@ -721,8 +811,8 @@ void StartProcessing(){
 int main(int argc, char * argv[]){
     //Test1();
     //Test5();
-//     Test7();
-   StartProcessing();
+    Test9();
+//    StartProcessing();
     return 0;
     FILE * f = fopen(argv[1],"rb");
     if (!f){
