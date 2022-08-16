@@ -1,0 +1,3 @@
+# Requirements for N0tes service checker
+
+requests
