@@ -1,0 +1,25 @@
+﻿@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@addTagHelper *, App
+@using App.Models
+@using Microsoft.AspNetCore.Mvc.ModelBinding
+@model App.Models.LoginViewModel
+
+<div class="col-xs-12 col-md-8 col-xl-4 offset-md-2 offset-xl-4 text-center mb-3">
+    <form autocomplete="off" asp-route="Login" asp-antiforgery="false">
+        <input type="hidden" asp-for="ReturnUrl"/>
+        <div class="card border-0">
+            <input type="text" class="form-control form-control-lg mt-3" placeholder="User" asp-for="Username"
+                   has-errors="@(ViewData.ModelState.GetValidationState(nameof(LoginViewModel.Username)) == ModelValidationState.Invalid)"
+                   autofocus="@(Model?.Username == null)">
+            <span asp-validation-for="Username" class="invalid-feedback"></span>
+
+            <input type="password" class="form-control form-control-lg form-control-last mt-3" placeholder="Password" asp-for="Password"
+                   has-errors="@(ViewData.ModelState.GetValidationState(nameof(LoginViewModel.Password)) == ModelValidationState.Invalid)"
+                   autofocus="@(Model?.Username != null)">
+            <span asp-validation-for="Password" class="invalid-feedback"></span>
+        </div>
+        <p>
+            <button type="submit" class="btn btn-outline-dark mt-3">Login / Register</button>
+        </p>
+    </form>
+</div>

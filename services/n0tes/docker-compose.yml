@@ -1,0 +1,26 @@
+version: '3'
+services:
+  nginx:
+    image: 'n0tes/nginx'
+    build: nginx
+    container_name: n0tes_nginx
+    restart: unless-stopped
+    ports:
+      - 8443:443
+    links:
+      - app
+
+  mongodb:
+    image: mongo
+    container_name: n0tes_mongodb
+    restart: unless-stopped
+
+  app:
+    image: 'n0tes/app'
+    build: app
+    container_name: n0tes_app
+    restart: unless-stopped
+    links:
+      - mongodb
+    environment:
+      - ConnectionStrings__MongoDb=mongodb://mongodb/n0tes

@@ -1,0 +1,35 @@
+@model App.Models.NoteListItemViewModel[]
+
+@section Navbar
+{
+    <div class="navbar-collapse collapse">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <a class="btn btn-outline-success btn-sm" href="@Url.Action("EditNote")">+</a>
+                <span>@User.Identity!.Name | <a href="@Url.Action("Logout", "Account")">Logout</a></span>
+            </li>
+        </ul>
+    </div>
+}
+
+<div class="col-md-10 offset-md-1 mt-3 text-center">
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Updated</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td><a asp-action="EditNote" asp-route-noteIdStr="@item.NoteId">@item.Title</a></td>
+                <td>@item.UpdatedUtcDate.ToString("MM/dd/yyyy HH:mm:ss")</td>
+                <td><a class="text-decoration-none" asp-action="DeleteNote" asp-route-noteIdStr="@item.NoteId">🗙</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
