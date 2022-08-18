@@ -17,7 +17,7 @@ redist_client = redis.from_url("redis://redis:6379")
 q = Queue(connection=redist_client)
 
 
-@app.post("/~{bucket}")
+@app.post("/bucket/~{bucket}")
 def post(bucket, input: UploadFile):
     if s3_client.bucket_exists(bucket):
         return JSONResponse({"bucket": bucket}, status_code=409)
