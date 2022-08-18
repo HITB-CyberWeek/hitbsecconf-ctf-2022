@@ -8,8 +8,8 @@ import tempfile
 
 (ARCHIVE, BUCKET) = sys.argv[1:3]
 
-s3_client = Minio("s3:9000", os.getenv('MINIO_ROOT_USER'),
-                  os.getenv('MINIO_ROOT_PASSWORD'), secure=False)
+s3_client = Minio("s3:9000", os.getenv('MINIO_SH_USER'),
+                  os.getenv('MINIO_SH_PASSWORD'), secure=False)
 
 with tempfile.TemporaryDirectory() as outdir:
     test_archive(archive=ARCHIVE, verbosity=-1, interactive=False)

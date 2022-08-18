@@ -15,8 +15,8 @@ ULIMITS = [
 def run(archive, bucket):
     volumes = {os.getenv("INPUT_PATH"): {"bind": "/data/input", "mode": "ro"}}
     env = {
-        "MINIO_ROOT_USER": os.getenv("MINIO_ROOT_USER"),
-        "MINIO_ROOT_PASSWORD": os.getenv("MINIO_ROOT_PASSWORD")
+        "MINIO_SH_USER": os.getenv("MINIO_SH_USER"),
+        "MINIO_SH_PASSWORD": os.getenv("MINIO_SH_PASSWORD")
     }
 
     container = DOCKER_API.containers.create(
@@ -28,5 +28,5 @@ def run(archive, bucket):
         environment=env
     )
     container.start()
-    container.wait(timeout=15)
+    container.wait(timeout=10)
     container.remove()

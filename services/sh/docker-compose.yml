@@ -3,10 +3,8 @@ version: "2.4"
 x-sh: &sh-common
   build: .
   image: sh:latest
-
   init: true
   restart: unless-stopped
-
   depends_on:
     - redis
     - s3
@@ -14,42 +12,59 @@ x-sh: &sh-common
 services:
   app:
     <<: *sh-common
-
-    command: "/bin/bash"
-
+    command:
+      - /home/sh/.local/bin/uvicorn
+      - --port
+      - "12345"
+      - --host
+      - "0.0.0.0"
+      - --workers
+      - "4"
+      - sh:app
+    ports:
+      - "80:12345"
+    volumes:
+      - ./data/input:/data/input:rw
     networks:
       - public
       - redis
       - s3
+    environment:
+      - MINIO_SH_USER
+      - MINIO_SH_PASSWORD
 
   worker:
     <<: *sh-common
-
-    scale: 2
-    command: ["/home/sh/.local/bin/rq", "worker", "-u", "redis://redis:6379"]
-
+    scale: 8
+    command:
+      - /home/sh/.local/bin/rq
+      - worker
+      - -u
+      - redis://redis:6379
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/input:/data/input:ro
     networks:
       - redis
     environment:
-      - MINIO_ROOT_USER
-      - MINIO_ROOT_PASSWORD
+      - MINIO_SH_USER
+      - MINIO_SH_PASSWORD
       - INPUT_PATH
 
   redis:
-    image: redis:latest
+    image: redis
     restart: unless-stopped
     networks:
       - redis
 
   s3:
-    image: minio/minio:latest
+    image: minio/minio
     restart: unless-stopped
     volumes:
       - ./data/s3:/data
-    command: ["server", "/data"]
+    command:
+      - server
+      - /data
     networks:
       - s3
     environment:
