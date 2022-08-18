@@ -1,0 +1,162 @@
+packer {
+  required_plugins {
+    digitalocean = {
+      version = ">= 1.0.0"
+      source  = "github.com/hashicorp/digitalocean"
+    }
+  }
+}
+
+source "digitalocean" "service_image" {
+  api_token     = "{{ api_token }}"
+  image         = "ubuntu-22-04-x64"
+  region        = "{{ region }}"
+  size          = "{{ vm_size }}"
+  ssh_username  = "root"
+  droplet_name  = "{{ service }}-{% raw %}{{timestamp}}{% endraw %}"
+  snapshot_name = "{{ service }}-{% raw %}{{strftime \"%Y-%m-%d %H:%M:%S\"}}{% endraw %}"
+}
+
+build {
+  sources = ["source.digitalocean.service_image"]
+
+  provisioner "shell" {
+    inline_shebang = "/bin/sh -ex"
+    environment_vars = [
+      "DEBIAN_FRONTEND=noninteractive",
+    ]
+    inline = [
+      # Wait apt-get lock
+      "while ps -opid= -C apt-get > /dev/null; do sleep 1; done",
+
+      "apt-get clean",
+      # apt-get update sometime may fail
+      "for i in `seq 1 3`; do apt-get update && break; sleep 10; done",
+
+      # Wait apt-get lock
+      "while ps -opid= -C apt-get > /dev/null; do sleep 1; done",
+
+      "apt-get dist-upgrade -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold'",
+      "for i in `seq 1 3`; do apt-get update && break; sleep 10; done",
+
+      "apt-get upgrade -y -q -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold'",
+
+      # Install docker and docker-compose
+      "apt-get install -y -q apt-transport-https ca-certificates nfs-common",
+      "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
+      "add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"",
+      "apt-get update",
+      "apt-get install -y -q docker-ce",
+      "curl -L \"https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose",
+      "chmod +x /usr/local/bin/docker-compose",
+
+      # Install haveged, otherwise docker-compose may hang: https://stackoverflow.com/a/68172225/1494610
+      "apt-get install -y -q haveged",
+
+      "systemctl disable rpcbind.service",
+    ]
+  }
+
+  {% if username %}
+  # Add user for the service
+  provisioner "shell" {
+    inline = [
+      "useradd --uid 1000 --create-home --shell /bin/bash \"{{ username }}\""
+    ]
+  }
+  {% endif %}
+
+  # Copy service files
+  {% for file in files %}
+  provisioner "shell" {
+    inline = [
+      "mkdir -p \"{{ file.destination }}\""
+    ]
+  }
+
+  provisioner "file" {
+    {% if file.source %}
+      source = "{{ file.source }}"
+    {% else %}
+      sources = [
+        {% for source in file.sources %}
+          "{{ source }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    {% endif %}
+    destination = "{{ file.destination }}"
+  }
+  {% endfor %}
+
+  {% if build_inside_vm %}
+  # Build the service
+  provisioner "shell" {
+    inline = [
+      {% for command in build_inside_vm %}
+      "{{ command }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+  {% endif %}
+
+  {% if start_once %}
+  provisioner "file" {
+    content = <<EOT
+#!/bin/bash
+{{ start_once }}
+systemctl disable firstboot.service
+rm -rf /etc/systemd/system/firstboot.service
+rm -f /firstboot.sh
+EOT
+    destination = "/firstboot.sh"
+  }
+
+  provisioner "file" {
+    content = <<EOT
+[Unit]
+Description=One time boot script
+[Service]
+Type=simple
+ExecStart=/firstboot.sh
+[Install]
+WantedBy=multi-user.target
+EOT
+    destination = "/etc/systemd/system/firstboot.service"
+  }
+
+  provisioner "shell" {
+    inline = [
+      "chmod +x /firstboot.sh",
+      "systemctl enable firstboot.service"
+    ]
+  }
+  {% endif %}
+
+  {% if username %}
+  provisioner "shell" {
+    inline = [
+      "chown -R \"{{ username }}:{{ username }}\" \"/home/{{ username }}\""
+    ]
+  }
+
+  provisioner "shell" {
+    inline = [
+       "ls -laR \"/home/{{ username }}\""
+    ]
+  }
+  {% endif %}
+
+  # Fix some internal digitalocean+cloud-init scripts to be compatible with our cloud infrastructure
+  provisioner "shell" {
+    script = "{{ files_path }}/digital_ocean_specific_setup.sh"
+  }
+
+  post-processor "manifest" {
+    output = "manifest.json"
+    strip_path = true
+    custom_data = {
+      service = "{{ service }}"
+    }
+  }
+}
+

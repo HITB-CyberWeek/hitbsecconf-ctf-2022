@@ -1,0 +1,6 @@
+version: 1
+service: empty
+scripts:
+  build_inside_vm: ""
+  start_once: ""
+files: []
