@@ -1,0 +1,14 @@
+html, body: {
+	height: 100%;
+}
+
+.tox { font-size: 11px !important; }
+.tox-notifications-container {
+	top: -72px !important;
+	opacity: 0.8;
+	scale: 0.8;
+}
+
+.swal-modal {
+	will-change: unset !important;
+}
