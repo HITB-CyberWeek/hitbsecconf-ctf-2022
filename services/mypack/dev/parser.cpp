@@ -507,7 +507,9 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
                 return -21;
             }
             int new_pos1 = ParsesAll(buffer+pos,rest_size-pos,&el_key);
+#ifdef DEBUG
             printf("newpos0 %d %d %d\n",new_pos1,rest_size,pos);
+#endif
             pos += new_pos1;
             if (new_pos1<0){
                 delete el2;
@@ -519,7 +521,9 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
                 return -23;
             }
             int new_pos2 = ParsesAll(buffer+pos,rest_size-pos,&el_val);
+#ifdef DEBUG
             printf("newpos1 %d %d %d\n",new_pos2,rest_size,pos);
+#endif
             if (new_pos2<0){
                 delete el2;
                 delete el_key;
@@ -826,7 +830,8 @@ void StartProcessing(){
                     break;
                 }
                 if (memcmp(password_el->buffer,buffer,password_el->buffer_len)==0){
-                    printf("Flag is %s\n",flag_el->buffer);fflush(stdout);
+                    std::string ss (flag_el->buffer,flag_el->buffer_len);
+                    printf("Flag is %s\n",ss.c_str());fflush(stdout);
                 }
                 else{
                     printf("Invalid password\n");fflush(stdout);
@@ -862,6 +867,7 @@ void StartProcessing(){
                 sanitize(buffer);
                 bool is_found=0;
                 while ((ent = readdir (dir)) != NULL) {
+//                     printf ("%s %p\n", ent->d_name,strstr(ent->d_name,buffer));fflush(stdout);
                     if (strstr(ent->d_name,buffer)!=0){
                         printf ("%s\n", ent->d_name);fflush(stdout);
                         is_found=1;
