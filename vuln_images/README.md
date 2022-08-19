@@ -92,7 +92,8 @@ proxies:
     # Optional. If not specified, "$SERVICE.*" will be used.
     hostname: test.*
     # Certificate name (as specified in PROXY_CERTIFICATES in settings.py).
-    # Optional. If not specified, only HTTP proxy will be deployed, without TLS.
+    # Optional. If not specified, only HTTP proxy will be deployed, without TLS. 
+    # Attention! Omit this option only if you have really strong reasons to disable TLS!
     certificate: wildcard.ctf.hitb.org
     # Host's index on team's network where proxy should send all requests.
     # I.e, if service is deployed on 10.60.10.5, specify 5 here.

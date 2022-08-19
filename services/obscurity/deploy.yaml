@@ -15,6 +15,7 @@ proxies:
     name: main
     target_host_index: 5
     target_port: 3255
+    certificate: wildcard.ctf.hitb.org
     limits:
       - source: team
         location: /

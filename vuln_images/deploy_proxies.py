@@ -53,6 +53,7 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
             })
 
         jinja2_variables = {
+            "service_name": service_name,
             "server_name": proxy.hostname if proxy.hostname else f"{service_name}.*",
             "use_ssl": proxy.certificate is not None,
             "ssl_certificate": f"/etc/ssl/{proxy.certificate}/fullchain.pem",
@@ -74,7 +75,7 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
 
 
 async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
-    typer.echo(f"Deploying proxy for {service_name}:{proxy.name} to {host}: {proxy}")
+    typer.echo(f"Deploying proxy for {service_name}:{proxy.name} to {host}")
     if proxy.type == "http":
         await deploy_http_proxy(host, team_id, service_name, proxy)
     else:
