@@ -55,7 +55,7 @@ scripts:
   build_outside_vm: make -j4
   # Second command: build_inside_vm
   # This command will be run inside the target VM. DON'T RUN YOUR SERVICE HERE,
-  # only build it. Most probably, it will be single `docker-compose build --pull` command here.
+  # only build it. Most probably, it will be single `docker compose build --pull` command here.
   build_inside_vm: docker compose -f /home/$USERNAME/docker-compose.yaml build --pull
   # Third command: start_one
   # As far as your docker containers should be restarted by docker daemon itself 
