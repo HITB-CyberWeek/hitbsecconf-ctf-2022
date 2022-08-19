@@ -46,7 +46,7 @@ jobs:
           cp ~/do_tokens.py "${{ github.workspace }}/ctf-cloud/cloud/cloud_master/files/api_srv/do_tokens.py";
       - name: Deploy new image to the cloud
         run: ansible-playbook -vv --private-key=~/cloud_ssh_private_key cloud_master.yaml
-        working-directory: "${{ github.workspace }}/ansible/"
+        working-directory: "${{ github.workspace }}/ctf-cloud/cloud/"
   recreate-team-vms:
     runs-on: self-hosted
     needs: [deploy-image]
