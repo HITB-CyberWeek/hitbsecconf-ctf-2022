@@ -56,12 +56,12 @@ scripts:
   # Second command: build_inside_vm
   # This command will be run inside the target VM. DON'T RUN YOUR SERVICE HERE,
   # only build it. Most probably, it will be single `docker-compose build --pull` command here.
-  build_inside_vm: docker-compose -f /home/$USERNAME/docker-compose.yaml build --pull
+  build_inside_vm: docker compose -f /home/$USERNAME/docker-compose.yaml build --pull
   # Third command: start_one
   # As far as your docker containers should be restarted by docker daemon itself 
   # (don't forget to specify "restart: unless-stopped" in your docker-compose.yaml!),
   # here we need a command which will be run only once, at first boot of team's VM.
-  start_once: docker-compose -f /home/$USERNAME/docker-compose.yaml up -d
+  start_once: docker compose -f /home/$USERNAME/docker-compose.yaml up -d
 
 # Here you have to specify files which we need to deliver to the VM.
 # You can upload a single file or a complete directory. 
