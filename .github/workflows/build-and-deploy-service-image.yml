@@ -59,6 +59,7 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.CLOUD_SSH_PRIVATE_KEY }}
       - name: Copy script 
-        run: scp -i ~/cloud_ssh_private_key ./scripts/recreate_team_vms.sh root@cloud.ctf.hitb.org:~/
+        run: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/cloud_ssh_private_key .github/scripts/recreate_team_vms.sh root@cloud.ctf.hitb.org:~/
       - name: Recreate team VMs
-        run: ssh -i ~/cloud_ssh_private_key root@cloud.ctf.hitb.org '~/recreate_team_vms.sh ${{ github.event.inputs.service_name }}'
+        run: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/cloud_ssh_private_key root@cloud.ctf.hitb.org '~/recreate_team_vms.sh ${{ github.event.inputs.service_name }}'
+
