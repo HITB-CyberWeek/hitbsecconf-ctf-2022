@@ -2,6 +2,7 @@ version: "2.4"
 
 x-sh: &sh-common
   build: .
+  image: sh:latest
   init: true
   restart: unless-stopped
   depends_on:
