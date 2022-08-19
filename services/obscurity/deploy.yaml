@@ -3,8 +3,8 @@ service: obscurity
 username: obscurity
 
 scripts:
-  build_inside_vm: docker compose -f /home/obscurity/docker-compose.yaml build --pull
-  start_once: docker compose -f /home/obscurity/docker-compose.yaml up -d
+  build_inside_vm: docker compose -f /home/obscurity/docker-compose.yml build --pull
+  start_once: docker compose -f /home/obscurity/docker-compose.yml up -d
 
 files:
   - source: ./deploy/
