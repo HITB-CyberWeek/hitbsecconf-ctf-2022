@@ -27,7 +27,7 @@ jobs:
       - name: Commit changes
         uses: EndBug/add-and-commit@v7
         with:
-          add: ansible/roles/cloud_master/files/api_srv/do_vulnimages.json
+          add: ctf-cloud/cloud/cloud_master/files/api_srv/do_vulnimages.json
           message: "[${{ github.event.inputs.service_name }}] New image built on ${{ github.sha }}"
           committer_name: GitHub Actions
           committer_email: actions@github.com
@@ -42,8 +42,8 @@ jobs:
           SSH_KEY: ${{ secrets.CLOUD_SSH_PRIVATE_KEY }}
       - name: Copy a-la-secret files
         run: |-
-          cp ~/do_deploy_key "${{ github.workspace }}/ansible/roles/cloud_master/files/api_srv/do_deploy_key";
-          cp ~/do_tokens.py "${{ github.workspace }}/ansible/roles/cloud_master/files/api_srv/do_tokens.py";
+          cp ~/do_deploy_key "${{ github.workspace }}/ctf-cloud/cloud/cloud_master/files/api_srv/do_deploy_key";
+          cp ~/do_tokens.py "${{ github.workspace }}/ctf-cloud/cloud/cloud_master/files/api_srv/do_tokens.py";
       - name: Deploy new image to the cloud
         run: ansible-playbook -vv --private-key=~/cloud_ssh_private_key cloud_master.yaml
         working-directory: "${{ github.workspace }}/ansible/"
