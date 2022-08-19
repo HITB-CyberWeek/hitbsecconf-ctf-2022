@@ -1,0 +1,22 @@
+version: 1
+service: obscurity
+username: obscurity
+
+scripts:
+  build_inside_vm: docker-compose -f /home/obscurity/docker-compose.yaml build --pull
+  start_once: docker-compose -f /home/obscurity/docker-compose.yaml up -d
+
+files:
+  - source: ./deploy/
+    destination: /home/obscurity
+
+proxies:
+  - type: http
+    name: main
+    target_host_index: 5
+    target_port: 3255
+    limits:
+      - source: team
+        location: /
+        limit: 1000r/m
+        burst: 100
