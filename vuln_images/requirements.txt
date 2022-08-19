@@ -5,3 +5,4 @@ colorama==0.4.5
 jinja2==3.1.2
 environs==9.5.0
 asyncssh==2.12.0
+python-digitalocean==1.17.0

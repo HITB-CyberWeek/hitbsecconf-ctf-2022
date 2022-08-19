@@ -4,7 +4,9 @@ map $binary_remote_addr $bin_slash24 {
 }
 
 {% for location in locations %}
-limit_req_zone $bin_slash24 zone=req_zone_{{ location.index }}:10m rate={{ location.limit }};
+    {% if location.limit %}
+        limit_req_zone $bin_slash24 zone=req_zone_{{ location.index }}:10m rate={{ location.limit }};
+    {% endif %}
 {% endfor %}
 
 server {
@@ -61,7 +63,9 @@ server {
 
     {% for location in locations %}
         location {{ location.location }} {
-            limit_req zone=req_zone_{{ location.index }} {% if location.burst > 0 %}burst={{ location.burst }} nodelay{% endif %};
+            {% if location.limit %}
+                limit_req zone=req_zone_{{ location.index }} {% if location.burst > 0 %}burst={{ location.burst }} nodelay{% endif %};
+            {% endif %}
 
             proxy_pass {{ target }};
             proxy_buffering off;

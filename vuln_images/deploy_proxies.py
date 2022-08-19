@@ -1,10 +1,13 @@
+#!/usr/bin/env python3
 import asyncio
 import ipaddress
 import os
 import pathlib
 import tempfile
+from typing import Optional
 
 import asyncssh
+import digitalocean
 import jinja2
 import typer
 
@@ -81,38 +84,62 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
 async def prepare_host_for_proxies(host: str):
     typer.echo(f"Preparing host {host} for being a proxy:")
     async with await create_ssh_connection(host) as ssh:
-        # 1. Generate dhparam — only once!
+        # 1. Install nginx
+        typer.echo("   Installing nginx and openssl")
+        await ssh.run("apt-get install -y nginx openssl")
+
+        # 2. Generate dhparam — only once!
         typer.echo("   Generating /etc/nginx/dhparam.pem if not exists")
         await ssh.run(
-            "/bin/bash -c '[ ! -f /etc/nginx/dhparam.pem ] && openssl dhparam -out /etc/nginx/dhparam.pem 4096'"
+            # Why we use -dsaparam? Because it's still secure and much more faster:
+            # https://security.stackexchange.com/questions/95178/diffie-hellman-parameters-still-calculating-after-24-hours
+            "/bin/bash -c '[ ! -f /etc/nginx/dhparam.pem ] && "
+            "openssl dhparam -dsaparam -out /etc/nginx/dhparam.pem 4096'"
         )
 
-        # 2. Copy TLS certificates
+        # 3. Copy TLS certificates
         for certificate_name, (chain, private_key) in settings.PROXY_CERTIFICATES.items():
             typer.echo(f"   Uploading /etc/ssl/{certificate_name}/{{fullchain.pem,privkey.pem}}")
             await ssh.run(f"mkdir -p /etc/ssl/{certificate_name}")
             await asyncssh.scp(chain.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/fullchain.pem"), preserve=True)
             await asyncssh.scp(private_key.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/privkey.pem"), preserve=True)
 
-        # 3. Copy too_many_requests.html
+        # 4. Copy too_many_requests.html
         typer.echo("   Uploading /var/www/html/too_many_requests.html")
         await asyncssh.scp("nginx/too_many_requests.html", (ssh, "/var/www/html/too_many_requests.html"))
 
 
 async def post_deploy(host: str, team_id: int):
     async with create_ssh_connection(host) as ssh:
-        typer.echo(f"   Reloading nginx on {host}")
+        typer.echo(f"Reloading nginx on {host}")
         await ssh.run("nginx -t", check=True)
         await ssh.run("systemctl reload nginx", check=True)
 
 
-async def deploy_proxies(config: DeployConfig, skip_preparation: bool):
+async def create_dns_record(host: str, service_name: str, team_id: int):
+    hostname = settings.DNS_RECORD_TEMPLATE.replace("$SERVICE", service_name).replace("$TEAM_ID", str(team_id))
+    typer.echo(f"Creating DNS record {hostname}.{settings.DNS_ZONE} → {host}")
+    domain = digitalocean.Domain(token=settings.DO_API_TOKEN, name=settings.DNS_ZONE)
+    domain.create_new_domain_record(
+        type="A",
+        name=hostname,
+        data=host
+    )
+
+
+async def deploy_proxies(config: DeployConfig, skip_preparation: bool, only_for_team_id: Optional[int]):
     for team_id, host in settings.PROXY_HOSTS.items():
+        if only_for_team_id is not None and only_for_team_id != team_id:
+            continue
+
         if not skip_preparation:
             await prepare_host_for_proxies(host)
 
         for proxy in config.proxies:
             await deploy_proxy(host, team_id, config.service, proxy)
+
+        if config.proxies:
+            await create_dns_record(host, config.service, team_id)
 
         await post_deploy(host, team_id)
 
@@ -120,14 +147,17 @@ async def deploy_proxies(config: DeployConfig, skip_preparation: bool):
 def main(
         config_path: typer.FileText,
         check: bool = typer.Option(False, "--check", help="Only check the config, don't deploy anything"),
-        skip_preparation: bool = typer.Option(False, "--skip-preparation",
-                                              help="Skip common preparation step: generating dhparam, copying certificates, ...")
+        skip_preparation: bool = typer.Option(
+            False, "--skip-preparation",
+            help="Skip common preparation step: generating dhparam, copying certificates, ..."
+        ),
+        team_id: Optional[int] = typer.Option(None, "--team-id", help="Deploy proxy only for specified team"),
 ):
     config = DeployConfigV1.parse_file(config_path.name)
     if check:
         raise typer.Exit()
 
-    asyncio.get_event_loop().run_until_complete(deploy_proxies(config, skip_preparation))
+    asyncio.get_event_loop().run_until_complete(deploy_proxies(config, skip_preparation, team_id))
 
 
 if __name__ == "__main__":
