@@ -1,0 +1,23 @@
+name: Update Checkers in the Checking System
+on:
+  workflow_dispatch: {}
+### Disabled by @andgein
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - "checkers/**"
+jobs:
+  update-checkers:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Save private key
+        run: 'echo "$SSH_KEY" > ~/cs_ssh_private_key; chmod 600 ~/cs_ssh_private_key'
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.CS_SSH_PRIVATE_KEY }}
+      - name: Deploy checkers to the checking system
+        run: ansible-playbook -vv --private-key=~/cs_ssh_private_key checkers.yml
+        working-directory: "${{ github.workspace }}/ansible/"

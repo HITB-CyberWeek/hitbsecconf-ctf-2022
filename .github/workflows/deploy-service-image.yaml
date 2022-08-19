@@ -1,0 +1,41 @@
+name: Deploy Service Image
+on:
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: "Name of the service"
+        required: true
+jobs:
+  deploy-image:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Save private key
+        run: 'echo "$SSH_KEY" > ~/cloud_ssh_private_key; chmod 600 ~/cloud_ssh_private_key'
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.CLOUD_SSH_PRIVATE_KEY }}
+      - name: Copy a-la-secret files
+        run: |-
+          cp ~/do_deploy_key "${{ github.workspace }}/ctf-cloud/cloud/cloud_master/files/api_srv/do_deploy_key";
+          cp ~/do_tokens.py "${{ github.workspace }}/ctf-cloud/cloud/cloud_master/files/api_srv/do_tokens.py";
+      - name: Deploy new image to the cloud
+        run: ansible-playbook -vv --private-key=~/cloud_ssh_private_key cloud_master.yaml
+        working-directory: "${{ github.workspace }}/ctf-cloud/cloud/"
+  recreate-team-vms:
+    runs-on: self-hosted
+    needs: [deploy-image]
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Save private key
+        run: 'echo "$SSH_KEY" > ~/cloud_ssh_private_key; chmod 600 ~/cloud_ssh_private_key'
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.CLOUD_SSH_PRIVATE_KEY }}
+      - name: Copy script 
+        run: scp -i ~/cloud_ssh_private_key ./scripts/recreate_team_vms.sh root@cloud.ctf.hitb.org:~/
+      - name: Recreate team VMs
+        run: ssh -i ~/cloud_ssh_private_key root@cloud.ctf.hitb.org '~/recreate_team_vms.sh ${{ github.event.inputs.service_name }}'
+

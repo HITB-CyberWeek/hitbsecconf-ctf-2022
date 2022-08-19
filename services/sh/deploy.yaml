@@ -33,7 +33,8 @@ files:
 proxies:
   - type: http
     name: main
-    target_host_index: 8
+    certificate: wildcard.ctf.hitb.org
+    target_host_index: 9
     target_port: 80
     limits:
       - source: team
