@@ -1,0 +1,36 @@
+<header class="mb-auto">
+    <div>
+        <h3 class="float-md-start mb-0">Wallet {% if user %}({{ user.balance }} CTF){% endif %}</h3>
+        <nav class="nav nav-masthead justify-content-center float-md-end">
+            <a class="nav-link fw-bold py-1 px-0 {% if request_uri == '/' %}active{% endif %}" href="/">
+                Home
+            </a>
+            <a class="nav-link fw-bold py-1 px-0  {% if request_uri == '/donators' %}active{% endif %}"
+               href="/donators">
+                Donators
+            </a>
+            {% if not user %}
+                <a class="nav-link fw-bold py-1 px-0  {% if request_uri == '/signin' %}active{% endif %}"
+                   href="/signin">
+                    Sign In
+                </a>
+                <a class="nav-link fw-bold py-1 px-0 {% if request_uri == '/signup' %}active{% endif %}" href="/signup">
+                    Sign Up
+                </a>
+            {% else %}
+                <a class="nav-link fw-bold py-1 px-0  {% if request_uri == '/transactions' %}active{% endif %}"
+                   href="/transactions">
+                    Transactions
+                </a>
+                <a class="nav-link fw-bold py-1 px-0  {% if request_uri == '/transfer' %}active{% endif %}"
+                   href="/transfer">
+                    Transactions
+                </a>
+                <a class="nav-link fw-bold py-1 px-0"
+                   href="/exit">
+                    Exit
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+</header>

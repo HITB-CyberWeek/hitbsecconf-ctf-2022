@@ -1,0 +1,28 @@
+{% extends "base.twig" %}
+{% block title %}Sign In{% endblock %}
+{% block content %}
+    <h1>Sign In</h1>
+    <form method="post">
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="email" aria-describedby="emailHelp" name="email">
+            {% if errors.email %}
+                <p>{{ errors.email }}</p>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password">
+            {% if errors.password %}
+                <p>{{ errors.password }}</p>
+            {% endif %}
+        </div>
+
+        <div class="mb-3" style="text-align: left">
+
+            <a href="/recovery" class="link-light">Recovery</a>
+        </div>
+        <button type="submit" class="btn btn-primary">Sign in</button>
+    </form>
+
+{% endblock %}

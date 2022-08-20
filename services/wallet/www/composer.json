@@ -1,0 +1,12 @@
+{
+  "autoload": {
+    "psr-4": {
+      "App\\": "html/app/"
+    }
+  },
+  "require": {
+    "twig/twig": "^3.0",
+    "bramus/router": "~1.6",
+    "rakit/validation": "^1.4"
+  }
+}

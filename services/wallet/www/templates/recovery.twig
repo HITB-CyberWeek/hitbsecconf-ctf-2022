@@ -1,0 +1,67 @@
+{% extends "base.twig" %}
+{% block title %}Recovery{% endblock %}
+{% block content %}
+
+    <h1>Recovery</h1>
+    {% if recovery_step == 0 %}
+        <form method="post">
+            <div class="mb-3">
+                <input type="hidden" name="step" value="{{ recovery_step+1 }}">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="email" aria-describedby="emailHelp" name="email">
+                {% if errors.email %}
+                    <p>{{ errors.email }}</p>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary">Next step</button>
+        </form>
+    {% elseif recovery_step == 1 %}
+        <form method="post" >
+            <div class="mb-3" style="text-align: left;">
+                <input type="hidden" name="step" value="{{ recovery_step+1 }}">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" value="email" id="recovery_type_email"
+                           name="recovery_type">
+                    <label class="form-check-label" for="recovery_type_email">
+                        Email
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" value="code" id="recovery_type_code"
+                           name="recovery_type">
+                    <label class="form-check-label" for="recovery_type_code">
+                        Secret code
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Next step</button>
+        </form>
+    {% elseif recovery_step == 2 and recovery_type == "code" %}
+        <form method="post">
+            <input type="hidden" name="step" value="{{ recovery_step+1 }}">
+            <div class="mb-3">
+
+                <label for="code" class="form-label">Secret code #{{ secret_number }}</label>
+                <input type="text" class="form-control" id="code" name="code">
+
+                {% if errors.code %}
+                    <p>{{ errors.code }}</p>
+                {% endif %}
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">New password</label>
+                <input type="password" class="form-control" id="password" name="password">
+                {% if errors.password %}
+                    <p>{{ errors.password }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Recovery</button>
+        </form>
+    {% elseif recovery_step == 2 and recovery_type == "email" %}
+        <p>Error send mail</p>
+    {% elseif recovery_step == 3 %}
+        <p>Set new password </p>
+    {% endif %}
+
+{% endblock %}

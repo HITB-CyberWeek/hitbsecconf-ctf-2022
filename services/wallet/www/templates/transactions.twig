@@ -1,0 +1,33 @@
+{% extends "base.twig" %}
+{% block title %}Transactions{% endblock %}
+{% block content %}
+    <h1>Transactions</h1>
+    <table class="table table-hover table-dark table-striped">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Date</th>
+            <th scope="col">From/To</th>
+            <th scope="col">{{ transaction.comment }}</th>
+            <th scope="col">Sum</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.id }}</td>
+                <td>{{ transaction.createdAt }}</td>
+                {% if transaction.type == "donate" or transaction.otherWalletId==0 %}
+                    <td>Platform</td>
+                {% else %}
+                    <td>{{ transaction.otherUsername }}</td>
+                {% endif %}
+                <td>{{ transaction.comment }}</td>
+                <td>{% if transaction.value > 0 %}+{% endif %}{{ transaction.value }} CTF</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+{% endblock %}

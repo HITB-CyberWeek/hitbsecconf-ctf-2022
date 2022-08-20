@@ -1,0 +1,118 @@
+{% extends "base.twig" %}
+{% block title %}Transfer{% endblock %}
+{% block content %}
+
+    <h1>Transfer</h1>
+    {% if session.transfer_step == 3 %}
+        <p>
+            Transfer done!
+        </p>
+    {% else %}
+        <form method="post">
+
+            <input type="hidden" name="step" id="step" value="{{ session.transfer_step+1 }}">
+            {% if transfer_error %}
+                <p>{{ transfer_error }}</p>
+            {% endif %}
+            {% if session.transfer_step == 0 %}
+                <input type="hidden" value="{% if post.action %}{{ post.action }}{% else %}transfer{% endif %}"
+                       id="action" name="action">
+                <div class="md-3" style="text-align: left;">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="donate"
+                               {% if post.action == "donate" %}checked {% endif %}>
+
+                        <label class="form-check-label" for="donate">Donate</label>
+                    </div>
+
+                </div>
+                <div class="mb-3" id="to_wallet" {% if post.action == "donate" %}style="display: none" {% endif %}>
+                    <label for="to_user_id" class="form-label">To wallet</label>
+                    <select class="form-select" aria-label="Default select example" name="to_user_id" id="to_user_id">
+                        <option selected>Open this select wallet</option>
+                        {% for user in other_user %}
+                            <option value="{{ user.id }}"
+                                    {% if post.to_user_id == user.id %}selected{% endif %}>{{ user.email }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if errors.to_user_id %}
+                        <p>{{ errors.to_user_id }}</p>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="sum" class="form-label">Transaction sum</label>
+                    <input type="text" class="form-control" id="sum" name="sum"
+                           value="{% if post.sum %}{{ post.sum }}{% endif %}">
+                    {% if errors.sum %}
+                        <p>{{ errors.sum }}</p>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="comment" class="form-label">Comment</label>
+                    <textarea class="form-control" id="comment" rows="3"
+                              name="comment">{% if post.comment %}{{ post.comment }}{% endif %}</textarea>
+                    {% if errors.comment %}
+                        <p>{{ errors.comment }}</p>
+                    {% endif %}
+                </div>
+            {% elseif session.transfer_step == 1 %}
+                <table class="table table-hover table-dark table-striped">
+                    <tr>
+                        <th>From</th>
+                        <td>{{ user.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>To</th>
+                        {% if transfer_to_username %}
+                            <td>{{ transfer_to_username }}</td>
+                        {% else %}
+                            <td>Wallet platform</td>
+                        {% endif %}
+                    </tr>
+                    <tr>
+                        <th>Sum</th>
+
+                        <td>{{ session.transfer_sum }} CTF</td>
+                    </tr>
+                    <tr>
+                        <th>Comment</th>
+
+                        <td>{{ session.transfer_comment }}</td>
+                    </tr>
+                </table>
+            {% elseif session.transfer_step == 2 %}
+                <div class="mb-3">
+                    <label for="code" class="form-label">Secret code #{{ secret_number }}</label>
+                    <input type="text" class="form-control" id="code" name="code">
+                    {% if errors.code %}
+                        <p>{{ errors.code }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if session.transfer_step == 1 %}
+                <button type="submit" class="btn btn-danger" id="back">Back</button>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">Send</button>
+        </form>
+    {% endif %}
+{% endblock %}
+
+{% block script %}
+    <script>
+        $("#back").click(
+            function () {
+                $("#step").val($("#step").val() - 2);
+            }
+        );
+        $('#donate').change(function (event) {
+            $('#to_wallet').toggle()
+            if (event.currentTarget.checked) {
+                $("#action").val("donate");
+                console.log("donate");
+            } else {
+                $("#action").val("transfer");
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,4 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+AddDefaultCharset UTF-8
+RewriteRule ^(.+)$ index.php?q=$1 [L,QSA]

@@ -1,0 +1,14 @@
+{% extends "base.twig" %}
+
+{% block title %}Index{% endblock %}
+
+{% block content %}
+    <h1>Index</h1>
+    <p class="important">
+        {% if user %}
+            Welcome {{ user.username }}. Wallet balance: {{ user.balance }} ctf.
+        {% else %}
+            Welcome!
+        {% endif %}
+    </p>
+{% endblock %}
