@@ -233,7 +233,7 @@ if sys.argv[1] == 'check':
     id2 = StoreVal(proc,p2)
 
     val2 = LoadVal(proc,id2)
-    print(val2,s2)
+    #print(val2,s2)
     if val2 !=s2:
         print("Value was not received")
         exit(102)

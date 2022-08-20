@@ -587,6 +587,7 @@ void sanitize(char *buffer){
         }
     }
 }
+/*
 void Test1(){
     char buf[] = "\x7d";
     Element *pel;
@@ -656,11 +657,6 @@ void Test8(){
     printf("DEBUG ptr %p\n",pel_3);
     std::cout<<pel_3->toStr()<<"\n";
 }
-/*
- 11111111
- lLbQcjdBCzjC
- YMATkAxcETWj
- */
 void Test9(){
     char *buf = "83D9026964d9083131313131313131d904666c6167d90e7364666173646673646661736466d90870617373776f7264d9083132333435363738";
     char * buf2 = "d9FFaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaad930";
@@ -700,7 +696,7 @@ void Test9(){
     std::cout<<pel_4->toStr()<<"\n";
 
 }
-
+*/
 /*
 {
     id: "11111111",
