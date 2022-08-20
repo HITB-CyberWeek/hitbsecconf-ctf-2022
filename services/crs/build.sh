@@ -4,6 +4,6 @@ set -eux
 cd img
 
 ./get.sh
-./mount.sh
-./prepare.sh
-./umount.sh
+sudo ./mount.sh
+sudo ./prepare.sh
+sudo ./umount.sh

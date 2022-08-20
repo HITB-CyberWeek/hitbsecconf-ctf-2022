@@ -8,7 +8,7 @@ if [ -f "$CACHE" ]; then
     echo "Cached file exists at '$CACHE'."
 else
     echo "Downloading $URL to '$CACHE' ..."
-    wget $URL -O $CACHE
+    wget --no-verbose $URL -O $CACHE
 fi
 
 echo "Copying to working directory ..."
