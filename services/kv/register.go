@@ -10,8 +10,8 @@ import (
 )
 
 type RegisterResp struct {
-	ClientID     string `json:"user_id"`
-	ClientSecret string `json:"token"`
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
 }
 
 // func (u *TokenResp Bind(r *http.Request) error {
