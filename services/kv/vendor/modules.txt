@@ -24,5 +24,8 @@ github.com/go-redis/redis/v8/internal/pool
 github.com/go-redis/redis/v8/internal/proto
 github.com/go-redis/redis/v8/internal/rand
 github.com/go-redis/redis/v8/internal/util
+# github.com/google/uuid v1.3.0
+## explicit
+github.com/google/uuid
 # github.com/mattn/go-sqlite3 v1.14.15
 ## explicit; go 1.16
