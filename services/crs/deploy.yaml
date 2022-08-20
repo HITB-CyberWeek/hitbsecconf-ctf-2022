@@ -3,7 +3,8 @@ service: crs
 username: crs
 scripts:
   build_outside_vm: ./build.sh
-  start_once: ./boot.sh
+  build_inside_vm: true
+  start_once: ./boot.sh # FIXME: docker
 files:
   - source: ./img/qemu.img
     destination: /root
