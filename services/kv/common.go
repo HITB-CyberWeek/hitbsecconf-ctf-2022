@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/sha256"
-	"encoding/binary"
 	"encoding/hex"
 	"net/http"
 
@@ -62,10 +61,10 @@ func Hash(b []byte) []byte {
 	return hasher.Sum(nil)
 }
 
-func Key(token uint16, filename string) string {
-	key := make([]byte, 2)
-	binary.LittleEndian.PutUint16(key, token)
-	key = append(key, []byte(filename)...)
-	keyStr := hex.EncodeToString(Hash(key)[:8])
-	return keyStr
-}
+// func Key(token uint16, filename string) string {
+// 	key := make([]byte, 2)
+// 	binary.LittleEndian.PutUint16(key, token)
+// 	key = append(key, []byte(filename)...)
+// 	keyStr := hex.EncodeToString(Hash(key)[:8])
+// 	return keyStr
+// }

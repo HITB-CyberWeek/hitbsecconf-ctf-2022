@@ -29,7 +29,6 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 	r.Post("/register", RegisterHandler(db))
-	r.Post("/token", NewTokenHandler(db))
 	r.Put("/kv/{filename}", SetHandler(db))
 	r.Get("/kv/{filename}", GetHandler(db))
 	http.ListenAndServe(":3000", r)
