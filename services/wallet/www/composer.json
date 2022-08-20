@@ -1,7 +1,7 @@
 {
   "autoload": {
     "psr-4": {
-      "App\\": "html/app/"
+      "App\\": "html/App/"
     }
   },
   "require": {
