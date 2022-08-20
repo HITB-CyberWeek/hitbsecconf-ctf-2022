@@ -100,7 +100,7 @@ proxies:
       # Client certificate name (as specified in PROXY_CERTIFICATES in settings.py).
       # Optional. Specify only if you want to check client certificate on
       # the proxy side.
-      client_certificate: n0tes
+      client_certificate: n0tes_client
     upstream:
       # Host's index on team's network where proxy should send all requests.
       # I.e, if service is deployed on 10.60.10.3, specify 3 here.
@@ -113,7 +113,7 @@ proxies:
       # Client certificate name (as specified in PROXY_CERTIFICATES in settings.py)
       # to be used for upstream requests.
       # Optional. Specify only if your backend checks client certificate.
-      client_certificate: n0tes
+      client_certificate: n0tes_client
     # List of limits (can be empty).
     limits:
       # Only "team" is supported now. It means that limit will be applied per-/24 network.

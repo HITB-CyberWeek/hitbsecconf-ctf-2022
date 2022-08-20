@@ -116,7 +116,7 @@ class ProxyConfigV1(YamlModel):
     listener: ListenerConfigV1
     upstream: UpstreamConfigV1
     limits: List[ProxyLimit] = []
-    dns_records: List[str]
+    dns_records: List[str] = []
 
 
 class DeployConfigV1(YamlModel):
