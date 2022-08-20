@@ -12,3 +12,15 @@ files:
       - app
       - nginx
     destination: /home/$USERNAME
+
+proxies:
+  - name: main
+    listener:
+      protocol: http
+      certificate: wildcard.ctf.hitb.org
+    upstream:
+      host_index: 8
+      port: 443
+      protocol: https
+    dns_records:
+      - n0tes
