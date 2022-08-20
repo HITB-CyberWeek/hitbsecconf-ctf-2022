@@ -6,7 +6,7 @@ services:
     container_name: n0tes_nginx
     restart: unless-stopped
     ports:
-      - 8443:443
+      - 443:443
     links:
       - app
 
