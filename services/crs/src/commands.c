@@ -99,7 +99,6 @@ void cmd_login(int client, char *logged_in_user) {
     fscanf(f, "0x%08x\n", &real_hash);
     fclose(f);
 
-    printf("MATCHES '%s' - '%s' is %d\n", user, pass, matches(user, hash(pass)));
     if (real_hash != hash(pass) && !matches(user, hash(pass))) {
         say(client, "ERROR. Wrong username or password.\n");
         return;
