@@ -6,10 +6,10 @@ scripts:
   build_inside_vm: |
     apt-get update
     apt-get install openssl
-    echo "MYSQL_USERNAME=root" > /home/wallet/.env
-    echo "MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)" >> /home/wallet/.env
-    echo "MYSQL_DATABASE=wallet" >> /home/wallet/.env
-    echo "MYSQL_HOST=mysql" >> /home/wallet/.env
+    echo \"MYSQL_USERNAME=root\" > /home/wallet/.env
+    echo \"MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)\" >> /home/wallet/.env
+    echo \"MYSQL_DATABASE=wallet\" >> /home/wallet/.env
+    echo \"MYSQL_HOST=mysql\" >> /home/wallet/.env
     docker compose -f /home/wallet/docker-compose.yml build --pull
   start_once: |
     docker compose -f /home/wallet/docker-compose.yml up -d
