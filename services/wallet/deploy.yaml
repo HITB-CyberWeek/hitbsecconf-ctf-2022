@@ -1,0 +1,34 @@
+version: 1
+service: wallet
+username: wallet
+
+scripts:
+  build_inside_vm: |
+    apt-get update
+    apt-get install openssl
+    docker compose -f /home/wallet/docker-compose.yml build --pull
+  start_once: |
+    echo "MYSQL_USERNAME=root" > /home/$USERNAME/.env
+    echo "MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)" >> /home/$USERNAME/.env
+    echo "MYSQL_DATABASE=wallet" >> /home/$USERNAME/.env
+    echo "MYSQL_HOST=mysql" >> /home/$USERNAME/.env
+    docker compose -f /home/wallet/docker-compose.yml up -d
+
+files:
+  - source:
+      - ./docker-compose.yml
+      - ./www
+      - ./docker
+    destination: /home/wallet
+
+proxies:
+  - type: http
+    name: main
+    target_host_index: 11
+    target_port: 80
+    certificate: wildcard.ctf.hitb.org
+    limits:
+      - source: team
+        location: /
+        limit: 5r/m
+        burst: 5
