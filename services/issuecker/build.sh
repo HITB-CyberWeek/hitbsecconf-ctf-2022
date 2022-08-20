@@ -1,2 +1,1 @@
-g++ -static -std=c++2a -pthread -I crow -g -ggdb -O0 -fno-stack-protector main.cpp -o app
-
+g++ -static main.cpp api.cpp fly_redis.cpp -std=c++2a -pthread -lpthread -lboost_thread -lboost_system -lboost_timer -lboost_chrono -lrt -lboost_filesystem -lboost_program_options -lboost_regex -lcgicc -g -ggdb -O0 -fno-stack-protector -o app
