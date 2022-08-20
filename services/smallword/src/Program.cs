@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography;
 
 const string settingsFilePath = "settings/settings.ini";
@@ -13,7 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
     .AddIniFile(settingsFilePath);
 builder.WebHost
-    .UseKestrel(opts => opts.Limits.MaxRequestBodySize = 8192);
+    .UseKestrel(opts =>
+    {
+        opts.Listen(IPAddress.Any, 5073);
+        opts.Limits.MaxRequestBodySize = 8192;
+    });
 builder.Services
     .AddControllers(options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true)
     .AddJsonOptions(options => options.JsonSerializerOptions.IncludeFields = true);
