@@ -8,7 +8,7 @@ scripts:
 
 files:
   - sources:
-      - docker-compose.yaml
+      - docker-compose.yml
       - app
       - nginx
     destination: /home/$USERNAME
