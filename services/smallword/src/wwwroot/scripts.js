@@ -122,7 +122,7 @@ tinymce.init({
 			.then(handleErrors)
 			.then(response => {
 				closeall();
-				notifier.open({text: 'saved', type: 'success', closeButton: false, timeout: 221500});
+				notifier.open({text: 'saved', type: 'success', closeButton: false, timeout: 1500});
 				history.pushState(null, null, '#' + encodeURIComponent(fileId));
 			})
 			.catch(e => {
