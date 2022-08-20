@@ -141,7 +141,7 @@ async def create_dns_record(hostname: str, value: str):
                 typer.echo(f"DNS record already exists: {hostname}.{settings.DNS_ZONE} → {value}")
             return
 
-    typer.echo(f"Creating DNS record {hostname}.{settings.DNS_ZONE} → {host}")
+    typer.echo(f"Creating DNS record {hostname}.{settings.DNS_ZONE} → {value}")
     domain.create_new_domain_record(
         type="A",
         name=hostname,
