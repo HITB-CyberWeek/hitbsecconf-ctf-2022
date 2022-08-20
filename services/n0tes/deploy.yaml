@@ -24,3 +24,15 @@ proxies:
       protocol: https
     dns_records:
       - n0tes
+
+  - name: admin
+    listener:
+      protocol: http
+      hostname: admin.n0tes.ctf.hitb.org
+      certificate: admin.n0tes.ctf.hitb.org
+      client_certificate: n0tes_client
+    upstream:
+      host_index: 8
+      port: 443
+      protocol: https
+      client_certificate: n0tes_client
