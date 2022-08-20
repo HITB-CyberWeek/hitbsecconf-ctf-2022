@@ -1,10 +1,17 @@
-if(!File.Exists("settings/settings.ini"))
-    File.WriteAllText("settings/settings.ini", $"key = {Guid.NewGuid()}");
+using System.Security.Cryptography;
+
+const string settingsFilePath = "settings/settings.ini";
+
+if(!File.Exists(settingsFilePath))
+{
+    Directory.CreateDirectory(Path.GetDirectoryName(settingsFilePath)!);
+    File.WriteAllText(settingsFilePath, $"key = {new Guid(RandomNumberGenerator.GetBytes(16))}");
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
-    .AddIniFile("settings/settings.ini");
+    .AddIniFile(settingsFilePath);
 builder.WebHost
     .UseKestrel(opts => opts.Limits.MaxRequestBodySize = 8192);
 builder.Services

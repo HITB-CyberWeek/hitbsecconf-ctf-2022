@@ -2,11 +2,14 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -18,6 +21,11 @@ func Key(db *redis.Client, r *http.Request) (string, error) {
 	filename := chi.URLParam(r, "filename")
 	if filename == "" {
 		return "", errors.New("filename should not be empty")
+	}
+	filename, err := url.QueryUnescape(filename)
+	if err != nil {
+		return "", err
+		//return "", errors.New("filename err")
 	}
 
 	clientId := r.Header.Get("X-Client-ID")
@@ -39,17 +47,30 @@ func Key(db *redis.Client, r *http.Request) (string, error) {
 		return "", errors.New("wrong secret")
 	}
 
-	c, err := strconv.ParseUint(clientId, 10, 64)
+	c, err := strconv.Atoi(clientId)
 	if err != nil {
 		return "", errors.New("wrong clientId")
 	}
 
+	fmt.Printf("CLIENT_ID:%d\n", c)
+
 	// TODO: Fix me
-	key := make([]byte, 10)
-	binary.LittleEndian.PutUint64(key, c)
+	key := make([]byte, 2)
+	binary.BigEndian.PutUint16(key, uint16(c%math.MaxUint16))
 
 	key = append(key, []byte(filename)...)
-	keyStr := fmt.Sprintf("%d", binary.LittleEndian.Uint64(Hash(key)[len(key)-8:len(key)]))
+	keyHash := Hash(key)
+
+	fmt.Println("DEBUG:")
+	fmt.Println(hex.EncodeToString([]byte(filename)))
+
+	fmt.Println(len(key))
+	fmt.Println(hex.EncodeToString(key))
+	fmt.Println(hex.EncodeToString(keyHash))
+	fmt.Println("======")
+
+	keyStr := fmt.Sprintf("%d", binary.LittleEndian.Uint64(keyHash[len(keyHash)-8:]))
+	fmt.Printf("keyStr:%s\n", keyStr)
 	return keyStr, nil
 }
 
