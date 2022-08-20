@@ -18,10 +18,11 @@ public class User
     [ProtoMember(7)] public string Surname;
     [ProtoMember(8)] public string Patronymic;
     [ProtoMember(9)] public string Login;
-    public string Password;
+    [ProtoIgnore] public string Password;
     [JsonIgnore] [ProtoMember(10)] public byte[] Salt;
     [JsonIgnore] [ProtoMember(11)] public byte[] PasswordHash;
-    [ProtoMember(12)] public DateTime Created;
+    [ProtoMember(12)] public string Hobby;
+    [ProtoMember(13)] public DateTime Created;
 
     public Guid UserId => Login.ToUserId();
 }
@@ -143,5 +144,5 @@ public static class PasswordHelper
     }
 
     private static byte[] HashPassword(string password, byte[] salt, byte[] pepper)
-        => KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA256, iterationCount: 11, pepper.Length).Select((b, i) => (byte)(b ^ pepper[i])).ToArray();
+        => KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA256, iterationCount: 7, 256 / 8).Select((b, i) => (byte)(b ^ pepper[i % pepper.Length])).ToArray();
 }

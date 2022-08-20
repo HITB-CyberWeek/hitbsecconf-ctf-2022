@@ -2,9 +2,64 @@ html, body: {
 	height: 100%;
 }
 
+.container {
+	display: grid;
+	grid-template-columns: 1fr 100px;
+	grid-template-rows: 60px 1fr;
+	gap: 0px 0px;
+	grid-auto-flow: row;
+	position: fixed;
+	top: 10px;
+	left: 10px;
+	right: 10px;
+	bottom: 10px;
+}
+
+.header {
+	grid-area: 1 / 1 / 2 / 3;
+	vertical-align: middle;
+	text-align: right;
+	line-height: 60px;
+	font-weight: bold;
+	color: #3e7bd2;
+}
+
+.main {
+	grid-area: 2 / 1 / 3 / 3;
+}
+
+.panel {
+	grid-area: 2 / 2 / 3 / 3;
+}
+
+.logo {
+	position: absolute;
+	left: 12px;
+	top: 12px;
+}
+
+#auth {
+	padding-right: 12px
+}
+
+input {
+	margin: 5px 0 !important;
+}
+input.swal-button {
+	margin-left: 5px !important;
+}
+
+a.filelink {
+	background: url(word.svg) top center no-repeat;
+	display: block;
+	text-align: center;
+	padding-top: 32px;
+	margin: 0 auto 8px;
+	filter: drop-shadow(2px 4px 6px #999);
+}
+
 .tox { font-size: 11px !important; }
 .tox-notifications-container {
-	top: -72px !important;
 	opacity: 0.8;
 	scale: 0.8;
 }
