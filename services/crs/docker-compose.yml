@@ -1,0 +1,10 @@
+version: '3'
+services:
+  crs:
+    container_name: crs
+    restart: unless-stopped
+    build: .
+    ports:
+      - 14444:14444
+    volumes:
+      - ./:/app

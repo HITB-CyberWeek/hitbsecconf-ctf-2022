@@ -3,10 +3,12 @@ service: crs
 username: crs
 scripts:
   build_outside_vm: ./build.sh
-  build_inside_vm: echo
-  start_once: ./boot.sh # FIXME: docker
+  build_inside_vm: docker compose -f /home/$USERNAME/docker-compose.yml build --pull
+  start_once: docker compose -f /home/$USERNAME/docker-compose.yml up -d
 files:
-  - source: ./img/qemu.img
-    destination: /root
-  - source: ./img/boot.sh
-    destination: /root
+  - sources:
+      - ./img/qemu.img
+      - ./img/boot.sh
+      - ./Dockerfile
+      - ./docker-compose.yml
+    destination: /home/$USERNAME
