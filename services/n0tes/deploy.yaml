@@ -1,0 +1,14 @@
+version: 1
+service: n0tes
+username: n0tes
+
+scripts:
+  build_inside_vm: docker compose -f /home/$USERNAME/docker-compose.yml build --pull
+  start_once: docker compose -f /home/$USERNAME/docker-compose.yml up -d
+
+files:
+  - sources:
+      - docker-compose.yaml
+      - app
+      - nginx
+    destination: /home/$USERNAME
