@@ -54,13 +54,13 @@ class FileDeployConfigV1(YamlModel):
         return result
 
 
-class ProxyType(YamlStrEnum):
-    HTTP = 'http'
-    # TCP = 'tcp'
+class ListenerProtocol(YamlStrEnum):
+    # TCP = "tcp"
+    HTTP = "http"
 
 
 class ProxySource(YamlStrEnum):
-    TEAM = 'team'
+    TEAM = "team"
 
 
 class ProxyLimit(YamlModel):
@@ -70,17 +70,27 @@ class ProxyLimit(YamlModel):
     burst: NonNegativeInt = 0
 
 
-class ProxyConfigV1(YamlModel):
-    type: ProxyType
-    name: constr(min_length=1)
+class UpstreamProtocol(YamlStrEnum):
+    TCP = "tcp"
+    HTTP = "http"
+    HTTPS = "https"
+
+
+class UpstreamConfigV1(YamlModel):
+    host_index: PositiveInt
+    port: conint(gt=0, le=65535)
+    protocol: UpstreamProtocol = UpstreamProtocol.HTTP
+    client_certificate: Optional[str]
+
+
+class ListenerConfigV1(YamlModel):
+    protocol: ListenerProtocol
+    port: Optional[conint(gt=0, le=65535)] = None
     hostname: Optional[str] = None
     certificate: Optional[str] = None
-    port: Optional[conint(gt=0, le=65535)] = None
-    target_host_index: PositiveInt
-    target_port: conint(gt=0, le=65535)
-    limits: List[ProxyLimit] = []
+    client_certificate: Optional[str] = None
 
-    @validator("certificate")
+    @validator("certificate", "client_certificate")
     def _validate_certificate(cls, certificate: Optional[str]) -> Optional[str]:
         if certificate is not None:
             assert certificate in settings.PROXY_CERTIFICATES, f"unknown certificate name: {certificate}"
@@ -92,13 +102,21 @@ class ProxyConfigV1(YamlModel):
         if port is not None:
             return port
 
-        if values["type"] == "http":
+        if values["protocol"] == "http":
             if "certificate" not in values or values["certificate"] is None:
                 return 80
             if values["certificate"] is not None:
                 return 443
 
-        raise ValueError(f"Port should be specified for proxy of type {values['type']}")
+        raise ValueError(f"Port should be specified for proxy of type {values['protocol']}")
+
+
+class ProxyConfigV1(YamlModel):
+    name: constr(min_length=1)
+    listener: ListenerConfigV1
+    upstream: UpstreamConfigV1
+    limits: List[ProxyLimit] = []
+    dns_records: List[str]
 
 
 class DeployConfigV1(YamlModel):

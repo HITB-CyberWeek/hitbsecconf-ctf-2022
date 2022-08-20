@@ -31,8 +31,8 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
             team_id * (2 ** (32 - settings.TEAM_NETWORK_MASK))
         ]
         team_network = ipaddress.IPv4Network(f"{team_network_ip}/{settings.TEAM_NETWORK_MASK}")
-        target_ip = team_network[proxy.target_host_index]
-        target = f"http://{target_ip}:{proxy.target_port}"
+        upstream_ip = team_network[proxy.upstream.host_index]
+        upstream = f"{proxy.upstream.protocol}://{upstream_ip}:{proxy.upstream.port}"
 
         locations = []
         has_global_location = False
@@ -54,11 +54,23 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
 
         jinja2_variables = {
             "service_name": service_name,
-            "server_name": proxy.hostname if proxy.hostname else f"{service_name}.*",
-            "use_ssl": proxy.certificate is not None,
-            "ssl_certificate": f"/etc/ssl/{proxy.certificate}/fullchain.pem",
-            "ssl_certificate_key": f"/etc/ssl/{proxy.certificate}/privkey.pem",
-            "target": target,
+            "server_name": proxy.listener.hostname if proxy.listener.hostname else f"{service_name}.*",
+            "use_ssl": proxy.listener.certificate is not None,
+            "ssl_certificate": f"/etc/ssl/{proxy.listener.certificate}/fullchain.pem",
+            "ssl_certificate_key": f"/etc/ssl/{proxy.listener.certificate}/privkey.pem",
+            "client_certificate": (
+                f"/etc/ssl/{proxy.listener.client_certificate}/fullchain.pem"
+                if proxy.listener.client_certificate else None
+            ),
+            "upstream": upstream,
+            "upstream_client_certificate": (
+                f"/etc/ssl/{proxy.upstream.client_certificate}/fullchain.pem"
+                if proxy.upstream.client_certificate else None
+            ),
+            "upstream_client_certificate_key": (
+                f"/etc/ssl/{proxy.upstream.client_certificate}/privkey.pem"
+                if proxy.upstream.client_certificate else None
+            ),
             "locations": locations,
         }
         template = jinja2.Template((CURRENT_FOLDER / "nginx/http_server.conf.jinja2").read_text())
@@ -76,10 +88,10 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
 
 async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
     typer.echo(f"Deploying proxy for {service_name}:{proxy.name} to {host}")
-    if proxy.type == "http":
+    if proxy.listener.protocol == "http":
         await deploy_http_proxy(host, team_id, service_name, proxy)
     else:
-        raise ValueError(f"Unknown proxy type for deploying: {proxy.type}")
+        raise ValueError(f"Unknown proxy type for deploying: {proxy.listener.protocol}")
 
 
 async def prepare_host_for_proxies(host: str):
@@ -117,14 +129,23 @@ async def post_deploy(host: str, team_id: int):
         await ssh.run("systemctl reload nginx", check=True)
 
 
-async def create_dns_record(host: str, service_name: str, team_id: int):
-    hostname = settings.DNS_RECORD_TEMPLATE.replace("$SERVICE", service_name).replace("$TEAM_ID", str(team_id))
-    typer.echo(f"Creating DNS record {hostname}.{settings.DNS_ZONE} → {host}")
+async def create_dns_record(hostname: str, value: str):
     domain = digitalocean.Domain(token=settings.DO_API_TOKEN, name=settings.DNS_ZONE)
+    for record in domain.get_records():
+        if record.name == hostname and record.type == "A":
+            if record.data != value:
+                typer.echo(f"Updating DNS record {hostname}.{settings.DNS_ZONE} → {value}")
+                record.data = value
+                record.save()
+            else:
+                typer.echo(f"DNS record already exists: {hostname}.{settings.DNS_ZONE} → {value}")
+            return
+
+    typer.echo(f"Creating DNS record {hostname}.{settings.DNS_ZONE} → {host}")
     domain.create_new_domain_record(
         type="A",
         name=hostname,
-        data=host
+        data=value
     )
 
 
@@ -138,9 +159,8 @@ async def deploy_proxies(config: DeployConfig, skip_preparation: bool, only_for_
 
         for proxy in config.proxies:
             await deploy_proxy(host, team_id, config.service, proxy)
-
-        if config.proxies:
-            await create_dns_record(host, config.service, team_id)
+            for dns_record_prefix in proxy.dns_records:
+                await create_dns_record(dns_record_prefix + f".team{team_id}", host)
 
         await post_deploy(host, team_id)
 

@@ -31,12 +31,16 @@ files:
     destination: /home/$USERNAME
 
 proxies:
-  - type: http
-    name: main
-    certificate: wildcard.ctf.hitb.org
-    target_host_index: 9
-    target_port: 80
+  - name: main
+    listener:
+      protocol: http
+      certificate: wildcard.ctf.hitb.org
+    upstream:
+      host_index: 9
+      port: 80
     limits:
       - source: team
         location: /bucket
         limit: 5r/m
+    dns_records:
+      - sh

@@ -82,24 +82,38 @@ files:
     destination: /home/$USERNAME
 
 # Here you can specify proxies list. In common cases you should have
-# only one HTTP proxy.
-proxies:
-  # Type of the proxy. Now only "http" is supported.
-  - type: http
-    # Any name of the proxy, should be unique across all you proxies.   
-    name: main
-    # Hostname for the proxy. We use asterisk here, because real domain is test.team42.ctf.hitb.org
-    # Optional. If not specified, "$SERVICE.*" will be used.
-    hostname: test.*
-    # Certificate name (as specified in PROXY_CERTIFICATES in settings.py).
-    # Optional. If not specified, only HTTP proxy will be deployed, without TLS. 
-    # Attention! Omit this option only if you have really strong reasons to disable TLS!
-    certificate: wildcard.ctf.hitb.org
-    # Host's index on team's network where proxy should send all requests.
-    # I.e, if service is deployed on 10.60.10.5, specify 5 here.
-    target_host_index: 3
-    # Port of the service on target host.
-    target_port: 8080
+# only one HTTPS proxy.
+proxies:  
+    # Any name of the proxy, should be unique across all proxies in your service.   
+  - name: main
+    listener:
+      # Protocol for the proxy. Now only "http" is supported. 
+      # If you want to deploy HTTPS proxy, specify "http" here and certificate below.
+      protocol: http
+      # Hostname for the proxy. We use asterisk here, because real domain is test.team42.ctf.hitb.org
+      # Optional. If not specified, "$SERVICE.*" will be used.
+      hostname: test.*
+      # Certificate name (as specified in PROXY_CERTIFICATES in settings.py).
+      # Optional. If not specified, only HTTP proxy will be deployed, without TLS. 
+      # Attention! Omit this option only if you have really strong reasons to disable TLS!
+      certificate: wildcard.ctf.hitb.org
+      # Client certificate name (as specified in PROXY_CERTIFICATES in settings.py).
+      # Optional. Specify only if you want to check client certificate on
+      # the proxy side.
+      client_certificate: n0tes
+    upstream:
+      # Host's index on team's network where proxy should send all requests.
+      # I.e, if service is deployed on 10.60.10.3, specify 3 here.
+      host_index: 3
+      # Port of the service on upstream host.
+      port: 80
+      # Protocol for the upstream. "http" or "https"
+      # Optional. Default: "http"
+      protocol: http
+      # Client certificate name (as specified in PROXY_CERTIFICATES in settings.py)
+      # to be used for upstream requests.
+      # Optional. Specify only if your backend checks client certificate.
+      client_certificate: n0tes
     # List of limits (can be empty).
     limits:
       # Only "team" is supported now. It means that limit will be applied per-/24 network.
@@ -113,6 +127,10 @@ proxies:
         # http://nginx.org/en/docs/http/ngx_http_limit_req_module.html#limit_req.
         # Optional. If specified, it wil be applied together "nodelay" option. 
         burst: 10
+    # List of DNS records for proxies (can be empty). 
+    # Records will be created in team's DNS zone, i.e. test.team42.ctf.hitb.org. 
+    dns_records:
+      - test
 ```
 
 ## How to run ./build_image.py

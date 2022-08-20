@@ -15,20 +15,24 @@ scripts:
     docker compose -f /home/wallet/docker-compose.yml up -d
 
 files:
-  - source:
+  - sources:
       - ./docker-compose.yml
       - ./www
       - ./docker
     destination: /home/wallet
 
 proxies:
-  - type: http
-    name: main
-    target_host_index: 11
-    target_port: 80
-    certificate: wildcard.ctf.hitb.org
+  - name: main
+    listener:
+      protocol: http    
+      certificate: wildcard.ctf.hitb.org
+    upstream:
+      host_index: 11
+      port: 80    
     limits:
       - source: team
         location: /
         limit: 5r/m
         burst: 5
+    dns_records:
+      - wallet

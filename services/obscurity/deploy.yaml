@@ -11,13 +11,17 @@ files:
     destination: /home/obscurity
 
 proxies:
-  - type: http
-    name: main
-    target_host_index: 5
-    target_port: 3255
-    certificate: wildcard.ctf.hitb.org
+  - name: main
+    listener:
+      protocol: http
+      certificate: wildcard.ctf.hitb.org
+    upstream:
+      host_index: 5
+      port: 3255        
     limits:
       - source: team
         location: /
         limit: 1000r/m
         burst: 100
+    dns_records:
+      - obscurity

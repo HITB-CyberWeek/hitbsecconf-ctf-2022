@@ -55,6 +55,15 @@ server {
   	ssl_stapling_verify on;
   	resolver 1.1.1.1 1.0.0.1 [2606:4700:4700::1111] [2606:4700:4700::1001] valid=300s; # Cloudflare
   	resolver_timeout 5s;
+
+    {% if client_certificate %}
+        ssl_client_certificate {{ client_certificate }};
+        ssl_verify_client optional_no_ca;
+
+        if ($ssl_client_verify != SUCCESS) {
+            return 403;
+        }
+    {% endif %}
     {% endif %}
 
     client_max_body_size 100M;
@@ -67,11 +76,20 @@ server {
                 limit_req zone=req_zone_{{ service_name }}_{{ location.index }} {% if location.burst > 0 %}burst={{ location.burst }} nodelay{% endif %};
             {% endif %}
 
-            proxy_pass {{ target }};
+            proxy_pass {{ upstream }};
             proxy_buffering off;
+
+            proxy_http_version 1.1;
 
             proxy_set_header User-Agent CTF;
             proxy_set_header Host $host;
+            proxy_set_header Accept-Encoding "gzip, deflate, br";
+            proxy_set_header X-Forwarded-Proto $scheme;
+
+            {% if upstream_client_certificate %}
+                proxy_ssl_certificate {{ upstream_client_certificate }};
+                proxy_ssl_certificate_key {{ upstream_client_certificate_key }};
+            {% endif %}
         }
     {% endfor %}
 
