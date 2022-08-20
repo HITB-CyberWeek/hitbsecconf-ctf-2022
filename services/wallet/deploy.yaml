@@ -8,10 +8,10 @@ scripts:
     apt-get install openssl
     docker compose -f /home/wallet/docker-compose.yml build --pull
   start_once: |
-    echo "MYSQL_USERNAME=root" > /home/$USERNAME/.env
-    echo "MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)" >> /home/$USERNAME/.env
-    echo "MYSQL_DATABASE=wallet" >> /home/$USERNAME/.env
-    echo "MYSQL_HOST=mysql" >> /home/$USERNAME/.env
+    echo "MYSQL_USERNAME=root" > /home/wallet/.env
+    echo "MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)" >> /home/wallet/.env
+    echo "MYSQL_DATABASE=wallet" >> /home/wallet/.env
+    echo "MYSQL_HOST=mysql" >> /home/wallet/.env
     docker compose -f /home/wallet/docker-compose.yml up -d
 
 files:
@@ -32,7 +32,7 @@ proxies:
     limits:
       - source: team
         location: /
-        limit: 5r/m
-        burst: 5
+        limit: 300r/m
+        burst: 100
     dns_records:
       - wallet
