@@ -1,0 +1,11 @@
+[Unit]
+Description=CRS CTF Service
+
+[Service]
+User=root
+WorkingDirectory=/root
+ExecStart=/root/crs
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

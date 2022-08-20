@@ -1,0 +1,11 @@
+version: 1
+service: crs
+username: crs
+scripts:
+  build_outside_vm: ./build.sh
+  start_once: ./boot.sh
+files:
+  - source: ./img/qemu.img
+    destination: /root
+  - source: ./img/boot.sh
+    destination: /root
