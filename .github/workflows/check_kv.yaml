@@ -1,6 +1,5 @@
-name: Check KV service
-on:
-  workflow_dispatch: {}
+name: Check kv service
+on: [push, pull_request]
 jobs:
   run_tests:
     runs-on: ubuntu-22.04
@@ -10,12 +9,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.10'
-#     - name: Prepare
-#       run: sudo apt-get update
-#     - name: Install docker
-#       run: |
-#           sudo apt-get install docker.io
-#           sudo apt-get install docker-compose
     - name: Install checker reqirements
       run: |
           cd checkers/kv
