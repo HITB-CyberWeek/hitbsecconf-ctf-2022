@@ -44,6 +44,10 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
+      - name: Install dependencies
+        uses: BSFishy/pip-action@v1
+        with:
+          requirements: vuln_images/requirements.txt
       - name: Deploy proxies
         run: python3 deploy_proxies.py --skip-preparation ../services/${{ github.event.inputs.service_name }}/deploy.yaml
         working-directory: "${{ github.workspace }}/vuln_images/"
