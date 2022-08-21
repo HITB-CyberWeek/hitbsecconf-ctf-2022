@@ -1,0 +1,31 @@
+version: 1
+service: linkextractor
+username: linkextractor
+
+scripts:
+  build_inside_vm: docker compose -f /home/$USERNAME/docker-compose.yml build --pull
+  start_once: docker compose -f /home/$USERNAME/docker-compose.yml up -d
+
+files:
+  - sources:
+      - service/src/
+      - service/pom.xml
+      - service/docker-compose.yml
+      - service/Dockerfile
+    destination: /home/$USERNAME
+
+proxies:
+  - name: main
+    listener:
+      protocol: http
+      certificate: wildcard.ctf.hitb.org
+    upstream:
+      host_index: 4
+      port: 80
+    limits:
+      - source: team
+        location: /
+        limit: 5r/s
+        burst: 10
+    dns_records:
+      - linkextractor

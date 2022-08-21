@@ -8,6 +8,8 @@ import ctf.linkextractor.services.UserService;
 import io.javalin.Javalin;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashSet;
 
 import io.javalin.core.security.RouteRole;
@@ -15,16 +17,16 @@ import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.ui.SwaggerOptions;
 import io.swagger.v3.oas.models.info.Info;
+import org.apache.commons.codec.binary.Base64;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class Program {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Javalin app = Javalin.create(config -> {
             config.registerPlugin(getConfiguredOpenApiPlugin());
             config.defaultContentType = "application/json";
-
             config.accessManager((handler, ctx, routeRoles) -> {
                 Role userRole = Role.ANYONE;
                 User user = UserService.singletone.parseUserCookie(ctx.cookie("user"));
@@ -59,8 +61,8 @@ public class Program {
                     get(UserController::whoami, Role.USER);
                 });
             });
-        }).start(8080);
-        System.out.println("Check out Swagger UI docs at http://localhost:7002/swagger-ui");
+        }).start("0.0.0.0",8080);
+        System.out.println("Check out Swagger UI docs at http://localhost:8080/swagger-ui");
    }
 
     private static OpenApiPlugin getConfiguredOpenApiPlugin() {
