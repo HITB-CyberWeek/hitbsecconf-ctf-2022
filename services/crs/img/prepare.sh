@@ -32,6 +32,9 @@ do
     echo "Disabled: $unit"
 done
 
+# Set hostname
+echo ibm > mnt/etc/hostname
+
 # Copy pre-compiled service and systemd unit inside
 cp -v files/crs mnt/root/crs
 cp -v files/crs.service mnt/etc/systemd/system/crs.service
