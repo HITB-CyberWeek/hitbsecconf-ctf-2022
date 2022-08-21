@@ -58,4 +58,5 @@ jobs:
         env:
           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
           CERTIFICATES_FOLDER: /etc/letsencrypt/live
+          PROXY_SSH_KEY: ~/do_deploy_key
 
