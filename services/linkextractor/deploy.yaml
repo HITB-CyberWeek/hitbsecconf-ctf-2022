@@ -8,10 +8,10 @@ scripts:
 
 files:
   - sources:
-      - service/src/
-      - service/pom.xml
-      - service/docker-compose.yml
-      - service/Dockerfile
+      - src/
+      - pom.xml
+      - docker-compose.yml
+      - Dockerfile
     destination: /home/$USERNAME
 
 proxies:
