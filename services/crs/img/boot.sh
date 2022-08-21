@@ -4,12 +4,12 @@ set -eu
 IMAGE="qemu.img"
 CPU="max,zpci=on"
 MEM=4096
-CORES=8
+CORES=$(nproc)
 
-if [ "${1:-}" = "--console" ]; then
-    SERIAL="-chardev stdio,id=char0,mux=on,logfile=serial.log,signal=off -serial chardev:char0 -mon chardev=char0"
+if [ "${1:-}" = "--telnet" ]; then
+    SERIAL="-serial telnet::4441,server=on,wait=off"
 else
-    SERIAL="-serial telnet::4441,server"
+        SERIAL="-chardev stdio,id=char0,mux=on,logfile=serial.log,signal=off -serial chardev:char0 -mon chardev=char0"
 fi
 
 qemu-system-s390x -machine s390-ccw-virtio -cpu $CPU -m $MEM \
