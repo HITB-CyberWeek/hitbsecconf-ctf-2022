@@ -11,7 +11,7 @@ public class Handlers : Controller
     [HttpPost("/register")]
     public async Task<IActionResult> Register([FromBody] User? user)
     {
-        if(user == null || string.IsNullOrEmpty(user.Login = user.Login.Trim()) || !user.Login.All(char.IsLetterOrDigit) || string.IsNullOrEmpty(user.Password))
+        if(user == null || string.IsNullOrEmpty(user.Login = user.Login?.Trim()) || !user.Login.All(c => c == '_' || char.IsAscii(c) && char.IsLetterOrDigit(c)) || string.IsNullOrEmpty(user.Password))
             return StatusCode(400);
 
         (user.Salt, user.PasswordHash) = PasswordHelper.HashPassword(user.Password, Key);
@@ -28,14 +28,14 @@ public class Handlers : Controller
     public async Task<IActionResult> Login([FromBody] User? user)
     {
         var (login, password) = (user?.Login, user?.Password);
-        if(string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
+        if(string.IsNullOrEmpty(login = login?.Trim()) || string.IsNullOrEmpty(password))
             return StatusCode(403);
 
         user = await UserProfile.Find(login.ToUserId(), HttpContext.RequestAborted);
-        if(user == null || !PasswordHelper.IsPasswordCorrect(password, user.Salt, user.PasswordHash, Key))
+        if(user == null || !PasswordHelper.IsPasswordCorrect(password, user.Salt!, user.PasswordHash!, Key))
             return StatusCode(403);
 
-        Response.SetAuth(user.Login, Key);
+        Response.SetAuth(user.Login!, Key);
         return Ok(user);
     }
 
@@ -84,7 +84,7 @@ public class Handlers : Controller
         return Ok(UserProfile.ListFiles(userId.Value));
     }
 
-    private byte[] Key => config.GetValue<Guid>("key").ToByteArray();
+    private byte[] Key => config.GetValue<byte[]>("key");
 
     private readonly IConfiguration config;
 }

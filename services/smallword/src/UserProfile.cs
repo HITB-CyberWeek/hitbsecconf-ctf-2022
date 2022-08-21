@@ -10,21 +10,21 @@ using ProtoBuf;
 public class User
 {
     [ProtoMember(1)] public DateTime? BirthDate;
-    [ProtoMember(2)] public string Gender;
-    [ProtoMember(3)] public string Country;
-    [ProtoMember(4)] public string Company;
-    [ProtoMember(5)] public string Address;
-    [ProtoMember(6)] public string Name;
-    [ProtoMember(7)] public string Surname;
-    [ProtoMember(8)] public string Patronymic;
-    [ProtoMember(9)] public string Login;
-    [ProtoIgnore] public string Password;
-    [JsonIgnore] [ProtoMember(10)] public byte[] Salt;
-    [JsonIgnore] [ProtoMember(11)] public byte[] PasswordHash;
-    [ProtoMember(12)] public string Hobby;
+    [ProtoMember(2)] public string? Gender;
+    [ProtoMember(3)] public string? Country;
+    [ProtoMember(4)] public string? Company;
+    [ProtoMember(5)] public string? Address;
+    [ProtoMember(6)] public string? Name;
+    [ProtoMember(7)] public string? Surname;
+    [ProtoMember(8)] public string? Patronymic;
+    [ProtoMember(9)] public string? Login;
+    [ProtoIgnore] public string? Password;
+    [JsonIgnore] [ProtoMember(10)] public byte[]? Salt;
+    [JsonIgnore] [ProtoMember(11)] public byte[]? PasswordHash;
+    [ProtoMember(12)] public string? Hobby;
     [ProtoMember(13)] public DateTime Created;
 
-    public Guid UserId => Login.ToUserId();
+    public Guid UserId => Login?.ToUserId() ?? Guid.Empty;
 }
 
 public static class UserProfile

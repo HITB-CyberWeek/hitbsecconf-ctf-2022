@@ -31,14 +31,15 @@ const createForm = (id, fields) => {
 
 const regForm = createForm('reg', ['birthDate', 'gender', 'country', 'company', 'address', 'name', 'surname', 'patronymic', 'login', 'password', 'hobby']);
 const logForm = createForm('log', ['login', 'password']);
-const request = (title, subtitle, form, path, success) => {
+const request = function(title, subtitle, form, path, success) {
+	const args = arguments;
 	swal(title, subtitle, {content: form, closeOnClickOutside: false})
 		.then((value) => {
 			if(!value) return;
 			const data = Object.fromEntries(Array.from(new FormData(form).entries()).filter(([_, value]) => !!value?.length));
 			fetch(path, { method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(data) })
 				.then(handleErrors).then(response => { swal('Success', success, 'success'); checklogin(); })
-				.catch(e => swal('Fail', e?.toString() ?? 'Unknown error', 'error').then(() => setTimeout(register, 1)));
+				.catch(e => swal('Fail', e?.toString() ?? 'Unknown error', 'error').then(() => setTimeout(() => request.apply(this, args), 1)));
 		});
 }
 

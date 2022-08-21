@@ -6,7 +6,7 @@ const string settingsFilePath = "settings/settings.ini";
 if(!File.Exists(settingsFilePath))
 {
     Directory.CreateDirectory(Path.GetDirectoryName(settingsFilePath)!);
-    File.WriteAllText(settingsFilePath, $"key = {new Guid(RandomNumberGenerator.GetBytes(16))}");
+    File.WriteAllText(settingsFilePath, $"key = {Convert.ToBase64String(RandomNumberGenerator.GetBytes(24))}");
 }
 
 var builder = WebApplication.CreateBuilder(args);
