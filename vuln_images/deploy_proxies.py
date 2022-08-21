@@ -38,7 +38,7 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
         ]
         team_network = ipaddress.IPv4Network(f"{team_network_ip}/{settings.TEAM_NETWORK_MASK}")
         upstream_ip = team_network[proxy.upstream.host_index]
-        upstream = f"{proxy.upstream.protocol}://{upstream_ip}:{proxy.upstream.port}"
+        upstream_address = f"{upstream_ip}:{proxy.upstream.port}"
 
         locations = []
         has_global_location = False
@@ -60,6 +60,7 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
 
         jinja2_variables = {
             "service_name": service_name,
+            "proxy_name": proxy.name,
             "server_name": proxy.listener.hostname if proxy.listener.hostname else f"{service_name}.*",
             "use_ssl": proxy.listener.certificate is not None,
             "ssl_certificate": f"/etc/ssl/{proxy.listener.certificate}/fullchain.pem",
@@ -68,7 +69,8 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
                 f"/etc/ssl/{proxy.listener.client_certificate}/fullchain.pem"
                 if proxy.listener.client_certificate else None
             ),
-            "upstream": upstream,
+            "upstream_address": upstream_address,
+            "upstream_protocol": proxy.upstream.protocol,
             "upstream_client_certificate": (
                 f"/etc/ssl/{proxy.upstream.client_certificate}/fullchain.pem"
                 if proxy.upstream.client_certificate else None
@@ -123,9 +125,15 @@ async def prepare_host_for_proxies(host: str):
             await asyncssh.scp(chain.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/fullchain.pem"), preserve=True)
             await asyncssh.scp(private_key.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/privkey.pem"), preserve=True)
 
-        # 4. Copy too_many_requests.html
+        # 4. Upload files
+        typer.echo(f"[{host}]    Uploading /etc/nginx/nginx.conf")
+        await asyncssh.scp("nginx/nginx.conf", (ssh, "/etc/nginx/nginx.conf"))
+
         typer.echo(f"[{host}]    Uploading /var/www/html/too_many_requests.html")
         await asyncssh.scp("nginx/too_many_requests.html", (ssh, "/var/www/html/too_many_requests.html"))
+
+        typer.echo(f"[{host}]    Uploading /etc/nginx/conf.d/gzip.conf")
+        await asyncssh.scp("nginx/gzip.conf", (ssh, "/etc/nginx/conf.d/gzip.conf"))
 
 
 async def post_deploy(host: str, team_id: int):
