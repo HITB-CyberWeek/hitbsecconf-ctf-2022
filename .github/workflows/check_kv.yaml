@@ -1,3 +1,4 @@
+name: Check KV service
 jobs:
   run_tests:
     runs-on: ubuntu-22.04
