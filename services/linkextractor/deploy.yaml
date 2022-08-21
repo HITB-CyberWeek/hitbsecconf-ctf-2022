@@ -8,7 +8,7 @@ scripts:
 
 files:
   - sources:
-      - src/
+      - src
       - pom.xml
       - docker-compose.yml
       - Dockerfile
