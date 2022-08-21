@@ -1,11 +1,6 @@
-# Extract first 24 bits of the binary representation of the remote addr
-map $binary_remote_addr $bin_slash24 {
-"~^(\C{3})\C" $1;
-}
-
 {% for location in locations %}
     {% if location.limit %}
-        limit_req_zone $bin_slash24 zone=req_zone_{{ service_name }}_{{ proxy_name }}_{{ location.index }}:10m rate={{ location.limit }};
+        limit_req_zone $bin_slash24_limit zone=req_zone_{{ service_name }}_{{ proxy_name }}_{{ location.index }}:10m rate={{ location.limit }};
     {% endif %}
 {% endfor %}
 

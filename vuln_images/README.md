@@ -101,7 +101,7 @@ proxies:
       # Optional. Specify only if you want to check client certificate on
       # the proxy side.
       client_certificate: n0tes_client
-      # [TCP only] Amount of simultaneous connections accepted by the proxy.
+      # [TCP only] Amount of simultaneous connections accepted by the proxy FROM ONE TEAM.
       # Optional. Default is unlimited. 
       tcp_simultaneous_connections: 1
     upstream:
@@ -136,10 +136,11 @@ proxies:
         # 
         # For HTTP proxies: Burst in terms of nginx's limit_req directive:
         # http://nginx.org/en/docs/http/ngx_http_limit_req_module.html#limit_req.
-        # Optional. If specified, it wil be applied together "nodelay" option.
+        # Optional. If specified, it will be applied together "nodelay" option.
         #
         # For TCP proxies: Burst in terms of iptables hashlimit's option −−hashlimit−burst:
         # https://fossies.org/linux/iptables/extensions/libxt_hashlimit.man
+        # Optional. Default value is 5
         burst: 10
     # List of DNS records for proxies (can be empty). 
     # Records will be created in team's DNS zone, i.e. test.team42.ctf.hitb.org. 
