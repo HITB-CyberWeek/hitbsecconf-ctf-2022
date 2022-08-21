@@ -101,14 +101,14 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
 
 
 async def prepare_host_for_proxies(host: str):
-    typer.echo(f"[{host}] Preparing host for being a proxy:")
+    typer.echo(f"[{host}] Preparing host for being a proxy")
     async with create_ssh_connection(host) as ssh:
         # 1. Install nginx
-        typer.echo("[{host}]    Installing nginx and openssl")
+        typer.echo(f"[{host}]    Installing nginx and openssl")
         await ssh.run("apt-get install -y nginx openssl", check=True)
 
         # 2. Generate dhparam — only once!
-        typer.echo("[{host}]    Generating /etc/nginx/dhparam.pem if not exists")
+        typer.echo(f"[{host}]    Generating /etc/nginx/dhparam.pem if not exists")
         await ssh.run(
             # Why we use -dsaparam? Because it's still secure and much more faster:
             # https://security.stackexchange.com/questions/95178/diffie-hellman-parameters-still-calculating-after-24-hours
@@ -124,7 +124,7 @@ async def prepare_host_for_proxies(host: str):
             await asyncssh.scp(private_key.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/privkey.pem"), preserve=True)
 
         # 4. Copy too_many_requests.html
-        typer.echo("[{host}]    Uploading /var/www/html/too_many_requests.html")
+        typer.echo(f"[{host}]    Uploading /var/www/html/too_many_requests.html")
         await asyncssh.scp("nginx/too_many_requests.html", (ssh, "/var/www/html/too_many_requests.html"))
 
 
@@ -155,29 +155,39 @@ async def create_dns_record(hostname: str, value: str):
     )
 
 
-async def deploy_proxies_for_team(config, host, skip_preparation, team_id):
-    # First, we remove old proxies
-    await remove_proxies(host, config.service)
-
+async def deploy_proxies_for_team(
+    config: DeployConfig, host: str, skip_preparation: bool, prepare_only: bool, team_id: int
+):
+    # 1. Prepare host
     if not skip_preparation:
         await prepare_host_for_proxies(host)
 
+    if prepare_only:
+        return
+
+    # 2. Remove old configs
+    await remove_proxies(host, config.service)
+
+    # 3. Deploy new configs for all proxies in specified in the config
     for proxy in config.proxies:
         await deploy_proxy(host, team_id, config.service, proxy)
         for dns_record_prefix in proxy.dns_records:
             await create_dns_record(dns_record_prefix + f".team{team_id}", host)
 
+    # 4. Run some post-deploy steps such as reloading nginx
     await post_deploy(host, team_id)
 
 
-async def deploy_proxies(config: DeployConfig, skip_preparation: bool, only_for_team_id: Optional[int]):
+async def deploy_proxies(
+    config: DeployConfig, skip_preparation: bool, prepare_only: bool, only_for_team_id: Optional[int]
+):
     tasks = []
 
     for team_id, host in settings.PROXY_HOSTS.items():
         if only_for_team_id is not None and only_for_team_id != team_id:
             continue
 
-        tasks.append(deploy_proxies_for_team(config, host, skip_preparation, team_id))
+        tasks.append(deploy_proxies_for_team(config, host, skip_preparation, prepare_only, team_id))
 
     await asyncio.gather(*tasks)
 
@@ -187,15 +197,23 @@ def main(
     check: bool = typer.Option(False, "--check", help="Only check the config, don't deploy anything"),
     skip_preparation: bool = typer.Option(
         False, "--skip-preparation",
-        help="Skip common preparation step: generating dhparam, copying certificates, ..."
+        help="Skip common preparation steps: generating dhparam, copying certificates, ..."
+    ),
+    prepare_only: bool = typer.Option(
+        False, "--prepare-only",
+        help="Run only preparation steps: generating dhparam, copying certificates, ..."
     ),
     team_id: Optional[int] = typer.Option(None, "--team-id", help="Deploy proxy only for specified team"),
 ):
+    if skip_preparation and prepare_only:
+        typer.echo("[ERROR] --skip-preparation and --prepare-only can not be used together")
+        raise typer.Exit(code=1)
+
     config = DeployConfigV1.parse_file(config_path.name)
     if check:
         raise typer.Exit()
 
-    asyncio.get_event_loop().run_until_complete(deploy_proxies(config, skip_preparation, team_id))
+    asyncio.run(deploy_proxies(config, skip_preparation, prepare_only, team_id))
 
 
 if __name__ == "__main__":
