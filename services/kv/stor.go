@@ -93,13 +93,13 @@ func SetHandler(db *redis.Client) http.HandlerFunc {
 
 		err = db.HSet(ctx, keyStr, "Content-type", contentType).Err()
 		if err != nil {
-			render.Render(w, r, ErrInvalidRequest(err))
+			render.Render(w, r, ErrServerError(errors.New("error saving value")))
 			return
 		}
 
 		err = db.HSet(ctx, keyStr, "Content", string(content)).Err()
 		if err != nil {
-			render.Render(w, r, ErrInvalidRequest(err))
+			render.Render(w, r, ErrServerError(errors.New("error saving value")))
 			return
 		}
 	}
@@ -114,14 +114,19 @@ func GetHandler(db *redis.Client) http.HandlerFunc {
 		}
 
 		data, err := db.HGetAll(ctx, keyStr).Result()
-		if err != nil && err != redis.Nil {
-			render.Render(w, r, ErrInvalidRequest(err))
+		if err != nil {
+			render.Render(w, r, ErrServerError(errors.New("error getting value from DB")))
+			return
+		}
+
+		if err == redis.Nil {
+			render.Render(w, r, ErrNotFound())
 			return
 		}
 
 		resp, err := json.Marshal(data)
 		if err != nil {
-			render.Render(w, r, ErrInvalidRequest(err))
+			render.Render(w, r, ErrServerError(errors.New("error saving value")))
 			return
 		}
 
