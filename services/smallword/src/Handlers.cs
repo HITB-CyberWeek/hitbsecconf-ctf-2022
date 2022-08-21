@@ -11,7 +11,7 @@ public class Handlers : Controller
     [HttpPost("/register")]
     public async Task<IActionResult> Register([FromBody] User? user)
     {
-        if(user == null || string.IsNullOrEmpty(user.Login) || string.IsNullOrEmpty(user.Password))
+        if(user == null || string.IsNullOrEmpty(user.Login = user.Login.Trim()) || !user.Login.All(char.IsLetterOrDigit) || string.IsNullOrEmpty(user.Password))
             return StatusCode(400);
 
         (user.Salt, user.PasswordHash) = PasswordHelper.HashPassword(user.Password, Key);
