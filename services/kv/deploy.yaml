@@ -9,7 +9,7 @@ scripts:
     docker compose -f /home/kv/docker-compose.yml up -d
 
 files:
-  - source: ./
+  - source: ./*
     destination: /home/kv
 
 proxies:
