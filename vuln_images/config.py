@@ -122,8 +122,8 @@ class ProxyConfigV1(YamlModel):
 class DeployConfigV1(YamlModel):
     version: Literal[1]
 
-    service: str
-    username: Optional[str] = None
+    service: constr(regex='^[a-z0-9_-]{1,30}$')
+    username: Optional[constr(regex='^[a-z0-9_-]{1,30}$')] = None
     scripts: ScriptsConfigV1
     files: List[FileDeployConfigV1]
     proxies: List[ProxyConfigV1] = []

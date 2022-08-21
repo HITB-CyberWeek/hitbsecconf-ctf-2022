@@ -25,6 +25,12 @@ def create_ssh_connection(host):
                             known_hosts=None)
 
 
+async def remove_proxies(host: str, service_name: str):
+    async with create_ssh_connection(host) as ssh:
+        typer.echo(f"Removing old nginx configs for {service_name} on {host}")
+        await ssh.run(f"rm -rf /etc/nginx/sites-enabled/{service_name}_*", check=True)
+
+
 async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
     async with create_ssh_connection(host) as ssh:
         team_network_ip = ipaddress.IPv4Network(settings.BASE_TEAM_NETWORK)[
@@ -96,10 +102,10 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
 
 async def prepare_host_for_proxies(host: str):
     typer.echo(f"Preparing host {host} for being a proxy:")
-    async with await create_ssh_connection(host) as ssh:
+    async with create_ssh_connection(host) as ssh:
         # 1. Install nginx
         typer.echo("   Installing nginx and openssl")
-        await ssh.run("apt-get install -y nginx openssl")
+        await ssh.run("apt-get install -y nginx openssl", check=True)
 
         # 2. Generate dhparam — only once!
         typer.echo("   Generating /etc/nginx/dhparam.pem if not exists")
@@ -113,7 +119,7 @@ async def prepare_host_for_proxies(host: str):
         # 3. Copy TLS certificates
         for certificate_name, (chain, private_key) in settings.PROXY_CERTIFICATES.items():
             typer.echo(f"   Uploading /etc/ssl/{certificate_name}/{{fullchain.pem,privkey.pem}}")
-            await ssh.run(f"mkdir -p /etc/ssl/{certificate_name}")
+            await ssh.run(f"mkdir -p /etc/ssl/{certificate_name}", check=True)
             await asyncssh.scp(chain.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/fullchain.pem"), preserve=True)
             await asyncssh.scp(private_key.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/privkey.pem"), preserve=True)
 
@@ -149,20 +155,27 @@ async def create_dns_record(hostname: str, value: str):
     )
 
 
+async def deploy_proxies_for_team(config, host, skip_preparation, team_id):
+    # First, we remove old proxies
+    await remove_proxies(host, config.service)
+
+    if not skip_preparation:
+        await prepare_host_for_proxies(host)
+
+    for proxy in config.proxies:
+        await deploy_proxy(host, team_id, config.service, proxy)
+        for dns_record_prefix in proxy.dns_records:
+            await create_dns_record(dns_record_prefix + f".team{team_id}", host)
+
+    await post_deploy(host, team_id)
+
+
 async def deploy_proxies(config: DeployConfig, skip_preparation: bool, only_for_team_id: Optional[int]):
     for team_id, host in settings.PROXY_HOSTS.items():
         if only_for_team_id is not None and only_for_team_id != team_id:
             continue
 
-        if not skip_preparation:
-            await prepare_host_for_proxies(host)
-
-        for proxy in config.proxies:
-            await deploy_proxy(host, team_id, config.service, proxy)
-            for dns_record_prefix in proxy.dns_records:
-                await create_dns_record(dns_record_prefix + f".team{team_id}", host)
-
-        await post_deploy(host, team_id)
+        await deploy_proxies_for_team(config, host, skip_preparation, team_id)
 
 
 def main(
