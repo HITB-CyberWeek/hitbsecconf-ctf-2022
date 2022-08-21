@@ -24,7 +24,7 @@ jobs:
       run: |
           cd services/kv
           docker compose build
-          docker compose up
+          docker compose up -d
     - name: Check service
       run: |
           cd checkers/kv
