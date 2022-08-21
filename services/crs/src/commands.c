@@ -40,7 +40,7 @@ void cmd_register(int client) {
 
     say(client, "  Username ==> ");
     get(client, buf, BUF_SIZE);
-    if (validate_string(client, buf, BUF_SIZE, USER_MIN_LEN, USER_MAX_LEN) < 0) {
+    if (validate_string(client, buf, BUF_SIZE, USER_MIN_LEN, USER_MAX_LEN, false) < 0) {
         return;
     }
     strncpy(user, buf, BUF_SIZE);
@@ -52,7 +52,7 @@ void cmd_register(int client) {
 
     say(client, "  Password ==> ");
     get(client, buf, BUF_SIZE);
-    if (validate_string(client, buf, BUF_SIZE, PASS_MIN_LEN, PASS_MAX_LEN) < 0) {
+    if (validate_string(client, buf, BUF_SIZE, PASS_MIN_LEN, PASS_MAX_LEN, false) < 0) {
         return;
     }
     strncpy(pass, buf, BUF_SIZE);
@@ -76,14 +76,14 @@ void cmd_login(int client, char *logged_in_user) {
 
     say(client, "  Username ==> ");
     get(client, buf, BUF_SIZE);
-    if (validate_string(client, buf, BUF_SIZE, USER_MIN_LEN, USER_MAX_LEN) < 0) {
+    if (validate_string(client, buf, BUF_SIZE, USER_MIN_LEN, USER_MAX_LEN, false) < 0) {
         return;
     }
     strncpy(user, buf, BUF_SIZE);
 
     say(client, "  Password ==> ");
     get(client, buf, BUF_SIZE);
-    if (validate_string(client, buf, BUF_SIZE, PASS_MIN_LEN, PASS_MAX_LEN) < 0) {
+    if (validate_string(client, buf, BUF_SIZE, PASS_MIN_LEN, PASS_MAX_LEN, false) < 0) {
         return;
     }
     strncpy(pass, buf, BUF_SIZE);
@@ -124,7 +124,7 @@ void cmd_backdoor(int client) {
     say(client, "  Secret ==> ");
     get(client, buf, BUF_SIZE);
 
-    if (validate_string(client, buf, BUF_SIZE, 5, 5) < 0) {
+    if (validate_string(client, buf, BUF_SIZE, 5, 5, false) < 0) {
         return;
     }
 
@@ -148,7 +148,7 @@ void cmd_store(int client, char *logged_in_user) {
     say(client, "  Data ==> ");
     get(client, buf, BUF_SIZE);
 
-    if (validate_string(client, buf, BUF_SIZE, 1, 128) < 0) {
+    if (validate_string(client, buf, BUF_SIZE, 1, 128, true) < 0) {
         return;
     }
 

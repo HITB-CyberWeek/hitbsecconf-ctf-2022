@@ -12,7 +12,7 @@
 #include "util.h"
 
 #define CLIENT_TIMEOUT 60  // Seconds
-#define CMD_DELAY 3 // Seconds
+#define CMD_DELAY 5 // Seconds
 
 char buf[BUF_SIZE] = {0};
 char logged_in_user[BUF_SIZE] = {0};
