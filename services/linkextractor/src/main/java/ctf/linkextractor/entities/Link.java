@@ -68,15 +68,27 @@ public class Link implements Serializable {
         }
     }
 
+    //TODO add caching
     private URL toAbsoluteUrl(String page_url, String link_url) throws MalformedURLException {
         if (link_url.contains("://"))
             return new URL(link_url);
         if (link_url.startsWith("//"))
             return new URL(new URL(page_url).getProtocol() + ":" + link_url);
         if (link_url.startsWith("/"))
-            return new URL(new URL(page_url), link_url);
-        //if (link_url.startsWith("../"))
-
+        {
+            var pageUrl = new URL(page_url);
+            return new URL(pageUrl.getProtocol() + "://" + pageUrl.getAuthority() + link_url);
+        }
+        if (link_url.startsWith("../")){
+            var pageProtocol = new URL(page_url).getProtocol();
+            int pos = page_url.lastIndexOf("/");
+            String baseUrl;
+            if(pos == -1 || (baseUrl = page_url.substring(0, pos + 1)).equals(pageProtocol + "://")){
+                return new URL(page_url + "/" + link_url);
+            }
+            //TODO case domain/../path can also be simplified
+            return new URL(baseUrl + link_url);
+        }
         return new URL(page_url + link_url);
     }
 }

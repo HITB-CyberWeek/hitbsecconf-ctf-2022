@@ -13,7 +13,7 @@ public class UserService {
     public static UserService singletone = new UserService();
 
     public User RegisterOrLoginUser(UserRegisterModel model){
-        User user = DB.registerUser(model);
+        User user = DB.registerNewUser(model);
         if(user != null)
             return user;
 

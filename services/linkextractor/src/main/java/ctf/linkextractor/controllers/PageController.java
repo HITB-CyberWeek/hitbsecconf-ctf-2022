@@ -28,7 +28,7 @@ public class PageController {
 
         String pageUrl = validQueryParamUrl(ctx);
         String user = ctx.attribute("user");
-        PageService.singletone.addPage(user, pageUrl, ctx.body());
+        PageService.singletone.parseAndAddPage(user, pageUrl, ctx.body());
 
     }
 
@@ -67,7 +67,7 @@ public class PageController {
             ctx.status(403).result("Forbidden");
 
         //TODO add page to result model
-        ctx.json(PageService.singletone.getUniqLinks(pageId));
+        ctx.json(PageService.singletone.getDistinctLinks(pageId));
     }
 
     private static String validQueryParamUrl(Context ctx) {

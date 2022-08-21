@@ -23,7 +23,7 @@ public class DB {
         return users.get(login);
     }
 
-    public static User registerUser(UserRegisterModel model){
+    public static User registerNewUser(UserRegisterModel model){
         var user = new User(model.getLogin(), model.getPassword());
         boolean success = users.putIfAbsent(model.getLogin(), user) == null;
         return success ? user : null;
@@ -34,7 +34,6 @@ public class DB {
             return p.getUser().equals(user);
         }).toList();
     }
-
 
     public static Page getPageById(int id){
         return pages.get(id);
@@ -47,8 +46,8 @@ public class DB {
         return page;
     }
 
-    public static List<Link> getLinksByPageId(int id){
-        return links.values().stream().filter(l -> l.getId() == id).toList();
+    public static List<Link> getLinksByPageId(int pageId){
+        return links.values().stream().filter(l -> l.getPageId() == pageId).toList();
     }
 
 
