@@ -26,11 +26,11 @@ proxies:
       certificate: wildcard.ctf.hitb.org
     upstream:
       host_index: 7
-      port: 80    
+      port: 80
     limits:
       - source: team
         location: /
-        limit: 300r/m
-        burst: 100
+        limit: 5r/s
+        burst: 10
     dns_records:
       - smallword

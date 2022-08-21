@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     build: .
     ports:
-      - 80:5073
+      - 80:5000
     volumes:
       - ./data:/app/data
       - ./settings:/app/settings

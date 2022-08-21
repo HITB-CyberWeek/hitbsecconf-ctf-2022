@@ -16,7 +16,7 @@ builder.Configuration
 builder.WebHost
     .UseKestrel(opts =>
     {
-        opts.Listen(IPAddress.Any, 5073);
+        opts.Listen(IPAddress.Any, 5000);
         opts.Limits.MaxRequestBodySize = 8192;
     });
 builder.Services
