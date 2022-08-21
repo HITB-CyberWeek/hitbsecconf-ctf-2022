@@ -1,7 +1,7 @@
 import pathlib
 from typing import List, Union, Optional, Literal, Iterable
 
-from pydantic import validator, conint, NonNegativeInt, constr, PositiveInt
+from pydantic import validator, conint, NonNegativeInt, constr, PositiveInt, root_validator, ValidationError
 from pydantic_yaml import YamlModel, YamlStrEnum
 
 import settings
@@ -55,7 +55,7 @@ class FileDeployConfigV1(YamlModel):
 
 
 class ListenerProtocol(YamlStrEnum):
-    # TCP = "tcp"
+    TCP = "tcp"
     HTTP = "http"
 
 
@@ -65,7 +65,7 @@ class ProxySource(YamlStrEnum):
 
 class ProxyLimit(YamlModel):
     source: ProxySource
-    location: str
+    location: Optional[str] = None
     limit: str
     burst: NonNegativeInt = 0
 
@@ -89,6 +89,7 @@ class ListenerConfigV1(YamlModel):
     hostname: Optional[str] = None
     certificate: Optional[str] = None
     client_certificate: Optional[str] = None
+    tcp_simultaneous_connections: Optional[int] = None
 
     @validator("certificate", "client_certificate")
     def _validate_certificate(cls, certificate: Optional[str]) -> Optional[str]:
@@ -108,7 +109,14 @@ class ListenerConfigV1(YamlModel):
             if values["certificate"] is not None:
                 return 443
 
-        raise ValueError(f"Port should be specified for proxy of type {values['protocol']}")
+        raise ValidationError(f"Port should be specified for proxy of type {values['protocol']}")
+
+    @validator("tcp_simultaneous_connections")
+    def _validate_tcp_simultaneous_connections(cls, tcp_simultaneous_connections: Optional[int], values) -> Optional[int]:
+        if values.get("protocol") == "http":
+            raise ValidationError("HTTP Proxy can not have listener.tcp_simultaneous_connections parameter")
+
+        return tcp_simultaneous_connections
 
 
 class ProxyConfigV1(YamlModel):
@@ -117,6 +125,31 @@ class ProxyConfigV1(YamlModel):
     upstream: UpstreamConfigV1
     limits: List[ProxyLimit] = []
     dns_records: List[str] = []
+
+    @root_validator
+    def validate_object(cls, values):
+        if "listener" in values and values["listener"].protocol == "tcp":
+            for limit in values.get("limits", []):
+                if limit.location:
+                    raise ValidationError("Limit in TCP proxy can not have a location parameter")
+
+            if values["listener"].port is None:
+                raise ValidationError("TCP proxy must have listener.port parameter")
+
+        elif "listener" in values and values["listener"].protocol == "tcp":
+            for limit in values.get("limits", []):
+                if not limit.location:
+                    raise ValidationError("Limit in HTTP proxy must have a location parameter")
+
+        return values
+
+    @validator("limits")
+    def validate_limits(cls, limits: List[ProxyLimit], values) -> List[ProxyLimit]:
+        if "listener" in values and values["listener"].protocol == "tcp":
+            if len(limits) > 1:
+                raise ValidationError(f"TCP proxy can have at most one limit, but you specified {len(limits)}")
+
+        return limits
 
 
 class DeployConfigV1(YamlModel):

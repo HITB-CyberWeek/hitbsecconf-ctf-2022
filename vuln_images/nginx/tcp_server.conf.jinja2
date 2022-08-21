@@ -1,0 +1,33 @@
+# Extract first 24 bits of the binary representation of the remote addr
+map $binary_remote_addr $bin_slash24 {
+"~^(\C{3})\C" $1;
+}
+
+{% if simultaneous_connections %}
+    limit_conn_zone $bin_slash24 zone=conn_zone_{{ service_name }}_{{ proxy_name }}:10m;
+{% endif %}
+
+
+upstream upstream_{{ service_name }}_{{ proxy_name }} {
+    server {{ upstream_address }};
+}
+
+log_format basic '$remote_addr [$time_local] '
+                 '$protocol $status $bytes_sent $bytes_received '
+                 '$session_time';
+
+server {
+    listen {{ port }};
+    listen [::]:{{ port }};
+
+    access_log /var/log/nginx/{{ service_name }}_{{ proxy_name }}_access.log basic buffer=256k flush=5m;
+
+    proxy_timeout 60s;
+
+
+    {% if simultaneous_connections %}
+        limit_conn conn_zone_{{ service_name }}_{{ proxy_name }} {{ simultaneous_connections }};
+    {% endif %}
+
+    proxy_pass upstream_{{ service_name }}_{{ proxy_name }};
+}

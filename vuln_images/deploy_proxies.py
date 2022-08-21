@@ -17,6 +17,10 @@ from config import DeployConfigV1, DeployConfig, ProxyConfigV1
 CURRENT_FOLDER = pathlib.Path(__file__).parent
 
 
+IPTABLES_LIMIT_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT -m tcp --dport {port} -m state --state NEW -m hashlimit --hashlimit {limit} --hashlimit-mode srcip --hashlimit-srcmask 24 --hashlimit-name {name}"
+IPTABLES_BLOCK_RULE = "iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination {host}:429 -m tcp --dport {port} -m state --state NEW"
+
+
 def create_ssh_connection(host):
     return asyncssh.connect(host,
                             port=settings.PROXY_SSH_PORT,
@@ -29,6 +33,7 @@ async def remove_proxies(host: str, service_name: str):
     async with create_ssh_connection(host) as ssh:
         typer.echo(f"[{host}] Removing old nginx configs for {service_name}")
         await ssh.run(f"rm -rf /etc/nginx/sites-enabled/{service_name}_*", check=True)
+        await ssh.run(f"rm -rf /etc/nginx/stream.d/{service_name}_*", check=True)
 
 
 async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
@@ -94,10 +99,64 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
             os.unlink(filename)
 
 
+async def deploy_tcp_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
+    async with create_ssh_connection(host) as ssh:
+        # 1. Deploy nginx part
+        team_network_ip = ipaddress.IPv4Network(settings.BASE_TEAM_NETWORK)[
+            team_id * (2 ** (32 - settings.TEAM_NETWORK_MASK))
+        ]
+        team_network = ipaddress.IPv4Network(f"{team_network_ip}/{settings.TEAM_NETWORK_MASK}")
+        upstream_ip = team_network[proxy.upstream.host_index]
+        upstream_address = f"{upstream_ip}:{proxy.upstream.port}"
+
+        jinja2_variables = {
+            "service_name": service_name,
+            "proxy_name": proxy.name,
+            "upstream_address": upstream_address,
+            "port": proxy.listener.port,
+            "simultaneous_connections": proxy.listener.tcp_simultaneous_connections,
+        }
+        template = jinja2.Template((CURRENT_FOLDER / "nginx/tcp_server.conf.jinja2").read_text())
+        filename = tempfile.mktemp(prefix=f"nginx-{service_name}-{proxy.name}-", suffix=".conf")
+        with open(filename, "w") as f:
+            f.write(template.render(**jinja2_variables))
+
+        target_nginx_config_name = f"/etc/nginx/stream.d/{service_name}_{proxy.name}"
+        try:
+            typer.echo(f"[{host}]    Uploading TCP config to {target_nginx_config_name}")
+            await asyncssh.scp(filename, (ssh, target_nginx_config_name))
+        finally:
+            os.unlink(filename)
+
+        # 2. Remove old iptables rules
+        result = await ssh.run(f"iptables-save -t nat | grep -- '--dport {proxy.listener.port}'", check=True)
+        rules = result.stdout.splitlines()
+        for rule in rules:
+            typer.echo(f"[{host}]    Removing old iptables rules: {rule}")
+            await ssh.run(f"iptables -t nat {rule.replace('-A', '-D')}")
+
+        # 3. Deploy new iptables rules
+        assert len(proxy.limits) <= 1, "TCP proxy can have at most one limit"
+        for limit in proxy.limits:
+            limit_rule = IPTABLES_LIMIT_RULE.format(
+                port=proxy.listener.port, limit=limit.limit, name=f"{service_name}_{proxy.name}"
+            )
+            if limit.burst:
+                limit_rule += f" --hashlimit-burst {limit.burst}"
+            block_rule = IPTABLES_BLOCK_RULE.format(port=proxy.listener.port, host=host)
+
+            typer.echo(f"[{host}]    Adding iptables rules: {limit_rule}")
+            await ssh.run(limit_rule, check=True)
+            typer.echo(f"[{host}]    Adding iptables rules: {block_rule}")
+            await ssh.run(block_rule, check=True)
+
+
 async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
     typer.echo(f"[{host}] Deploying proxy for {service_name}:{proxy.name}")
     if proxy.listener.protocol == "http":
         await deploy_http_proxy(host, team_id, service_name, proxy)
+    elif proxy.listener.protocol == "tcp":
+        await deploy_tcp_proxy(host, team_id, service_name, proxy)
     else:
         raise ValueError(f"Unknown proxy type for deploying: {proxy.listener.protocol}")
 
@@ -134,6 +193,19 @@ async def prepare_host_for_proxies(host: str):
 
         typer.echo(f"[{host}]    Uploading /etc/nginx/conf.d/gzip.conf")
         await asyncssh.scp("nginx/gzip.conf", (ssh, "/etc/nginx/conf.d/gzip.conf"))
+
+        await ssh.run("mkdir -p /etc/nginx/stream.d", check=True)
+
+        typer.echo(f"[{host}]    Uploading /root/too_many_requests.py")
+        await asyncssh.scp("iptables/too_many_requests.py", (ssh, "/root/too_many_requests.py"))
+        typer.echo(f"[{host}]    Uploading /etc/systemd/system/too_many_requests.service")
+        await asyncssh.scp("iptables/too_many_requests.service", (ssh, "/etc/systemd/system/too_many_requests.service"))
+        await ssh.run("systemctl daemon-reload", check=True)
+
+        # 5. Enable too_many_requests.service
+        typer.echo(f"[{host}]    Enabling and starting /etc/systemd/system/too_many_requests.service")
+        await ssh.run("systemctl enable too_many_requests", check=True)
+        await ssh.run("systemctl start too_many_requests", check=True)
 
 
 async def post_deploy(host: str, team_id: int):
