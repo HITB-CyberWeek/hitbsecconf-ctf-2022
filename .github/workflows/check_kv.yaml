@@ -6,22 +6,25 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v2
-    - name: Prepare
-      run: sudo apt-get update
-    - name: Install docker
-      run: |
-          sudo apt-get install docker.io
-          sudo apt-get install docker-compose
+    - name: Install python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+#     - name: Prepare
+#       run: sudo apt-get update
+#     - name: Install docker
+#       run: |
+#           sudo apt-get install docker.io
+#           sudo apt-get install docker-compose
     - name: Install checker reqirements
       run: |
-          sudo apt-get install python3-pip
           cd checkers/kv
           pip3 install -r requirements.txt
     - name: Build and run service
       run: |
           cd services/kv
-          docker-compose build
-          docker-compose up
+          docker compose build
+          docker compose up
     - name: Check service
       run: |
           cd checkers/kv
