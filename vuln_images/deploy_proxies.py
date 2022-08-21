@@ -37,14 +37,18 @@ async def remove_proxies(host: str, service_name: str):
         await ssh.run(f"rm -rf /etc/nginx/stream.d/{service_name}_*", check=True)
 
 
+async def get_upstream_address(proxy: ProxyConfigV1, team_id: int):
+    team_network_ip = ipaddress.IPv4Network(settings.BASE_TEAM_NETWORK)[
+        team_id * (2 ** (32 - settings.TEAM_NETWORK_MASK))
+    ]
+    team_network = ipaddress.IPv4Network(f"{team_network_ip}/{settings.TEAM_NETWORK_MASK}")
+    upstream_ip = team_network[proxy.upstream.host_index]
+    return f"{upstream_ip}:{proxy.upstream.port}"
+
+
 async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
     async with create_ssh_connection(host) as ssh:
-        team_network_ip = ipaddress.IPv4Network(settings.BASE_TEAM_NETWORK)[
-            team_id * (2 ** (32 - settings.TEAM_NETWORK_MASK))
-        ]
-        team_network = ipaddress.IPv4Network(f"{team_network_ip}/{settings.TEAM_NETWORK_MASK}")
-        upstream_ip = team_network[proxy.upstream.host_index]
-        upstream_address = f"{upstream_ip}:{proxy.upstream.port}"
+        upstream_address = await get_upstream_address(proxy, team_id)
 
         locations = []
         has_global_location = False
@@ -103,12 +107,7 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
 async def deploy_tcp_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
     async with create_ssh_connection(host) as ssh:
         # 1. Deploy nginx part
-        team_network_ip = ipaddress.IPv4Network(settings.BASE_TEAM_NETWORK)[
-            team_id * (2 ** (32 - settings.TEAM_NETWORK_MASK))
-        ]
-        team_network = ipaddress.IPv4Network(f"{team_network_ip}/{settings.TEAM_NETWORK_MASK}")
-        upstream_ip = team_network[proxy.upstream.host_index]
-        upstream_address = f"{upstream_ip}:{proxy.upstream.port}"
+        upstream_address = await get_upstream_address(proxy, team_id)
 
         jinja2_variables = {
             "service_name": service_name,
