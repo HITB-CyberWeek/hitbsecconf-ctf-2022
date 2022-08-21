@@ -20,7 +20,6 @@ for unit in \
         lvm2-monitor.service \
         ModemManager.service \
         remote-fs-pre.target \
-        ufw.service \
         e2scrub_all.timer \
         systemd-tmpfiles-clean.timer \
         fstrim.timer \
