@@ -8,13 +8,15 @@ env.read_env()  # read .env file, if it exists
 
 DO_API_TOKEN = env.str("DO_API_TOKEN")
 
-wildcard_ctf_hitb_org = pathlib.Path("../../certificates/team1.ctf.hitb.org/")
-team500_ctf_hitb_org = pathlib.Path("../../certificates/team500.ctf.hitb.org/")
-admin_n0tes_ctf_hitb_org = pathlib.Path("../../certificates/admin.n0tes.ctf.hitb.org/")
+CERTIFICATES_FOLDER = env.path("CERTIFICATES_FOLDER", "../../certificates")
+
+wildcard_ctf_hitb_org = CERTIFICATES_FOLDER / "team1.ctf.hitb.org"
+# team500_ctf_hitb_org = CERTIFICATES_FOLDER / "team500.ctf.hitb.org/"
+admin_n0tes_ctf_hitb_org = CERTIFICATES_FOLDER / "admin.n0tes.ctf.hitb.org"
 n0tes = pathlib.Path("../checkers/n0tes/")
 PROXY_CERTIFICATES = {
     "wildcard.ctf.hitb.org": (wildcard_ctf_hitb_org / "fullchain.pem", wildcard_ctf_hitb_org / "privkey.pem"),
-    "team500.ctf.hitb.org": (team500_ctf_hitb_org / "fullchain.pem", team500_ctf_hitb_org / "privkey.pem"),
+    # "team500.ctf.hitb.org": (team500_ctf_hitb_org / "fullchain.pem", team500_ctf_hitb_org / "privkey.pem"),
     "n0tes_client": (n0tes / "n0tes-admin.crt", n0tes / "n0tes-admin.key"),
     "admin.n0tes.ctf.hitb.org": (admin_n0tes_ctf_hitb_org / "fullchain.pem", admin_n0tes_ctf_hitb_org / "privkey.pem"),
 }

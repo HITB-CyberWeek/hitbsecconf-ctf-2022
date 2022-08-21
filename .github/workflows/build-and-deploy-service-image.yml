@@ -62,4 +62,16 @@ jobs:
         run: scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/cloud_ssh_private_key .github/scripts/recreate_team_vms.sh root@cloud.ctf.hitb.org:~/
       - name: Recreate team VMs
         run: ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/cloud_ssh_private_key root@cloud.ctf.hitb.org '~/recreate_team_vms.sh ${{ github.event.inputs.service_name }}'
+  deploy-proxies:
+    runs-on: self-hosted
+    needs: [deploy-image]
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Deploy proxies
+        run: python3 deploy_proxies.py --skip-preparation ../services/${{ github.event.inputs.service_name }}/deploy.yaml
+        working-directory: "${{ github.workspace }}/vuln_images/"
+        env:
+          DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
+          CERTIFICATES_FOLDER: /etc/letsencrypt/live
 
