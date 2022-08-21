@@ -12,3 +12,19 @@ files:
       - ./Dockerfile
       - ./docker-compose.yml
     destination: /home/$USERNAME
+
+proxies:
+  - name: main
+    listener:
+      protocol: tcp
+      port: 14444
+      tcp_simultaneous_connections: 1
+    upstream:
+      host_index: 10
+      port: 14444
+    limits:
+      - source: team
+        limit: 6/minute
+        burst: 2
+    dns_records:
+      - crs

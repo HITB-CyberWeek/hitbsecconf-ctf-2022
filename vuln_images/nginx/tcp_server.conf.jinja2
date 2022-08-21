@@ -12,10 +12,6 @@ upstream upstream_{{ service_name }}_{{ proxy_name }} {
     server {{ upstream_address }};
 }
 
-log_format basic '$remote_addr [$time_local] '
-                 '$protocol $status $bytes_sent $bytes_received '
-                 '$session_time';
-
 server {
     listen {{ port }};
     listen [::]:{{ port }};

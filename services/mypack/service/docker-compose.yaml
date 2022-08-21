@@ -1,6 +1,6 @@
 version: '2.1'
 services:
-  ctf:
+  mypack:
     build: .
     restart: unless-stopped
     pids_limit: 500

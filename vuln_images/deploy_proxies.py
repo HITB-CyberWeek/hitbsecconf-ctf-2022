@@ -129,7 +129,7 @@ async def deploy_tcp_proxy(host: str, team_id: int, service_name: str, proxy: Pr
             os.unlink(filename)
 
         # 2. Remove old iptables rules
-        result = await ssh.run(f"iptables-save -t nat | grep -- '--dport {proxy.listener.port}'", check=True)
+        result = await ssh.run(f"iptables-save -t nat | grep -- '--dport {proxy.listener.port}'")
         rules = result.stdout.splitlines()
         for rule in rules:
             typer.echo(f"[{host}]    Removing old iptables rules: {rule}")

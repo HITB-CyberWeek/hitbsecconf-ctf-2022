@@ -2,8 +2,23 @@ version: 1
 service: mypack
 username: mypack
 scripts:
-  build_inside_vm: docker-compose -f /home/$USERNAME/docker-compose.yaml build --pull
-  start_once: docker-compose -f /home/$USERNAME/docker-compose.yaml up -d
+  build_inside_vm: docker compose -f /home/$USERNAME/docker-compose.yaml build
+  start_once: docker compose -f /home/$USERNAME/docker-compose.yaml up -d
 files:
   - source: ./service/
-    destination: /home/$SERVICE
+    destination: /home/$USERNAME
+
+proxies:
+  - name: main
+    listener:
+      protocol: tcp
+      port: 3777
+    upstream:
+      host_index: 12
+      port: 3777
+    limits:
+      - source: team
+        limit: 60/minute
+        burst: 20
+    dns_records:
+      - mypack

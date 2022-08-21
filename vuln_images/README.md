@@ -87,45 +87,59 @@ proxies:
     # Any name of the proxy, should be unique across all proxies in your service.   
   - name: main
     listener:
-      # Protocol for the proxy. Now only "http" is supported. 
+      # Protocol for the proxy. Now only "http" and "tcp" are supported. 
       # If you want to deploy HTTPS proxy, specify "http" here and certificate below.
       protocol: http
-      # Hostname for the proxy. We use asterisk here, because real domain is test.team42.ctf.hitb.org
-      # Optional. If not specified, "$SERVICE.*" will be used.
+      # [HTTP only] Hostname for the proxy. We use asterisk here, because real domain is test.team42.ctf.hitb.org
+      # Optional. If not specified, "$SERVICE.*" will be used.      
       hostname: test.*
-      # Certificate name (as specified in PROXY_CERTIFICATES in settings.py).
+      # [HTTP Only] Certificate name (as specified in PROXY_CERTIFICATES in settings.py).
       # Optional. If not specified, only HTTP proxy will be deployed, without TLS. 
       # Attention! Omit this option only if you have really strong reasons to disable TLS!
       certificate: wildcard.ctf.hitb.org
-      # Client certificate name (as specified in PROXY_CERTIFICATES in settings.py).
+      # [HTTP Only] Client certificate name (as specified in PROXY_CERTIFICATES in settings.py).
       # Optional. Specify only if you want to check client certificate on
       # the proxy side.
       client_certificate: n0tes_client
+      # [TCP only] Amount of simultaneous connections accepted by the proxy.
+      # Optional. Default is unlimited. 
+      tcp_simultaneous_connections: 1
     upstream:
       # Host's index on team's network where proxy should send all requests.
       # I.e, if service is deployed on 10.60.10.3, specify 3 here.
       host_index: 3
       # Port of the service on upstream host.
       port: 80
-      # Protocol for the upstream. "http" or "https"
-      # Optional. Default: "http"
+      # Protocol for the upstream. "tcp", "http" or "https"
+      # Optional. Default: "http" for HTTP proxies, "tcp" for TCP proxies
       protocol: http
-      # Client certificate name (as specified in PROXY_CERTIFICATES in settings.py)
+      # [HTTP only] Client certificate name (as specified in PROXY_CERTIFICATES in settings.py)
       # to be used for upstream requests.
       # Optional. Specify only if your backend checks client certificate.
       client_certificate: n0tes_client
     # List of limits (can be empty).
     limits:
-      # Only "team" is supported now. It means that limit will be applied per-/24 network.
+      # Only "team" is supported as a source now.
+      # It means that limit will be applied per-/24 network.
       - source: team
-        # You can create different limits for different locations.
+        # [HTTP only] You can create different limits for different locations.
         location: /
-        # Limit in terms of nginx's limit_req_zone directive: 
+        # Limit. 
+        # 
+        # For HTTP proxies: limit in terms of nginx's limit_req_zone directive: 
         # http://nginx.org/en/docs/http/ngx_http_limit_req_module.html#limit_req_zone.
-        limit: 5r/m
-        # Burst in terms of nginx's limit_req directive:
+        # 
+        # For TCP proxies limit in terms of iptables hashlimit's option:
+        # https://fossies.org/linux/iptables/extensions/libxt_hashlimit.man
+        limit: 5r/m  # "5/minute" for TCP proxies
+        # Burst.
+        # 
+        # For HTTP proxies: Burst in terms of nginx's limit_req directive:
         # http://nginx.org/en/docs/http/ngx_http_limit_req_module.html#limit_req.
-        # Optional. If specified, it wil be applied together "nodelay" option. 
+        # Optional. If specified, it wil be applied together "nodelay" option.
+        #
+        # For TCP proxies: Burst in terms of iptables hashlimit's option −−hashlimit−burst:
+        # https://fossies.org/linux/iptables/extensions/libxt_hashlimit.man
         burst: 10
     # List of DNS records for proxies (can be empty). 
     # Records will be created in team's DNS zone, i.e. test.team42.ctf.hitb.org. 
