@@ -30,12 +30,17 @@ html, body: {
 
 .panel {
 	grid-area: 2 / 2 / 3 / 3;
+	border: 2px solid #eee;
+	border-radius: 10px;
+	margin-left: 10px;
+	padding-top: 10px;
 }
 
 .logo {
 	position: absolute;
 	left: 12px;
-	top: 12px;
+	font-size: 40px;
+	pointer-events: none;
 }
 
 #auth {
@@ -66,4 +71,8 @@ a.filelink {
 
 .swal-modal {
 	will-change: unset !important;
+}
+
+.swal-content__input.required {
+	background-color: #fff8d4;
 }

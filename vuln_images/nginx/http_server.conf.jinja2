@@ -5,9 +5,19 @@ map $binary_remote_addr $bin_slash24 {
 
 {% for location in locations %}
     {% if location.limit %}
-        limit_req_zone $bin_slash24 zone=req_zone_{{ service_name }}_{{ location.index }}:10m rate={{ location.limit }};
+        limit_req_zone $bin_slash24 zone=req_zone_{{ service_name }}_{{ proxy_name }}_{{ location.index }}:10m rate={{ location.limit }};
     {% endif %}
 {% endfor %}
+
+upstream upstream_{{ service_name }}_{{ proxy_name }} {
+    server {{ upstream_address }};
+    server {{ upstream_address }};
+    server {{ upstream_address }};
+
+    # We recommend setting the parameter to twice the number of servers listed in the upstream{} block.
+    # https://www.nginx.com/blog/avoiding-top-10-nginx-configuration-mistakes/#no-keepalives
+    keepalive 6;
+}
 
 server {
     listen 80;
@@ -19,6 +29,9 @@ server {
     {% endif %}
 
     server_name {{ server_name }};
+
+    access_log /var/log/nginx/{{ service_name }}_{{ proxy_name }}_access.log;
+    error_log /var/log/nginx/{{ service_name }}_{{ proxy_name }}_error.log warn;
 
     {% if use_ssl %}
     ssl_certificate      {{ ssl_certificate }};
@@ -70,21 +83,29 @@ server {
 
     error_page 503 =429 /---ctf-proxy-too-many-requests---.html;
 
+    proxy_buffering off;
+
+    proxy_http_version 1.1;
+
+    proxy_set_header User-Agent CTF;
+    proxy_set_header Host $host;
+    proxy_set_header Accept-Encoding "gzip, deflate, br";
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Connection "";
+
+    proxy_connect_timeout 10;
+    proxy_send_timeout 10;
+    proxy_read_timeout 60;
+
+    proxy_next_upstream error timeout;
+
     {% for location in locations %}
         location {{ location.location }} {
             {% if location.limit %}
-                limit_req zone=req_zone_{{ service_name }}_{{ location.index }} {% if location.burst > 0 %}burst={{ location.burst }} nodelay{% endif %};
+                limit_req zone=req_zone_{{ service_name }}_{{ proxy_name }}_{{ location.index }} {% if location.burst > 0 %}burst={{ location.burst }} nodelay{% endif %};
             {% endif %}
 
-            proxy_pass {{ upstream }};
-            proxy_buffering off;
-
-            proxy_http_version 1.1;
-
-            proxy_set_header User-Agent CTF;
-            proxy_set_header Host $host;
-            proxy_set_header Accept-Encoding "gzip, deflate, br";
-            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_pass {{ upstream_protocol }}://upstream_{{ service_name }}_{{ proxy_name }};
 
             {% if upstream_client_certificate %}
                 proxy_ssl_certificate {{ upstream_client_certificate }};

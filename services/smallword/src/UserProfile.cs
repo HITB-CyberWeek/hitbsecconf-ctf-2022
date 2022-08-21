@@ -29,7 +29,20 @@ public class User
 
 public static class UserProfile
 {
-    static UserProfile() => Directory.CreateDirectory(DataDirectoryPath);
+    static UserProfile()
+    {
+        Directory.CreateDirectory(DataDirectoryPath);
+        CleanupTimer = new Timer(_ =>
+        {
+            var readyToDelete = DateTime.UtcNow.AddMinutes(-40);
+            Directory.EnumerateDirectories(DataDirectoryPath, "????????-????-????-????-????????????", new EnumerationOptions {RecurseSubdirectories = true, MaxRecursionDepth = 2})
+                .Where(dir => Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories).All(file => File.GetLastWriteTimeUtc(file) < readyToDelete))
+                .ForEach(dir => { try {
+                    Thread.Yield();
+                    Directory.Delete(dir, true);
+                } catch { /* ignored */ } });
+        }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
+    }
 
     public static async Task<User?> Find(Guid userId, CancellationToken cancellationToken)
     {
@@ -74,7 +87,7 @@ public static class UserProfile
 
     public static IEnumerable<string?> ListFiles(Guid userId)
         => Directory.EnumerateFiles(GetDocsDirectoryPath(userId), "*.html", SearchOption.TopDirectoryOnly)
-            .OrderByDescending(File.GetLastWriteTime)
+            .OrderByDescending(File.GetLastWriteTimeUtc)
             .Take(10)
             .Select(Path.GetFileNameWithoutExtension);
 
@@ -96,6 +109,8 @@ public static class UserProfile
         return path;
     }
 
+    private static readonly Timer CleanupTimer;
+
     private const string DataDirectoryPath = "data/";
     private const string DocsDirectoryPath = "docs/";
 
@@ -109,7 +124,7 @@ public static class AuthHelper
         var auth = request.Cookies["auth"];
         if(auth == null)
             return null;
-        var parts = auth.Split(' ');
+        var parts = auth.Split(Delim);
         if(parts.Length != 2 || parts[0] == string.Empty)
             return null;
         var (login, hmac) = (parts[0], parts[1]);
@@ -121,15 +136,16 @@ public static class AuthHelper
         return login.ToUserId();
     }
 
-    //TODO: login characters must be validated for such format
     public static void SetAuth(this HttpResponse response, string login, byte[] key)
-        => response.Cookies.Append("auth", login + ' ' + Convert.ToBase64String(Hmac(login, key)));
-
-    public static byte[] Hmac(string login, byte[] key)
-        => HMACSHA256.HashData(key, Encoding.UTF8.GetBytes(login));
+        => response.Cookies.Append("auth", $"{login}{Delim}{Convert.ToBase64String(Hmac(login, key))}");
 
     public static Guid ToUserId(this string login)
         => new(SHA256.HashData(Encoding.UTF8.GetBytes(login))[..16]);
+
+    private static byte[] Hmac(string login, byte[] key)
+        => HMACSHA256.HashData(key, Encoding.UTF8.GetBytes(login));
+
+    private const char Delim = ' ';
 }
 
 public static class PasswordHelper
@@ -145,4 +161,13 @@ public static class PasswordHelper
 
     private static byte[] HashPassword(string password, byte[] salt, byte[] pepper)
         => KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA256, iterationCount: 7, 256 / 8).Select((b, i) => (byte)(b ^ pepper[i % pepper.Length])).ToArray();
+}
+
+public static class Helper
+{
+    public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+    {
+        foreach(T element in source) 
+            action(element);
+    }
 }

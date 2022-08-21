@@ -1,12 +1,13 @@
-let fileId = window.location.hash?.replace(/^#/, '') || '';
-
 const checklogin = () => {
 	let login = Cookies.get('auth')?.split(' ')[0];
 	document.getElementById('auth').textContent = login || '';
 	if(login) document.querySelector('.auth-buttons').style.display = 'none';
+	else history.pushState(null, null, '/');
 }
 
 checklogin();
+
+let fileId = window.location.hash?.replace(/^#/, '') || '';
 
 const handleErrors = (response) => {
 	if(!response.ok)
@@ -17,11 +18,12 @@ const handleErrors = (response) => {
 const createForm = (id, fields) => {
 	const wrapper = document.createElement('form');
 	fields.forEach(field => {
-		let el = document.createElement("input");
+		const required = field === 'login' || field === 'password';
+		const el = document.createElement("input");
 		el.type = field === 'password' ? 'password' : 'input';
 		el.name = field;
-		el.placeholder = field;
-		el.className = 'swal-content__input';
+		el.placeholder = field + (required ? ' *' : '');
+		el.className = 'swal-content__input' + (required ? ' required' : '');
 		wrapper.appendChild(el);
 	});
 	return wrapper;
@@ -30,7 +32,7 @@ const createForm = (id, fields) => {
 const regForm = createForm('reg', ['birthDate', 'gender', 'country', 'company', 'address', 'name', 'surname', 'patronymic', 'login', 'password', 'hobby']);
 const logForm = createForm('log', ['login', 'password']);
 const request = (title, subtitle, form, path, success) => {
-	swal(title, subtitle, {content: form})
+	swal(title, subtitle, {content: form, closeOnClickOutside: false})
 		.then((value) => {
 			if(!value) return;
 			const data = Object.fromEntries(Array.from(new FormData(form).entries()).filter(([_, value]) => !!value?.length));
@@ -53,20 +55,14 @@ const debounce = (ctx, func, delay) => {
 
 const load = (id) => {
 	if(!id) return;
-	const editor = tinymce.activeEditor;
-	const notifier = editor.notificationManager;
-	const closeall = () => notifier.getNotifications().forEach(n => n.close());
 	return fetch(`/file/${encodeURIComponent(id)}`)
 		.then(handleErrors)
 		.then(response => response.text())
 		.then(html => {
-			closeall();
-			editor.setContent(html)
+			tinymce.activeEditor.setContent(html)
+			notify('opened ' + id, 'success');
 		})
-		.catch(e => {
-			closeall();
-			notifier.open({text: 'failed to open: ' + (e?.toString() ?? 'unknown error'), type: 'error', closeButton: false, timeout: 1500})
-		});
+		.catch(e => notify('failed to open: ' + (e?.toString() ?? 'unknown error'), 'error'));
 }
 
 tinymce.init({
@@ -80,57 +76,71 @@ tinymce.init({
 		'searchreplace', 'wordcount', 'visualblocks', 'code', 'fullscreen', 'insertdatetime',
 		'table', 'emoticons', 'save', 'help'
 	],
-	toolbar: 'save | undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | ' +
+	toolbar: 'save exportbutton | undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | ' +
 		'bullist numlist outdent indent | link | print preview fullscreen | ' +
 		'forecolor backcolor emoticons | help',
 	menu: {
 		file: { title : 'File' , items : 'newdocument savedocument | preview | exportdocument' }
 	},
-	setup: (editor) => {
+	init_instance_callback: editor => {
+		editor.on('ExecCommand', e => {
+			if(e.command !== 'mceNewDocument')
+				return;
+			fileId = crypto.randomUUID();
+			history.pushState(null, null, '/');
+		});
+	},
+	setup: editor => {
 		editor.ui.registry.addMenuItem('savedocument', {
-			text: 'Save',
+			text: 'Save', icon: 'save',
 			onAction: () => editor.execCommand('mceSave')
 		});
 		editor.ui.registry.addMenuItem('exportdocument', {
-			text: 'Export',
+			text: 'Export', icon: 'export',
 			onAction: () => {
 				fetch(`/file/${encodeURIComponent(fileId)}?export=true`)
-				.then(handleErrors)
-				.then(response => response.blob())
-				.then(blob => {
-					const a = document.createElement('a');
-					a.href = window.URL.createObjectURL(blob);
-					document.body.appendChild(a);
-					a.click();
-					a.remove();
-				})
-				.catch(e => swal('Failed to export', e?.toString() ?? 'Unknown error', 'error'));
+					.then(handleErrors)
+					.then(response => response.blob())
+					.then(blob => {
+						const a = document.createElement('a');
+						a.href = window.URL.createObjectURL(blob);
+						document.body.appendChild(a);
+						a.click();
+						a.remove();
+						notify('exported', 'success');
+					})
+					.catch(e => notify('failed to export: ' + (e?.toString() ?? 'unknown error'), 'error'));
 			}
+		});
+		editor.ui.registry.addButton('exportbutton', {
+			icon: 'export',
+			onAction: () => tinymce.activeEditor.ui.registry.getAll().menuItems['exportdocument'].onAction()
 		});
 		editor.on('change', () => {
 			if(editor.isDirty()) editor.execCommand('mceSave');
-		})
+		});
 	},
 	menubar: 'file edit view insert format tools table help',
 	content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:16px }',
 	save_onsavecallback: debounce(this, () => {
 		if(!fileId) fileId = crypto.randomUUID();
-		const editor = tinymce.activeEditor;
-		const notifier = editor.notificationManager;
-		const closeall = () => notifier.getNotifications().forEach(n => n.close());
-		fetch(`/file/${encodeURIComponent(fileId)}`, {method: 'PUT', body: editor.getContent()})
+		fetch(`/file/${encodeURIComponent(fileId)}`, {method: 'PUT', body: tinymce.activeEditor.getContent()})
 			.then(handleErrors)
 			.then(response => {
-				closeall();
-				notifier.open({text: 'saved', type: 'success', closeButton: false, timeout: 1500});
+				notify('saved', 'success');
 				history.pushState(null, null, '#' + encodeURIComponent(fileId));
+				if(!Array.from(document.querySelectorAll('.filelink')).filter(item => item.href.endsWith(fileId)).length)
+					updateList();
 			})
-			.catch(e => {
-				closeall();
-				notifier.open({text: 'failed to save: ' + (e?.toString() ?? 'unknown error'), type: 'error', closeButton: false, timeout: 1500});
-			});
+			.catch(e => notify('failed to save: ' + (e?.toString() ?? 'unknown error'), 'error'));
 	}, 300)
 }).then(() => load(fileId));
+
+const notify = (text, type) => {
+	const notifier = tinymce.activeEditor.notificationManager;
+	notifier.getNotifications().forEach(n => n.close());
+	notifier.open({text: text, type: type, closeButton: false, timeout: 1500});
+}
 
 const updateList = () => {
 	fetch('/files')
@@ -138,6 +148,8 @@ const updateList = () => {
 		.then(response => response.json())
 		.then(json => {
 			if(!json) return;
+			const panel = document.querySelector('.panel');
+			while(panel.lastElementChild) {panel.removeChild(panel.lastElementChild);}
 			const template = document.querySelector('template').content;
 			const link = template.querySelector('a');
 			for(let i = 0; i < json.length; i++) {
@@ -146,7 +158,7 @@ const updateList = () => {
 				link.textContent = item.split('-')[0];
 				link.href = '#' + encodeURIComponent(item);
 				const clone = document.importNode(template, true);
-				document.querySelector('.panel').appendChild(clone);
+				panel.appendChild(clone);
 			}
 			document.querySelectorAll("a.filelink").forEach(item => item.onclick = e => {
 				e.preventDefault();
@@ -154,7 +166,7 @@ const updateList = () => {
 				load(fileId).then(() => history.pushState(null, null, '#' + encodeURIComponent(fileId)));
 			});
 		})
-		.catch(e => console.log(e));
+		.catch(e => notify('failed to list files: ' + (e?.toString() ?? 'unknown error'), 'error'));
 }
 
 updateList();
