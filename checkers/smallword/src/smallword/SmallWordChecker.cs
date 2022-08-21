@@ -188,7 +188,7 @@ namespace checker.smallword
 				throw new CheckerException(ExitCode.CORRUPT, $"invalid {relative} response: flag not found");
 		}
 
-		private const int Port = 5000;
+		private const int Port = 443;
 
 		private const int MaxHttpBodySize = 512 * 1024;
 		private const int MaxCookieSize = 256;
@@ -196,7 +196,7 @@ namespace checker.smallword
 		private const int MaxDelay = 3000;
 		private const int NetworkOpTimeout = 10000;
 
-		private static Uri GetBaseUri(string host) => new($"http://{host}:{Port}/");
+		private static Uri GetBaseUri(string host) => new($"https://{host}:{Port}/");
 
 		private static readonly JsonSerializerOptions JsonOptions = new()
 		{
