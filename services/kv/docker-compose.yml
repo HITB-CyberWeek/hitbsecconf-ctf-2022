@@ -9,7 +9,7 @@ services:
     links:
       - "redis:redis"
     ports:
-      - "8080:3000"
+      - "3000:3000"
   redis:
     restart: unless-stopped
     image: redis:7.0.4-alpine
