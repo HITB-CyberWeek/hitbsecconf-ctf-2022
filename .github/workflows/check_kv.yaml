@@ -7,14 +7,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Prepare
-      run: apt-get update
+      run: sudo apt-get update
     - name: Install docker
       run: |
-          apt-get install docker.io
-          apt-get install docker-compose
+          sudo apt-get install docker.io
+          sudo apt-get install docker-compose
     - name: Install checker reqirements
       run: |
-          apt-get install python3-pip
+          sudo apt-get install python3-pip
           cd checkers/kv
           pip3 install -r requirements.txt
     - name: Build and run service
