@@ -27,7 +27,7 @@ def create_ssh_connection(host):
 
 async def remove_proxies(host: str, service_name: str):
     async with create_ssh_connection(host) as ssh:
-        typer.echo(f"Removing old nginx configs for {service_name} on {host}")
+        typer.echo(f"[{host}] Removing old nginx configs for {service_name}")
         await ssh.run(f"rm -rf /etc/nginx/sites-enabled/{service_name}_*", check=True)
 
 
@@ -86,14 +86,14 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
 
         target_nginx_config_name = f"/etc/nginx/sites-enabled/{service_name}_{proxy.name}"
         try:
-            typer.echo(f"   Uploading HTTP config to {target_nginx_config_name}")
+            typer.echo(f"[{host}]    Uploading HTTP config to {target_nginx_config_name}")
             await asyncssh.scp(filename, (ssh, target_nginx_config_name))
         finally:
             os.unlink(filename)
 
 
 async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
-    typer.echo(f"Deploying proxy for {service_name}:{proxy.name} to {host}")
+    typer.echo(f"[{host}] Deploying proxy for {service_name}:{proxy.name}")
     if proxy.listener.protocol == "http":
         await deploy_http_proxy(host, team_id, service_name, proxy)
     else:
@@ -101,14 +101,14 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
 
 
 async def prepare_host_for_proxies(host: str):
-    typer.echo(f"Preparing host {host} for being a proxy:")
+    typer.echo(f"[{host}] Preparing host for being a proxy:")
     async with create_ssh_connection(host) as ssh:
         # 1. Install nginx
-        typer.echo("   Installing nginx and openssl")
+        typer.echo("[{host}]    Installing nginx and openssl")
         await ssh.run("apt-get install -y nginx openssl", check=True)
 
         # 2. Generate dhparam — only once!
-        typer.echo("   Generating /etc/nginx/dhparam.pem if not exists")
+        typer.echo("[{host}]    Generating /etc/nginx/dhparam.pem if not exists")
         await ssh.run(
             # Why we use -dsaparam? Because it's still secure and much more faster:
             # https://security.stackexchange.com/questions/95178/diffie-hellman-parameters-still-calculating-after-24-hours
@@ -118,19 +118,19 @@ async def prepare_host_for_proxies(host: str):
 
         # 3. Copy TLS certificates
         for certificate_name, (chain, private_key) in settings.PROXY_CERTIFICATES.items():
-            typer.echo(f"   Uploading /etc/ssl/{certificate_name}/{{fullchain.pem,privkey.pem}}")
+            typer.echo(f"[{host}]    Uploading /etc/ssl/{certificate_name}/{{fullchain.pem,privkey.pem}}")
             await ssh.run(f"mkdir -p /etc/ssl/{certificate_name}", check=True)
             await asyncssh.scp(chain.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/fullchain.pem"), preserve=True)
             await asyncssh.scp(private_key.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/privkey.pem"), preserve=True)
 
         # 4. Copy too_many_requests.html
-        typer.echo("   Uploading /var/www/html/too_many_requests.html")
+        typer.echo("[{host}]    Uploading /var/www/html/too_many_requests.html")
         await asyncssh.scp("nginx/too_many_requests.html", (ssh, "/var/www/html/too_many_requests.html"))
 
 
 async def post_deploy(host: str, team_id: int):
     async with create_ssh_connection(host) as ssh:
-        typer.echo(f"Reloading nginx on {host}")
+        typer.echo(f"[{host}] Reloading nginx")
         await ssh.run("nginx -t", check=True)
         await ssh.run("systemctl reload nginx", check=True)
 
@@ -140,14 +140,14 @@ async def create_dns_record(hostname: str, value: str):
     for record in domain.get_records():
         if record.name == hostname and record.type == "A":
             if record.data != value:
-                typer.echo(f"Updating DNS record {hostname}.{settings.DNS_ZONE} → {value}")
+                typer.echo(f"[{value}] Updating DNS record {hostname}.{settings.DNS_ZONE} → {value}")
                 record.data = value
                 record.save()
             else:
-                typer.echo(f"DNS record already exists: {hostname}.{settings.DNS_ZONE} → {value}")
+                typer.echo(f"[{value}] DNS record already exists: {hostname}.{settings.DNS_ZONE} → {value}")
             return
 
-    typer.echo(f"Creating DNS record {hostname}.{settings.DNS_ZONE} → {value}")
+    typer.echo(f"[{value}] Creating DNS record {hostname}.{settings.DNS_ZONE} → {value}")
     domain.create_new_domain_record(
         type="A",
         name=hostname,
@@ -171,21 +171,25 @@ async def deploy_proxies_for_team(config, host, skip_preparation, team_id):
 
 
 async def deploy_proxies(config: DeployConfig, skip_preparation: bool, only_for_team_id: Optional[int]):
+    tasks = []
+
     for team_id, host in settings.PROXY_HOSTS.items():
         if only_for_team_id is not None and only_for_team_id != team_id:
             continue
 
-        await deploy_proxies_for_team(config, host, skip_preparation, team_id)
+        tasks.append(deploy_proxies_for_team(config, host, skip_preparation, team_id))
+
+    await asyncio.gather(*tasks)
 
 
 def main(
-        config_path: typer.FileText,
-        check: bool = typer.Option(False, "--check", help="Only check the config, don't deploy anything"),
-        skip_preparation: bool = typer.Option(
-            False, "--skip-preparation",
-            help="Skip common preparation step: generating dhparam, copying certificates, ..."
-        ),
-        team_id: Optional[int] = typer.Option(None, "--team-id", help="Deploy proxy only for specified team"),
+    config_path: typer.FileText,
+    check: bool = typer.Option(False, "--check", help="Only check the config, don't deploy anything"),
+    skip_preparation: bool = typer.Option(
+        False, "--skip-preparation",
+        help="Skip common preparation step: generating dhparam, copying certificates, ..."
+    ),
+    team_id: Optional[int] = typer.Option(None, "--team-id", help="Deploy proxy only for specified team"),
 ):
     config = DeployConfigV1.parse_file(config_path.name)
     if check:
