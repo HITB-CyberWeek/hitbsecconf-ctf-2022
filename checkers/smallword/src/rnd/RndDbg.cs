@@ -18,14 +18,13 @@ namespace checker.rnd
 
 		public static string RandomFlag()
 		{
-			var flag = new char[FlagLength];
-			for(int i = 0; i < FlagLength - 1; i++)
+			var flag = new char[FlagSuffixLength];
+			for(int i = 0; i < FlagSuffixLength; i++)
 				flag[i] = Alphabet[RndUtil.ThreadStaticRnd.Next(Alphabet.Length)];
-			flag[FlagLength - 1] = '=';
-			return new string(flag);
+			return $"TEAM{RndUtil.GetInt(1, 1000):000}_{new string(flag)}";
 		}
 
-		private const int FlagLength = 32;
+		private const int FlagSuffixLength = 31;
 		private static readonly char[] Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 	}
 }

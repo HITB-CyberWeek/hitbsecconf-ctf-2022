@@ -82,6 +82,7 @@ namespace checker
 
 					var vuln = RndDbg.RandomVuln(vulns);
 					var flag = RndDbg.RandomFlag();
+					await Console.Error.WriteLineAsync(flag).ConfigureAwait(false);
 
 					await StderrWriteLineColoredAsync("PUT", ConsoleColor.Yellow).ConfigureAwait(false);
 					var result = await checker.Put(host, "", flag, vuln).ConfigureAwait(false);

@@ -13,6 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
     .AddIniFile(settingsFilePath);
+builder.Logging
+    .ClearProviders();
 builder.WebHost
     .UseKestrel(opts =>
     {
