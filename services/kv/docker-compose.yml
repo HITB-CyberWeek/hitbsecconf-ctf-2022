@@ -11,9 +11,10 @@ services:
     ports:
       - "3000:3000"
   redis:
+    command: redis-server --save 60 1
     restart: unless-stopped
     image: redis:7.0.4-alpine
     expose:
       - "6379"
-    # volumes:
-    #   - "/data/redis:/data"
+    volumes:
+      - "/data/redis:/data"
