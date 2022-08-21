@@ -14,10 +14,6 @@ type RegisterResp struct {
 	ClientSecret string `json:"client_secret"`
 }
 
-// func (u *TokenResp Bind(r *http.Request) error {
-// 	return nil
-// }
-
 func (rd *RegisterResp) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
