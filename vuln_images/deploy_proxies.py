@@ -18,6 +18,7 @@ CURRENT_FOLDER = pathlib.Path(__file__).parent
 
 
 IPTABLES_LIMIT_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT -m tcp --dport {port} -m state --state NEW -m hashlimit --hashlimit {limit} --hashlimit-mode srcip --hashlimit-srcmask 24 --hashlimit-name {name}"
+IPTABLES_LOG_RULE = "iptables -t nat -A PREROUTING -p tcp -j LOG --log-prefix '** 429 TOO MANY ** ' -m tcp --dport {port} -m state --state NEW"
 IPTABLES_BLOCK_RULE = "iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination {host}:429 -m tcp --dport {port} -m state --state NEW"
 
 
@@ -143,12 +144,12 @@ async def deploy_tcp_proxy(host: str, team_id: int, service_name: str, proxy: Pr
             )
             if limit.burst:
                 limit_rule += f" --hashlimit-burst {limit.burst}"
+            log_rule = IPTABLES_LOG_RULE.format(port=proxy.listener.port)
             block_rule = IPTABLES_BLOCK_RULE.format(port=proxy.listener.port, host=host)
 
-            typer.echo(f"[{host}]    Adding iptables rules: {limit_rule}")
-            await ssh.run(limit_rule, check=True)
-            typer.echo(f"[{host}]    Adding iptables rules: {block_rule}")
-            await ssh.run(block_rule, check=True)
+            for rule in [limit_rule, log_rule, block_rule]:
+                typer.echo(f"[{host}]    Adding iptables rules: {rule}")
+                await ssh.run(rule, check=True)
 
 
 async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
