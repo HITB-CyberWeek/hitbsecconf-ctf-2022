@@ -35,6 +35,10 @@ sed -i 's|"1"|"0"|' mnt/etc/apt/apt.conf.d/20auto-upgrades
 # Set hostname
 echo ibm > mnt/etc/hostname
 
+# Set up ssh access
+cat files/id_rsa.pub >> mnt/root/.ssh/authorized_keys
+sed -i 's/^#PermitRootLogin/PermitRootLogin/' mnt/etc/ssh/sshd_config
+
 # Copy pre-compiled service and systemd unit inside
 cp -v files/crs mnt/root/crs
 cp -v files/crs.service mnt/etc/systemd/system/crs.service

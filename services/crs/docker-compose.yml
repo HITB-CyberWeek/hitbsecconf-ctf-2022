@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     build: .
     ports:
-      - 14444:14444
+      - 14444:14444        # Service port. Public.
+      - 127.0.0.1:2222:22  # SSH port. Private.
     volumes:
       - ./:/app

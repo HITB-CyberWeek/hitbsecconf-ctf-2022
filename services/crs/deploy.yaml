@@ -11,7 +11,14 @@ files:
       - ./img/boot.sh
       - ./Dockerfile
       - ./docker-compose.yml
-    destination: /home/$USERNAME
+      - ./README.TXT
+    destination: /home/$USERNAME/
+
+  - source: ./img/files/id_rsa          # for ssh into qemu VM
+    destination: /home/$USERNAME/.ssh/
+
+  - source: ./img/files/id_rsa          # for ssh into qemu VM
+    destination: /home/root/.ssh/
 
 proxies:
   - name: main

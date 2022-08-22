@@ -7,7 +7,7 @@ MEM=4096
 CORES=$(nproc)
 
 if [ "${1:-}" = "--telnet" ]; then
-    # To login into the inner OS:
+    # May be used if ssh to vm is broken.
     # * use this branch (restart docker container),
     # * telnet localhost 4441 (inside docker container),
     # * use root password: WA7NERURoVlDegBUVyM1Kk
