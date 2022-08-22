@@ -232,13 +232,14 @@ async def post_deploy(host: str, team_id: int):
         await ssh.run("systemctl reload nginx", check=True)
 
 
-async def create_dns_record(hostname: str, value: str):
+async def create_dns_record(hostname: str, value: str, ttl: int = 60):
     domain = digitalocean.Domain(token=settings.DO_API_TOKEN, name=settings.DNS_ZONE)
     for record in domain.get_records():
         if record.name == hostname and record.type == "A":
-            if record.data != value:
+            if record.data != value or record.ttl != ttl:
                 typer.echo(f"[{value}] Updating DNS record {hostname}.{settings.DNS_ZONE} → {value}")
                 record.data = value
+                record.ttl = ttl
                 record.save()
             else:
                 typer.echo(f"[{value}] DNS record already exists: {hostname}.{settings.DNS_ZONE} → {value}")
@@ -248,7 +249,8 @@ async def create_dns_record(hostname: str, value: str):
     domain.create_new_domain_record(
         type="A",
         name=hostname,
-        data=value
+        data=value,
+        ttl=ttl,
     )
 
 
