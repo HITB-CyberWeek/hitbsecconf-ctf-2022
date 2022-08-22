@@ -1,0 +1,21 @@
+- hosts: checkers
+  tasks:
+    - name: pull cs image
+      docker_image:
+        name: "{{ cs_docker_image }}"
+        source: pull
+        force_source: yes
+    - name: recreate checkers containers
+      docker_container:
+        name: "cs_checker_worker_{{ item }}"
+        image: "{{ cs_docker_image }}"
+        command: "perl script/cs minion worker -q default {{ cs_worker_checkers_queues }} -j {{ cs_worker_checkers_jobs }}"
+        init: true
+        container_default_behavior: no_defaults
+        restart_policy: unless-stopped
+        detach: yes
+        recreate: yes
+        stop_timeout: 60
+        env:
+          POSTGRES_URI: "postgresql://{{ pg_cs_user }}:{{ pg_cs_pass }}@{{ pg_cs_host }}/{{ pg_cs_db }}"
+      with_sequence: count={{ cs_worker_instance }}

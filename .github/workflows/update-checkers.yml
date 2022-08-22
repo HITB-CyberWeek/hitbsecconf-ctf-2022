@@ -24,6 +24,5 @@ jobs:
       - name: Reset game
         if: ${{ inputs.approve }}
         run: |-
-          ansible-playbook --private-key=~/cloud_ssh_private_key -D -v -t update ../checksystem/ansible/cs-deploy.yml
-          ansible-playbook --private-key=~/cloud_ssh_private_key -D -v ../checksystem/ansible/cs-start.yml;
+          ansible-playbook --private-key=~/cloud_ssh_private_key -D -v checkers.yml
         working-directory: "${{ github.workspace }}/ansible"
