@@ -6,6 +6,8 @@ import requests
 import random
 import string
 import json
+from urllib.parse import urljoin
+from lxml import etree
 requests.packages.urllib3.disable_warnings()
 from checker_helper import *
 
@@ -30,14 +32,31 @@ def get_random_string(min_len, max_len):
 def login(host, user, password):
     n0tes_url = f"https://{host}:{PORT}/"
 
+    login_data = {"ReturnUrl": "/", "Username": user, "Password": password}
+    session = requests.Session()
+
     try:
-        r = requests.get(n0tes_url, timeout=TIMEOUT, verify=False)
+        r = session.post(urljoin(n0tes_url, "/login"), data=login_data, verify=False)
     except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
         return (DOWN, "Connection error", "Connection error during login: %s" % e, None)
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during login: %s" % e, None)
 
-    session = requests.Session()
+    if r.status_code != 200:
+        return (MUMBLE, "Can't login", "Unexpected login result: '%d'" % r.status_code)
+
+    try:
+        doc = etree.HTML(r.text)
+    except Exception as e:
+        return (MUMBLE, "Unexpected login result", "Can't parse result html: '%s'" % e)
+
+    user_element = doc.xpath("//li[contains(@class, 'nav-item')]/span")
+    if len(user_element) != 1:
+        return (MUMBLE, "Unexpected login result", "Can't find username HTML element in '%s'" % r.text)
+
+    actual_user = user_element[0].text.removesuffix(' | ')
+    if actual_user != user:
+        return (MUMBLE, "Unexpected login result", "Wrong username: '%s'" % actual_user)
 
     return (OK, "", "", session)
 
