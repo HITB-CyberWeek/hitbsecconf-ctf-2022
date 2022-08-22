@@ -15,3 +15,4 @@ COPY cs/cs.conf /app/c_s.conf
 
 # Checkers
 COPY checkers/sh /app/checkers/sh
+COPY checkers/crs /app/checkers/crs
