@@ -105,6 +105,8 @@ server {
             {% if upstream_client_certificate %}
                 proxy_ssl_certificate {{ upstream_client_certificate }};
                 proxy_ssl_certificate_key {{ upstream_client_certificate_key }};
+                proxy_ssl_server_name on;
+                proxy_ssl_name {{ server_name }};
             {% endif %}
         }
     {% endfor %}
