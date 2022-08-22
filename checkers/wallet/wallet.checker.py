@@ -38,7 +38,7 @@ class WalletChecker(checklib.http.HttpChecker):
         transfer_comment = ""
         for i in range(random.randint(10, 15)):
             transfer_comment += f"{checklib.random.english_word().lower()} "
-        transfer_sum = random.randint(100, 499)
+        transfer_sum = str(random.randint(100, 499))
         self.create_transfer(from_user, to_user, transfer_sum, transfer_comment)
         comment = ""
         for i in range(random.randint(10, 15)):
