@@ -33,4 +33,5 @@ COPY checkers/crs /app/checkers/crs
 COPY checkers/smallword /app/checkers/smallword
 COPY checkers/mypack /app/checkers/mypack
 COPY checkers/wallet /app/checkers/wallet
+COPY checkers/n0tes /app/checkers/n0tes
 COPY --from=build-dot-net-checkers /app/smallword-publish/ /app/checkers/smallword/src/bin/Release/net6.0/publish
