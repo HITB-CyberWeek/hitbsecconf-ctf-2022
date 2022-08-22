@@ -27,6 +27,7 @@
             padding: 0px;
             margin: 0px;
             float: left;
+            caret-color: transparent;
         }
 
         #cursor {
@@ -45,7 +46,7 @@
 
 </head>
 <body>
-<pre id="console"><span id="cursor"> </span><div id="filler">&nbsp;</div></pre>
+<pre id="console" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><span id="cursor"> </span><div id="filler">&nbsp;</div></pre>
 
 <script>
 var token = ""
@@ -266,7 +267,7 @@ function call_api(t, cmd, args) {
 
     cur_req = new XMLHttpRequest()
     cur_req.open('POST', 'api/cloud', true)
-    cur_req.setRequestHeader("X-Authorization", "Bearier " + t)
+    cur_req.setRequestHeader("X-Authorization", "Bearier " + encodeURIComponent(t))
     cur_req.setRequestHeader('Content-type', 'application/json; charset=utf-8');
 
     cur_req.onreadystatechange = function() {
@@ -479,7 +480,7 @@ if (!window.localStorage["session"]) {
 var console_el = document.getElementById("console")
 console_el.setAttribute("contenteditable", true)
 console_el.focus()
-console_el.setAttribute("contenteditable", false)
+// console_el.setAttribute("contenteditable", false)
 console_el.addEventListener("paste", function(e) {
     e.preventDefault();
     var text = e.clipboardData.getData("text/plain");
