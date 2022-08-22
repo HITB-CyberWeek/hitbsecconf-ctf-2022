@@ -15,7 +15,7 @@ RUN apt-get update && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         p7zip bzip2 gzip rar zip
-RUN pip install patool requests
+RUN pip install patool requests beautifulsoup4
 
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
