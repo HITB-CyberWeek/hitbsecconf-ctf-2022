@@ -80,55 +80,52 @@ public class DB {
             lastLinkId = new AtomicInteger(links.size() > 0 ? Collections.max(links.values().stream().map(p -> p.getId()).toList()) : 0);
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to initialize from disk", e);
         }
     }
 
     private void LoadUsers(Path usersFilePath) throws IOException {
-        var inputStream = new FileInputStream(usersFilePath.toString());
-        var objectInputStream = new ObjectInputStream(inputStream);
+        try (var inputStream = new FileInputStream(usersFilePath.toString());
+             var objectInputStream = new ObjectInputStream(inputStream)) {
 
-
-        //TODO is it correct? what about buffering?
-        while(inputStream.available() > 0)
-        {
-            try {
-                TryAddUserToMemory((User)objectInputStream.readObject());
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+            //TODO is that correct? what about buffering?
+            while(inputStream.available() > 0)
+            {
+                try {
+                    TryAddUserToMemory((User)objectInputStream.readObject());
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
-        //TODO close streams
     }
 
     private void LoadPages(Path pagesFilePath) throws IOException {
-        var inputStream = new FileInputStream(pagesFilePath.toString());
-        var objectInputStream = new ObjectInputStream(inputStream);
+        try (var inputStream = new FileInputStream(pagesFilePath.toString());
+             var objectInputStream = new ObjectInputStream(inputStream)) {
 
-        while(inputStream.available() > 0)
-        {
-            try {
-                AddPageToMemory((Page)objectInputStream.readObject());
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+            while (inputStream.available() > 0) {
+                try {
+                    AddPageToMemory((Page) objectInputStream.readObject());
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
-        //TODO close streams
     }
 
     private void LoadLinks(Path linksFilePath) throws IOException {
-        var inputStream = new FileInputStream(linksFilePath.toString());
-        var objectInputStream = new ObjectInputStream(inputStream);
+        try (var inputStream = new FileInputStream(linksFilePath.toString());
+             var objectInputStream = new ObjectInputStream(inputStream)) {
 
-        while(inputStream.available() > 0)
-        {
-            try {
-                AddLinkToMemory((Link)objectInputStream.readObject());
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+            while (inputStream.available() > 0) {
+                try {
+                    AddLinkToMemory((Link) objectInputStream.readObject());
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
-        //TODO close streams
     }
 
 
@@ -183,9 +180,7 @@ public class DB {
     }
 
     public List<Page> getUserPages(String user) {
-        return pages.values().stream().filter(p -> {
-            return p.getUser().equals(user);
-        }).toList();
+        return pages.values().stream().filter(p -> p.getUser().equals(user)).toList();
     }
 
     public Page getPageById(int id){
