@@ -19,8 +19,9 @@ server {
     listen [::]:80 {% if default %}default{% endif %};
 
     {% if use_ssl %}
-    listen 443 ssl http2 {% if default %}default{% endif %};
-    listen [::]:443 ssl http2 {% if default %}default{% endif %};
+    # We don't use http2 here due to n0tes service. In the other situation you may want to add "http2" option.
+    listen 443 ssl {% if default %}default{% endif %};
+    listen [::]:443 ssl {% if default %}default{% endif %};
     {% endif %}
 
     server_name {{ server_name }};
