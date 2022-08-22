@@ -120,7 +120,7 @@ server {
     {% if use_ssl %}
     # Redirect non-https traffic to https
     if ($scheme != "https") {
-        return 301 https://$host$request_uri;
+        return 307 https://$host$request_uri;
     }
     {% endif %}
 }
