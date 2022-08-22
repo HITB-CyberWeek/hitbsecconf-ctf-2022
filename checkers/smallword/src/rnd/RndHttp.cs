@@ -33,7 +33,7 @@ namespace checker.rnd
 		private static readonly Dictionary<string, string[]> RandomDefaultHeaders = new()
 		{
 			{"Accept", new[] {null, null, null, "*/*"}},
-			{"Accept-Encoding", new[] {null, null, null, "gzip, deflate"}},
+			//{"Accept-Encoding", new[] {null, null, null, "gzip, deflate"}},
 			{"Connection", new[] {null, null, null, "Keep-Alive", "keep-alive"}},
 			{"User-Agent", UserAgents}
 		};

@@ -7,4 +7,9 @@
     <LangVersion>10.0</LangVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="2.88.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.1" />
+  </ItemGroup>
+
 </Project>

@@ -34,7 +34,7 @@ public static class UserProfile
         Directory.CreateDirectory(DataDirectoryPath);
         CleanupTimer = new Timer(_ =>
         {
-            var readyToDelete = DateTime.UtcNow.AddMinutes(-40);
+            var readyToDelete = DateTime.UtcNow.AddMinutes(-60);
             Directory.EnumerateDirectories(DataDirectoryPath, "????????-????-????-????-????????????", new EnumerationOptions {RecurseSubdirectories = true, MaxRecursionDepth = 2})
                 .Where(dir => Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories).All(file => File.GetLastWriteTimeUtc(file) < readyToDelete))
                 .ForEach(dir => { try {

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -9,6 +10,12 @@ namespace checker.utils
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key)
 			=> dict.TryGetValue(key, out var value) ? value : default;
+
+		public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> action)
+		{
+			foreach(var item in enumerable)
+				action(item);
+		}
 	}
 
 	// Used for {K:V} JSON serialization

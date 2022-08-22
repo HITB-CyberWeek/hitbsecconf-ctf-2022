@@ -73,7 +73,7 @@ tinymce.init({
 	width: '100%',
 	height: '100%',
 	plugins: [
-		'advlist', 'autolink', 'link', 'lists', 'charmap', 'preview', 'anchor', 'pagebreak',
+		'advlist', 'autolink', 'link', 'lists', 'charmap', 'preview', 'anchor',
 		'searchreplace', 'wordcount', 'visualblocks', 'code', 'fullscreen', 'insertdatetime',
 		'table', 'emoticons', 'save', 'help'
 	],

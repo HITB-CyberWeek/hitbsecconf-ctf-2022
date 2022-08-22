@@ -10,6 +10,7 @@ namespace checker
 
 		[JsonPropertyName("user")] public User User { get; set; }
 		[JsonPropertyName("fileId")] public Guid FileId { get; set; }
+		[JsonPropertyName("image")] public string Base64Image { get; set; }
 		[JsonPropertyName("cookie")] public string Cookie { get; set; }
 	}
 }
