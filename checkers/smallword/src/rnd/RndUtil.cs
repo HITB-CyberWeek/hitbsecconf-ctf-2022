@@ -32,6 +32,16 @@ namespace checker.rnd
 		public static Random ThreadStaticRnd => rnd ??= new Random(Guid.NewGuid().GetHashCode());
 
 		public static Task RndDelay(int max) => DebugZeroDelays ? Task.CompletedTask : Task.Delay(ThreadStaticRnd.Next(max));
+		public static Task RndDelay(int max, ref int total)
+		{
+			if (DebugZeroDelays)
+				return Task.CompletedTask;
+
+			var delay = ThreadStaticRnd.Next(max);
+			total += delay;
+
+			return Task.Delay(delay);
+		}
 
 		public static IEnumerable<T> RandomOrder<T>(this IEnumerable<T> enumerable)
 			=> enumerable.OrderBy(_ => ThreadStaticRnd.Next()).Select(item => item);
