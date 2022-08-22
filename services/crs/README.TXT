@@ -1,4 +1,10 @@
+-----------------------------------------
 CRS service binary runs inside VM (qemu).
+-----------------------------------------
+
+Service dir:
+
+    cd /home/crs/
 
 To see console logs:
 
@@ -6,8 +12,11 @@ To see console logs:
 
 To ssh into VM:
 
-    ssh root@localhost -p2222
+    ssh root@localhost -p2222 -i/home/crs/.ssh/id_rsa
 
-To restart service (beware! boot may take several minutes):
+To restart service (boot may take time):
 
     docker compose restart
+
+-----------------------------------------
+

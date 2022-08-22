@@ -17,8 +17,8 @@ files:
   - source: ./img/files/id_rsa          # for ssh into qemu VM
     destination: /home/$USERNAME/.ssh/
 
-  - source: ./img/files/id_rsa          # for ssh into qemu VM
-    destination: /home/root/.ssh/
+  - source: ./README.TXT
+    destination: /etc/motd
 
 proxies:
   - name: main
