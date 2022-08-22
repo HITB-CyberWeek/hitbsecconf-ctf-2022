@@ -21,7 +21,7 @@ CLOUDS = {
             "router": "s-2vcpu-4gb",
             "empty": "s-8vcpu-16gb",
             "sh": "c-4",
-            "crs": "s-8vcpu-16gb",
+            "crs": "c-4",
         }
     },
     "bay": {
