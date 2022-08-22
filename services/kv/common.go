@@ -56,15 +56,6 @@ func ErrServerError(err error) render.Renderer {
 	}
 }
 
-type UserData struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-func (u *UserData) Bind(r *http.Request) error {
-	return nil
-}
-
 func HashHex(str string) string {
 	hasher := sha256.New()
 	hasher.Write([]byte(str))
@@ -76,11 +67,3 @@ func Hash(b []byte) []byte {
 	hasher.Write([]byte(b))
 	return hasher.Sum(nil)
 }
-
-// func Key(token uint16, filename string) string {
-// 	key := make([]byte, 2)
-// 	binary.LittleEndian.PutUint16(key, token)
-// 	key = append(key, []byte(filename)...)
-// 	keyStr := hex.EncodeToString(Hash(key)[:8])
-// 	return keyStr
-// }
