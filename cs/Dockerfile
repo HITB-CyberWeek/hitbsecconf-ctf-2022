@@ -22,7 +22,7 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 RUN wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
     dpkg -i packages-microsoft-prod.deb && \
     rm packages-microsoft-prod.deb && \
-    apt-get install -y dotnet-sdk-6.0
+    apt-get update && apt-get install -y dotnet-sdk-6.0
 
 # Config
 COPY cs/cs.conf /app/c_s.conf
