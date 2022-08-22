@@ -11,7 +11,7 @@ scripts:
     echo \"MYSQL_HOST=mysql\" >> /home/wallet/.env
     docker compose -f /home/wallet/docker-compose.yml build --pull
   start_once: |
-    echo \"MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)\" >> /home/wallet/.env
+    echo "MYSQL_ROOT_PASSWORD=$(openssl rand -hex 16)" >> /home/wallet/.env
     docker compose -f /home/wallet/docker-compose.yml up -d
 
 files:
