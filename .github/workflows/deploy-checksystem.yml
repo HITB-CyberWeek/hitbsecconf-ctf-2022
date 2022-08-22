@@ -1,0 +1,31 @@
+name: Deploy Checksystem
+
+on:
+  push:
+    paths:
+      - "cs/*"
+
+env:
+  REGISTRY: cr.selcloud.ru
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-checksystem-image:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Login to docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: token
+          password: ${{ secrets.CLOUD_SSH_PRIVATE_KEY }}
+      - name: Build and push image to registry
+        uses: docker/build-push-action@v3
+        with:
+          file: cs/Dockerfile
+          context: .
+          pull: true
+          push: true
+          tags: ${{ env.REGISTRY }}/hackerdom/${{ IMAGE_NAME }}:latest
