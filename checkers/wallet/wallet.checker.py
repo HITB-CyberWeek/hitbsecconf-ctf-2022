@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import json
 import logging
 import random
@@ -13,7 +14,7 @@ import checklib.random
 
 def get_random_domain():
     word = checklib.random.english_word().lower()
-    if len(word) < 2:
+    while len(word) < 2:
         word = checklib.random.english_word().lower()
     return word
 
@@ -24,7 +25,7 @@ class WalletChecker(checklib.http.HttpChecker):
 
     def info(self):
         print("vulns: 1")
-        print("public_flag_description: Flag ID is just a transaction's ID, flag is transaction's comment")
+        print("public_flag_description: Flag ID is just a transaction ID, flag is transaction's comment")
 
     def check(self, address):
 
@@ -111,7 +112,7 @@ class WalletChecker(checklib.http.HttpChecker):
             data={"recovery_type": "code", "step": 2}
         )
         self.mumble_if_false("Secret code #" in recovery_step_2.text,
-                             "Invalid format of response on POST /transfer step 2")
+                             "Invalid format of response on POST /recovery step 2")
         soup_2 = BeautifulSoup(recovery_step_2.content, "html.parser")
         input_label = soup_2.find(attrs={"for": "code"})
         secret_code_number = str(re.search(r'\d+', input_label.text).group())
@@ -126,7 +127,7 @@ class WalletChecker(checklib.http.HttpChecker):
         )
 
         self.mumble_if_false("<p>Set new password </p>" in recovery_step_3.text,
-                             "Invalid format of response on POST /transfer step 3")
+                             "Invalid format of response on POST /recovery step 3")
         return user
 
     def login(self, user):
