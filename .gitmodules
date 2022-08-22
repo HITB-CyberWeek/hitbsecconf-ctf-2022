@@ -1,0 +1,3 @@
+[submodule "checksystem"]
+	path = checksystem
+	url = https://github.com/HackerDom/checksystem

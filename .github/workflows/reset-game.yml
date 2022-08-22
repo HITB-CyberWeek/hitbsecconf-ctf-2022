@@ -1,0 +1,27 @@
+name: Reset current game
+
+on:
+  workflow_dispatch:
+    inputs:
+      approve:
+        description: "Are you sure to reset game?"
+        default: no
+        required: true
+
+
+jobs:
+  reset-game:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Save private key
+        run: 'echo "$SSH_KEY" > ~/cloud_ssh_private_key; chmod 600 ~/cloud_ssh_private_key'
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.CLOUD_SSH_PRIVATE_KEY }}
+      - name: Check approve
+        run: if [[ ${INPUT_APPROVE} != 'yes' ]]; then exit 1; fi
+      - name: Reset game
+        run: ansible-playbook -D -v --private-key=~/cloud_ssh_private_key ../checksystem/ansible/cs-init.yml
+        working-directory: "${{ github.workspace }}/ansible"

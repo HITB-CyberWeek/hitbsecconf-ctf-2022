@@ -34,6 +34,21 @@ def random_name(length=10):
         string.ascii_lowercase + string.digits, k=length))
 
 
+def get_base_url(host):
+    base_url = f"http://{host}/"
+
+    try:
+        r = requests.options(base_url, timeout=3, allow_redirects=False)
+        if r.status_code > 300 and r.status_code < 400 and r.headers["Location"]:
+            base_url = r.headers["Location"]
+            if not base_url[-1] == '/':
+                base_url += '/'
+    except:
+        pass
+
+    return base_url
+
+
 def info():
     verdict(OK, "vulns: 1\npublic_flag_description: Flag ID is a bucket name, flag is a data in file with '.txt' suffix in bucket")
 
@@ -42,7 +57,8 @@ def check(host):
     bucket = random_name()
     file_name = random_name(length=5)
 
-    url = f"http://{host}/~{bucket}/{file_name}.txt"
+    base_url = get_base_url(host)
+    url = f"{base_url}~{bucket}/{file_name}.txt"
     logging.info(f"Check url '{url}' on host '{host}'")
 
     r = requests.get(url, timeout=5)
@@ -83,7 +99,8 @@ def put(host, flag_id, flag, vuln):
                        filenames=filenames, verbosity=-1)
         logging.info(f"Created external archive '{external_archive}'")
 
-        url = f"http://{host}/bucket/~{bucket}"
+        base_url = get_base_url(host)
+        url = f"{base_url}bucket/~{bucket}"
         logging.info(f"Put to url '{url}' on host '{host}'")
         r = requests.post(
             url, files={"input": external_archive.open(mode="rb")})
@@ -103,7 +120,8 @@ def get(host, flag_id, flag, vuln):
     bucket = state["public_flag_id"]
     file_name = state["file_name"]
 
-    url = f"http://{host}/~{bucket}/{file_name}.txt"
+    base_url = get_base_url(host)
+    url = f"{base_url}~{bucket}/{file_name}.txt"
     logging.info(f"Get from url '{url}' on host '{host}'")
 
     r = requests.get(url, timeout=5)
