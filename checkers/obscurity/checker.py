@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 import socket
 import hashlib
 import random
@@ -15,6 +16,8 @@ OK, CORRUPT, MUMBLE, DOWN, CHECKER_ERROR = 101, 102, 103, 104, 110
 TIMEOUT = 10
 
 ABC = "".join(chr(i) for i in range(1, 127) if chr(i) != "'")
+
+CHECKER_DIRECT_CONNECT = os.environ.get("CHECKER_DIRECT_CONNECT")
 
 
 def gen_rand_string(l=12):
@@ -49,7 +52,16 @@ def encrypt(s):
 
 
 def call_api(s, ip, params):
-    return s.post(f"http://{ip}/api.php", data={"p": encrypt(json.dumps(params))}).json()
+    data = {"p": encrypt(json.dumps(params))}
+    if CHECKER_DIRECT_CONNECT == "1":
+        resp = s.post(f"http://{ip}/api.php", data=data)
+    else:
+        resp = s.post(f"https://{ip}/api.php", data=data)
+
+    try:
+        return resp.json()
+    except Exception:
+        verdict(MUMBLE, "Bad json in ans", "Bad json in ans: %s" % resp.text)
 
 
 def gen_login():
