@@ -4,9 +4,10 @@ on:
   push:
     paths:
       - "cs/*"
+      - "checkers/*"
 
 env:
-  REGISTRY: cr.selcloud.ru
+  REGISTRY: registry.digitalocean.com
 
 jobs:
   build-checksystem-image:
@@ -18,8 +19,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
-          username: token
-          password: ${{ secrets.SELCLOUD_DOCKER_REGISTRY_TOKEN }}
+          username: ${{ secrets.DO_DOCKER_REGISTRY_TOKEN }}
+          password: ${{ secrets.DO_DOCKER_REGISTRY_TOKEN }}
       - name: Build and push image to registry
         uses: docker/build-push-action@v3
         with:
