@@ -7,7 +7,6 @@ on:
 
 env:
   REGISTRY: cr.selcloud.ru
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-checksystem-image:
@@ -20,7 +19,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: token
-          password: ${{ secrets.CLOUD_SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SELCLOUD_DOCKER_REGISTRY_TOKEN }}
       - name: Build and push image to registry
         uses: docker/build-push-action@v3
         with:
@@ -28,4 +27,4 @@ jobs:
           context: .
           pull: true
           push: true
-          tags: ${{ env.REGISTRY }}/hackerdom/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/hackerdom/hitbsecconf-ctf-2022:latest
