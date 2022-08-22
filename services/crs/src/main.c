@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "client.h"
 
@@ -13,6 +14,9 @@
 int main() {
     int ret;
     struct sockaddr_in server_addr;
+
+    // Avoid zombies
+    signal(SIGCHLD, SIG_IGN);
 
     int server = socket(AF_INET, SOCK_STREAM, 0);
     if (server < 0) {

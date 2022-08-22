@@ -24,7 +24,7 @@ for r in range(1, ROUNDS + 1):
     print("=" * 64)
 
     flag_id = "%s%04d" % (prefix, r)
-    flag_data = ("a"*32)
+    flag_data = ("F"*32) + "="
 
     cmd = "./checker.py put %s %s %s 1" % (HOST, flag_id, flag_data)
     print("RUN:", cmd)

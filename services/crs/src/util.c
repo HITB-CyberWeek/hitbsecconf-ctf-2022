@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "const.h"
 
@@ -15,8 +16,14 @@ void get(int sock, char *b, int buf_size) {
     memset(b, 0, BUF_SIZE);
     int started = 0;
     for (int i = 0; i < buf_size-1;) {
-        if (recv(sock, b+i, 1, 0) < 0) {
+        ssize_t count = recv(sock, b+i, 1, 0);
+        if (count < 0) {
             perror("error: recv");
+            exit(0);
+        }
+        if (count == 0) {
+            // no message was received from the peer, and we are confident that none will be forthcoming
+            printf("Peer has disconnected\n");
             exit(0);
         }
         if (b[i] == '\n' || b[i] == '\r') {
