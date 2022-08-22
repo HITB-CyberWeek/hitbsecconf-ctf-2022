@@ -28,4 +28,4 @@ jobs:
           context: .
           pull: true
           push: true
-          tags: ${{ env.REGISTRY }}/hackerdom/${{ IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/hackerdom/${{ env.IMAGE_NAME }}:latest
