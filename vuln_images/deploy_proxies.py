@@ -17,10 +17,16 @@ from config import DeployConfigV1, DeployConfig, ProxyConfigV1
 CURRENT_FOLDER = pathlib.Path(__file__).parent
 
 
+# Limits for TCP proxies
 IPTABLES_CHECKSYSTEM_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT --destination {host} -m tcp --dport {port} -m state --state NEW --source 10.10.10.0/24"
 IPTABLES_LIMIT_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT --destination {host} -m tcp --dport {port} -m state --state NEW -m hashlimit --hashlimit {limit} --hashlimit-mode srcip --hashlimit-srcmask 24 --hashlimit-name {name}"
 IPTABLES_LOG_RULE = "iptables -t nat -A PREROUTING -p tcp -j LOG --log-prefix '** 429 TOO MANY ** ' --destination {host} -m tcp --dport {port} -m state --state NEW"
 IPTABLES_BLOCK_RULE = "iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination {host}:429 --destination {host} -m tcp --dport {port} -m state --state NEW"
+
+
+# Block direct connection to services
+IPTABLES_ALLOW_SAME_TEAM_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT --source {source} --destination {upstream} -m tcp --dport {upstream_port}"
+IPTABLES_BLOCK_DIRECT_RULE = "iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination {host}:{redirect_port} --destination {upstream} -m tcp --dport {upstream_port}"
 
 
 def create_ssh_connection(host):
@@ -38,130 +44,166 @@ async def remove_proxies(host: str, service_name: str):
         await ssh.run(f"rm -rf /etc/nginx/stream.d/{service_name}_*", check=True)
 
 
-async def get_upstream_address(proxy: ProxyConfigV1, team_id: int):
+def get_team_network(team_id: int) -> ipaddress.IPv4Network:
     team_network_ip = ipaddress.IPv4Network(settings.BASE_TEAM_NETWORK)[
         team_id * (2 ** (32 - settings.TEAM_NETWORK_MASK))
     ]
-    team_network = ipaddress.IPv4Network(f"{team_network_ip}/{settings.TEAM_NETWORK_MASK}")
+    return ipaddress.IPv4Network(f"{team_network_ip}/{settings.TEAM_NETWORK_MASK}")
+
+
+def get_upstream_address(proxy: ProxyConfigV1, team_id: int):
+    team_network = get_team_network(team_id)
     upstream_ip = team_network[proxy.upstream.host_index]
+    # TODO (andgein): retunr only upstream_ip?
     return f"{upstream_ip}:{proxy.upstream.port}"
 
 
-async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
+async def deploy_http_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
+    upstream_address = get_upstream_address(proxy, team_id)
+
+    locations = []
+    has_global_location = False
+    for index, limit in enumerate(proxy.limits, start=1):
+        locations.append({
+            "index": index,
+            "location": limit.location,
+            "limit": limit.limit,
+            "burst": limit.burst,
+        })
+        if limit.location == "/":
+            has_global_location = True
+    if not has_global_location:
+        locations.append({
+            "index": len(proxy.limits) + 1,
+            "location": "/",
+            "burst": 0,
+        })
+
+    jinja2_variables = {
+        "service_name": service_name,
+        "default": proxy.listener.default,
+        "proxy_name": proxy.name,
+        "server_name": proxy.listener.hostname if proxy.listener.hostname else f"{service_name}.*",
+        "use_ssl": proxy.listener.certificate is not None,
+        "ssl_certificate": f"/etc/ssl/{proxy.listener.certificate}/fullchain.pem",
+        "ssl_certificate_key": f"/etc/ssl/{proxy.listener.certificate}/privkey.pem",
+        "client_certificate": (
+            f"/etc/ssl/{proxy.listener.client_certificate}/fullchain.pem"
+            if proxy.listener.client_certificate else None
+        ),
+        "upstream_address": upstream_address,
+        "upstream_protocol": proxy.upstream.protocol,
+        "upstream_client_certificate": (
+            f"/etc/ssl/{proxy.upstream.client_certificate}/fullchain.pem"
+            if proxy.upstream.client_certificate else None
+        ),
+        "upstream_client_certificate_key": (
+            f"/etc/ssl/{proxy.upstream.client_certificate}/privkey.pem"
+            if proxy.upstream.client_certificate else None
+        ),
+        "locations": locations,
+    }
+    template = jinja2.Template((CURRENT_FOLDER / "nginx/http_server.conf.jinja2").read_text())
+    filename = tempfile.mktemp(prefix=f"nginx-{service_name}-{proxy.name}-", suffix=".conf")
+    with open(filename, "w") as f:
+        f.write(template.render(**jinja2_variables))
+
+    target_nginx_config_name = f"/etc/nginx/sites-enabled/{service_name}_{proxy.name}"
+    try:
+        typer.echo(f"[{host}]    Uploading HTTP config to {target_nginx_config_name}")
+        await asyncssh.scp(filename, (ssh, target_nginx_config_name))
+    finally:
+        os.unlink(filename)
+
+
+async def deploy_tcp_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
+    # 1. Deploy nginx part
+    upstream_address = get_upstream_address(proxy, team_id)
+
+    jinja2_variables = {
+        "service_name": service_name,
+        "proxy_name": proxy.name,
+        "upstream_address": upstream_address,
+        "port": proxy.listener.port,
+        "simultaneous_connections": proxy.listener.tcp_simultaneous_connections,
+    }
+    template = jinja2.Template((CURRENT_FOLDER / "nginx/tcp_server.conf.jinja2").read_text())
+    filename = tempfile.mktemp(prefix=f"nginx-{service_name}-{proxy.name}-", suffix=".conf")
+    with open(filename, "w") as f:
+        f.write(template.render(**jinja2_variables))
+
+    target_nginx_config_name = f"/etc/nginx/stream.d/{service_name}_{proxy.name}"
+    try:
+        typer.echo(f"[{host}]    Uploading TCP config to {target_nginx_config_name}")
+        await asyncssh.scp(filename, (ssh, target_nginx_config_name))
+    finally:
+        os.unlink(filename)
+
+    # 2. Remove old iptables rules
+    result = await ssh.run(f"iptables-save -t nat | grep -- '--dport {proxy.listener.port}' | grep -- '-d {host}/32'")
+    rules = result.stdout.splitlines()
+    for rule in rules:
+        typer.echo(f"[{host}]    Removing old iptables rules: {rule}")
+        await ssh.run(f"iptables -t nat {rule.replace('-A', '-D')}")
+
+    # 3. Deploy new iptables rules
+    assert len(proxy.limits) <= 1, "TCP proxy can have at most one limit"
+    for limit in proxy.limits:
+        checksystem_rule = IPTABLES_CHECKSYSTEM_RULE.format(host=host, port=proxy.listener.port)
+        limit_rule = IPTABLES_LIMIT_RULE.format(
+            host=host, port=proxy.listener.port, limit=limit.limit, name=f"{service_name}_{proxy.name}"
+        )
+        if limit.burst:
+            limit_rule += f" --hashlimit-burst {limit.burst}"
+        log_rule = IPTABLES_LOG_RULE.format(host=host, port=proxy.listener.port)
+        block_rule = IPTABLES_BLOCK_RULE.format(host=host, port=proxy.listener.port)
+
+        for rule in [checksystem_rule, limit_rule, log_rule, block_rule]:
+            typer.echo(f"[{host}]    Adding iptables rules: {rule}")
+            await ssh.run(rule, check=True)
+
+
+async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
     async with create_ssh_connection(host) as ssh:
-        upstream_address = await get_upstream_address(proxy, team_id)
-
-        locations = []
-        has_global_location = False
-        for index, limit in enumerate(proxy.limits, start=1):
-            locations.append({
-                "index": index,
-                "location": limit.location,
-                "limit": limit.limit,
-                "burst": limit.burst,
-            })
-            if limit.location == "/":
-                has_global_location = True
-        if not has_global_location:
-            locations.append({
-                "index": len(proxy.limits) + 1,
-                "location": "/",
-                "burst": 0,
-            })
-
-        jinja2_variables = {
-            "service_name": service_name,
-            "default": proxy.listener.default,
-            "proxy_name": proxy.name,
-            "server_name": proxy.listener.hostname if proxy.listener.hostname else f"{service_name}.*",
-            "use_ssl": proxy.listener.certificate is not None,
-            "ssl_certificate": f"/etc/ssl/{proxy.listener.certificate}/fullchain.pem",
-            "ssl_certificate_key": f"/etc/ssl/{proxy.listener.certificate}/privkey.pem",
-            "client_certificate": (
-                f"/etc/ssl/{proxy.listener.client_certificate}/fullchain.pem"
-                if proxy.listener.client_certificate else None
-            ),
-            "upstream_address": upstream_address,
-            "upstream_protocol": proxy.upstream.protocol,
-            "upstream_client_certificate": (
-                f"/etc/ssl/{proxy.upstream.client_certificate}/fullchain.pem"
-                if proxy.upstream.client_certificate else None
-            ),
-            "upstream_client_certificate_key": (
-                f"/etc/ssl/{proxy.upstream.client_certificate}/privkey.pem"
-                if proxy.upstream.client_certificate else None
-            ),
-            "locations": locations,
-        }
-        template = jinja2.Template((CURRENT_FOLDER / "nginx/http_server.conf.jinja2").read_text())
-        filename = tempfile.mktemp(prefix=f"nginx-{service_name}-{proxy.name}-", suffix=".conf")
-        with open(filename, "w") as f:
-            f.write(template.render(**jinja2_variables))
-
-        target_nginx_config_name = f"/etc/nginx/sites-enabled/{service_name}_{proxy.name}"
-        try:
-            typer.echo(f"[{host}]    Uploading HTTP config to {target_nginx_config_name}")
-            await asyncssh.scp(filename, (ssh, target_nginx_config_name))
-        finally:
-            os.unlink(filename)
-
-
-async def deploy_tcp_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
-    async with create_ssh_connection(host) as ssh:
-        # 1. Deploy nginx part
-        upstream_address = await get_upstream_address(proxy, team_id)
-
-        jinja2_variables = {
-            "service_name": service_name,
-            "proxy_name": proxy.name,
-            "upstream_address": upstream_address,
-            "port": proxy.listener.port,
-            "simultaneous_connections": proxy.listener.tcp_simultaneous_connections,
-        }
-        template = jinja2.Template((CURRENT_FOLDER / "nginx/tcp_server.conf.jinja2").read_text())
-        filename = tempfile.mktemp(prefix=f"nginx-{service_name}-{proxy.name}-", suffix=".conf")
-        with open(filename, "w") as f:
-            f.write(template.render(**jinja2_variables))
-
-        target_nginx_config_name = f"/etc/nginx/stream.d/{service_name}_{proxy.name}"
-        try:
-            typer.echo(f"[{host}]    Uploading TCP config to {target_nginx_config_name}")
-            await asyncssh.scp(filename, (ssh, target_nginx_config_name))
-        finally:
-            os.unlink(filename)
+        # 1. Deploy proxy
+        typer.echo(f"[{host}] Deploying proxy for {service_name}:{proxy.name}")
+        if proxy.listener.protocol == "http":
+            await deploy_http_proxy(ssh, host, team_id, service_name, proxy)
+        elif proxy.listener.protocol == "tcp":
+            await deploy_tcp_proxy(ssh, host, team_id, service_name, proxy)
+        else:
+            raise ValueError(f"Unknown proxy type for deploying: {proxy.listener.protocol}")
 
         # 2. Remove old iptables rules
-        result = await ssh.run(f"iptables-save -t nat | grep -- '--dport {proxy.listener.port}'")
+        upstream_address, upstream_port = get_upstream_address(proxy, team_id).split(":")
+
+        result = await ssh.run(f"iptables-save -t nat | grep -- '--dport {upstream_port}' | grep -- '-d {upstream_address}/32'")
         rules = result.stdout.splitlines()
         for rule in rules:
             typer.echo(f"[{host}]    Removing old iptables rules: {rule}")
             await ssh.run(f"iptables -t nat {rule.replace('-A', '-D')}")
 
-        # 3. Deploy new iptables rules
-        assert len(proxy.limits) <= 1, "TCP proxy can have at most one limit"
-        for limit in proxy.limits:
-            checksystem_rule = IPTABLES_CHECKSYSTEM_RULE.format(host=host, port=proxy.listener.port)
-            limit_rule = IPTABLES_LIMIT_RULE.format(
-                host=host, port=proxy.listener.port, limit=limit.limit, name=f"{service_name}_{proxy.name}"
-            )
-            if limit.burst:
-                limit_rule += f" --hashlimit-burst {limit.burst}"
-            log_rule = IPTABLES_LOG_RULE.format(host=host, port=proxy.listener.port)
-            block_rule = IPTABLES_BLOCK_RULE.format(host=host, port=proxy.listener.port)
+        # 3. Deploy blocking direct access rule
+        if proxy.listener.protocol == "http":
+            redirect_port = 10
+        elif proxy.listener.protocol == "tcp":
+            redirect_port = 20
+        else:
+            raise ValueError()
 
-            for rule in [checksystem_rule, limit_rule, log_rule, block_rule]:
-                typer.echo(f"[{host}]    Adding iptables rules: {rule}")
-                await ssh.run(rule, check=True)
+        typer.echo(f"[{host}] Rejecting all incoming requests to {upstream_address}:{upstream_port} "
+                   f"by redirecting them to :{redirect_port}")
 
-
-async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
-    typer.echo(f"[{host}] Deploying proxy for {service_name}:{proxy.name}")
-    if proxy.listener.protocol == "http":
-        await deploy_http_proxy(host, team_id, service_name, proxy)
-    elif proxy.listener.protocol == "tcp":
-        await deploy_tcp_proxy(host, team_id, service_name, proxy)
-    else:
-        raise ValueError(f"Unknown proxy type for deploying: {proxy.listener.protocol}")
+        allow_same_team_rule = IPTABLES_ALLOW_SAME_TEAM_RULE.format(
+            host=host, redirect_port=redirect_port, upstream=upstream_address, upstream_port=upstream_port,
+            source=get_team_network(team_id),
+        )
+        block_rule = IPTABLES_BLOCK_DIRECT_RULE.format(
+            host=host, redirect_port=redirect_port, upstream=upstream_address, upstream_port=upstream_port,
+        )
+        for rule in [allow_same_team_rule, block_rule]:
+            typer.echo(f"[{host}]    {rule}")
+            await ssh.run(rule, check=True)
 
 
 async def prepare_host_for_proxies(host: str, team_id: int):
@@ -200,12 +242,14 @@ async def prepare_host_for_proxies(host: str, team_id: int):
         # 4. Upload files
         typer.echo(f"[{host}]    Uploading /etc/nginx/nginx.conf")
         await asyncssh.scp("nginx/nginx.conf", (ssh, "/etc/nginx/nginx.conf"))
-
         typer.echo(f"[{host}]    Uploading /var/www/html/too_many_requests.html")
         await asyncssh.scp("nginx/too_many_requests.html", (ssh, "/var/www/html/too_many_requests.html"))
-
+        typer.echo(f"[{host}]    Uploading /var/www/html/use_proxy.html")
+        await asyncssh.scp("nginx/use_proxy.html", (ssh, "/var/www/html/use_proxy.html"))
         typer.echo(f"[{host}]    Uploading /etc/nginx/conf.d/gzip.conf")
         await asyncssh.scp("nginx/gzip.conf", (ssh, "/etc/nginx/conf.d/gzip.conf"))
+        typer.echo(f"[{host}]    Uploading /etc/nginx/conf.d/use_proxy.conf")
+        await asyncssh.scp("nginx/use_proxy.conf", (ssh, "/etc/nginx/conf.d/use_proxy.conf"))
 
         await ssh.run("mkdir -p /etc/nginx/stream.d", check=True)
 
@@ -222,7 +266,12 @@ async def prepare_host_for_proxies(host: str, team_id: int):
         # 6. Enable too_many_requests.service
         typer.echo(f"[{host}]    Enabling and starting /etc/systemd/system/too_many_requests.service")
         await ssh.run("systemctl enable too_many_requests", check=True)
-        await ssh.run("systemctl start too_many_requests", check=True)
+        await ssh.run("systemctl restart too_many_requests", check=True)
+
+        # 7. Restart nginx
+        typer.echo(f"[{host}]    Restarting nginx")
+        await ssh.run("nginx -t", check=True)
+        await ssh.run("systemctl restart nginx", check=True)
 
 
 async def post_deploy(host: str, team_id: int):
