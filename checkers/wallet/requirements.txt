@@ -1,4 +1,4 @@
-# Requirements for the checker of the Genealogy service (HITB SECCONF CTF 2022)
+# Requirements for the checker of the Wallet service (HITB SECCONF CTF 2022)
 
 beautifulsoup4==4.11.1
 certifi==2022.6.15

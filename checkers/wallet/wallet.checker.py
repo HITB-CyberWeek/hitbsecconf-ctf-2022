@@ -85,12 +85,16 @@ class WalletChecker(checklib.http.HttpChecker):
     def get(self, address, flag_id, flag, vuln):
         info = json.loads(flag_id)
         user = info["user"]
-        self.login(user)
-        check_donate_2 = self.try_http_get(
-            "/transactions"
+        r = self.try_http_post(
+            "/signin",
+            data={"email": user['email'], "password": user['password']}
         )
-        self.corrupt_if_false(flag in check_donate_2.text,
-                              "Could not find flag in the transactions for user " + user["email"])
+        self.corrupt_if_false(f"Welcome {user['username']}" in r.text, f"Login for {user['username']} is corrupted")
+        check_donate_2 = self.try_http_get("/transactions")
+        self.corrupt_if_false(
+            flag in check_donate_2.text,
+            "Could not find flag in the transactions for user " + user["email"]
+        )
         self.logout()
 
     def recovery(self, user):
