@@ -5,9 +5,8 @@ on:
     inputs:
       approve:
         description: "Are you sure to reset game?"
-        default: no
+        type: boolean
         required: true
-
 
 jobs:
   reset-game:
@@ -20,8 +19,7 @@ jobs:
         shell: bash
         env:
           SSH_KEY: ${{ secrets.CLOUD_SSH_PRIVATE_KEY }}
-      - name: Check approve
-        run: if [[ ${INPUT_APPROVE} != 'yes' ]]; then exit 1; fi
       - name: Reset game
+        if: ${{ inputs.approve }}
         run: ansible-playbook -D -v --private-key=~/cloud_ssh_private_key ../checksystem/ansible/cs-init.yml
         working-directory: "${{ github.workspace }}/ansible"
