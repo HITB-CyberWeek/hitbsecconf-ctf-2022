@@ -164,7 +164,7 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
         raise ValueError(f"Unknown proxy type for deploying: {proxy.listener.protocol}")
 
 
-async def prepare_host_for_proxies(host: str):
+async def prepare_host_for_proxies(host: str, team_id: int):
     typer.echo(f"[{host}] Preparing host for being a proxy")
     async with create_ssh_connection(host) as ssh:
         # 1. Install nginx
@@ -181,7 +181,17 @@ async def prepare_host_for_proxies(host: str):
         )
 
         # 3. Copy TLS certificates
-        for certificate_name, (chain, private_key) in settings.PROXY_CERTIFICATES.items():
+        for certificate_name, certificate in settings.PROXY_CERTIFICATES.items():
+            if type(certificate) is dict:
+                for teams_range, teams_range_certificate in certificate.items():
+                    if team_id in teams_range:
+                        certificate = teams_range_certificate
+                        break
+                else:
+                    raise ValueError(f"Can not find suitable certificate {certificate_name} for team {team_id}. "
+                                     f"Check your PROXY_CERTIFICATES in settings.py")
+
+            chain, private_key = certificate
             typer.echo(f"[{host}]    Uploading /etc/ssl/{certificate_name}/{{fullchain.pem,privkey.pem}}")
             await ssh.run(f"mkdir -p /etc/ssl/{certificate_name}", check=True)
             await asyncssh.scp(chain.as_posix(), (ssh, f"/etc/ssl/{certificate_name}/fullchain.pem"), preserve=True)
@@ -247,7 +257,7 @@ async def deploy_proxies_for_team(
 ):
     # 1. Prepare host
     if not skip_preparation:
-        await prepare_host_for_proxies(host)
+        await prepare_host_for_proxies(host, team_id)
 
     if prepare_only:
         return
