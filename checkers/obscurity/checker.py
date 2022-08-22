@@ -12,7 +12,6 @@ import requests
 
 OK, CORRUPT, MUMBLE, DOWN, CHECKER_ERROR = 101, 102, 103, 104, 110
 
-PORT = 3255
 TIMEOUT = 10
 
 ABC = "".join(chr(i) for i in range(1, 127) if chr(i) != "'")
@@ -50,7 +49,7 @@ def encrypt(s):
 
 
 def call_api(s, ip, params):
-    return s.post(f"http://{ip}:3255/api.php", data={"p": encrypt(json.dumps(params))}).json()
+    return s.post(f"http://{ip}/api.php", data={"p": encrypt(json.dumps(params))}).json()
 
 
 def gen_login():

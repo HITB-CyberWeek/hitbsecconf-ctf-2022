@@ -28,7 +28,7 @@ def encrypt(s):
 
 def call_api(params):
     global s
-    resp = s.post(f"http://{IP}:3255/api.php", data={"p": encrypt(json.dumps(params))})
+    resp = s.post(f"http://{IP}/api.php", data={"p": encrypt(json.dumps(params))})
 
     print(resp.status_code)
     # print(resp.json())
