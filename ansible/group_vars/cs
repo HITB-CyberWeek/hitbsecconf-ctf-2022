@@ -1,5 +1,5 @@
 cs_user: cs
-cs_docker_image: cr.selcloud.ru/hackerdom/hitbsecconf-ctf-2022:latest
+cs_docker_image: registry.digitalocean.com/hackerdom/hitbsecconf-ctf-2022:latest
 
 pg_cs_user: cs
 pg_cs_pass: Xaih3Reithai
