@@ -9,7 +9,7 @@ import json
 requests.packages.urllib3.disable_warnings()
 from checker_helper import *
 
-PORT = 8443
+PORT = 443
 TIMEOUT = 30
 
 def info():
