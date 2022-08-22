@@ -8,7 +8,7 @@ scripts:
     apt-get update
     apt-get install openssl
     docker compose -f /home/$USERNAME/docker-compose.yml -f /home/$USERNAME/docker-compose.init.yml pull redis s3 s3init
-    docker compose -f /home/$USERNAME/docker-compose.yml build
+    docker compose -f /home/$USERNAME/docker-compose.yml build --build-arg "DOKER_GROUP=$(getent group docker | cut -d: -f3)"
     mkdir -v -m 0777 /home/$USERNAME/data /home/$USERNAME/data/input /home/$USERNAME/data/s3
   start_once: |
     echo "MINIO_ROOT_USER=minioadmin" > /home/$USERNAME/.env
