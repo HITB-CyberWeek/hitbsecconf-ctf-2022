@@ -17,10 +17,10 @@ from config import DeployConfigV1, DeployConfig, ProxyConfigV1
 CURRENT_FOLDER = pathlib.Path(__file__).parent
 
 
-IPTABLES_CHECKSYSTEM_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT -m tcp --dport {port} -m state --state NEW --source 10.10.10.0/24"
-IPTABLES_LIMIT_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT -m tcp --dport {port} -m state --state NEW -m hashlimit --hashlimit {limit} --hashlimit-mode srcip --hashlimit-srcmask 24 --hashlimit-name {name}"
-IPTABLES_LOG_RULE = "iptables -t nat -A PREROUTING -p tcp -j LOG --log-prefix '** 429 TOO MANY ** ' -m tcp --dport {port} -m state --state NEW"
-IPTABLES_BLOCK_RULE = "iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination {host}:429 -m tcp --dport {port} -m state --state NEW"
+IPTABLES_CHECKSYSTEM_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT --destination {host} -m tcp --dport {port} -m state --state NEW --source 10.10.10.0/24"
+IPTABLES_LIMIT_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT --destination {host} -m tcp --dport {port} -m state --state NEW -m hashlimit --hashlimit {limit} --hashlimit-mode srcip --hashlimit-srcmask 24 --hashlimit-name {name}"
+IPTABLES_LOG_RULE = "iptables -t nat -A PREROUTING -p tcp -j LOG --log-prefix '** 429 TOO MANY ** ' --destination {host} -m tcp --dport {port} -m state --state NEW"
+IPTABLES_BLOCK_RULE = "iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination {host}:429 --destination {host} -m tcp --dport {port} -m state --state NEW"
 
 
 def create_ssh_connection(host):
@@ -139,14 +139,14 @@ async def deploy_tcp_proxy(host: str, team_id: int, service_name: str, proxy: Pr
         # 3. Deploy new iptables rules
         assert len(proxy.limits) <= 1, "TCP proxy can have at most one limit"
         for limit in proxy.limits:
-            checksystem_rule = IPTABLES_CHECKSYSTEM_RULE.format(port=proxy.listener.port)
+            checksystem_rule = IPTABLES_CHECKSYSTEM_RULE.format(host=host, port=proxy.listener.port)
             limit_rule = IPTABLES_LIMIT_RULE.format(
-                port=proxy.listener.port, limit=limit.limit, name=f"{service_name}_{proxy.name}"
+                host=host, port=proxy.listener.port, limit=limit.limit, name=f"{service_name}_{proxy.name}"
             )
             if limit.burst:
                 limit_rule += f" --hashlimit-burst {limit.burst}"
-            log_rule = IPTABLES_LOG_RULE.format(port=proxy.listener.port)
-            block_rule = IPTABLES_BLOCK_RULE.format(port=proxy.listener.port, host=host)
+            log_rule = IPTABLES_LOG_RULE.format(host=host, port=proxy.listener.port)
+            block_rule = IPTABLES_BLOCK_RULE.format(host=host, port=proxy.listener.port)
 
             for rule in [checksystem_rule, limit_rule, log_rule, block_rule]:
                 typer.echo(f"[{host}]    Adding iptables rules: {rule}")
