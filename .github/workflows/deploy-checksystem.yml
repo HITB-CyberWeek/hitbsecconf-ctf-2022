@@ -3,8 +3,8 @@ name: Deploy Checksystem
 on:
   push:
     paths:
-      - "cs/*"
-      - "checkers/*"
+      - "cs/**"
+      - "checkers/**"
 
 env:
   REGISTRY: registry.digitalocean.com
