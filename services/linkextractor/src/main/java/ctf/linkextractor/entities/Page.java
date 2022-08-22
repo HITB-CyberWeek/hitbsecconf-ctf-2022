@@ -1,6 +1,8 @@
 package ctf.linkextractor.entities;
 
-public class Page {
+import java.io.Serializable;
+
+public class Page implements Serializable {
     private int id;
     private String user;
     private String url;

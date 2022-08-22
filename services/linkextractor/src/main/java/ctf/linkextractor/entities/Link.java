@@ -58,7 +58,7 @@ public class Link implements Serializable {
     }
 
     public URL toUrl(){
-        var page = DB.getPageById(pageId);
+        var page = DB.singletone.getPageById(pageId);
         if(page == null)
             return null;
         try {

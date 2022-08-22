@@ -7,17 +7,20 @@ import ctf.linkextractor.models.UserRegisterModel;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class UserService {
 
     public static UserService singletone = new UserService();
 
+    //TODO split registration and login
     public User RegisterOrLoginUser(UserRegisterModel model){
-        User user = DB.registerNewUser(model);
+        User user = DB.singletone.registerNewUser(model);
         if(user != null)
             return user;
 
-        user = DB.findUserByLogin(model.getLogin());
+        user = DB.singletone.findUserByLogin(model.getLogin());
         if(user == null)
             return null;
 
@@ -41,7 +44,7 @@ public class UserService {
         if(hash == null)
             return false;
 
-        User existingUser = DB.findUserByLogin(user.getLogin());
+        User existingUser = DB.singletone.findUserByLogin(user.getLogin());
         if(existingUser == null)
             return false;
 

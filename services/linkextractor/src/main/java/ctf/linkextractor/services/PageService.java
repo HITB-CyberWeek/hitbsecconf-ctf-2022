@@ -17,24 +17,24 @@ public class PageService {
         Matcher m = p.matcher(body);
         String url;
 
-        Page page = DB.addPage(user, pageUrl);
+        Page page = DB.singletone.addPage(user, pageUrl);
 
         while (m.find()) {
             url = m.group(1);
-            DB.addLink(page.getId(), url);
+            DB.singletone.addLink(page.getId(), url);
         }
     }
 
     public Page getPage(int id) {
-        return DB.getPageById(id);
+        return DB.singletone.getPageById(id);
     }
 
     //TODO don't expose PageModel and LinkModel, it's for controllers
     public List<PageModel> getPages(String user) {
-        return DB.getUserPages(user).stream().map(p -> new PageModel(p.getId(), p.getUrl(), getDistinctLinks(p.getId()).size())).toList();
+        return DB.singletone.getUserPages(user).stream().map(p -> new PageModel(p.getId(), p.getUrl(), getDistinctLinks(p.getId()).size())).toList();
     }
 
     public List<LinkModel> getDistinctLinks(Integer pageId) {
-        return DB.getLinksByPageId(pageId).stream().distinct().map(l -> new LinkModel(l.toUrl().toString())).toList();
+        return DB.singletone.getLinksByPageId(pageId).stream().distinct().map(l -> new LinkModel(l.toUrl().toString())).toList();
     }
 }
