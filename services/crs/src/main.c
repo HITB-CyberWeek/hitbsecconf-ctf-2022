@@ -53,6 +53,7 @@ int main() {
     while (1) {
         struct sockaddr_in client_addr;
         socklen_t addr_size = sizeof(client_addr);
+        char client_str[64];
 
         int client = accept(server, (struct sockaddr*)&client_addr, &addr_size);
         if (client < 0) {
@@ -60,7 +61,7 @@ int main() {
             exit(1);
         }
  
-        printf("Connection accepted from %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+        snprintf(client_str, sizeof client_str, "%s:%d", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
         int pid = fork();
         if (pid < 0) {
@@ -70,7 +71,7 @@ int main() {
         if (pid == 0) {
             // Child
             close(server);
-            handle_client(client);
+            handle_client(client, client_str);
             close(client);
             printf("Child process has completed.\n");
             exit(0);

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "const.h"
 #include "commands.h"
@@ -23,8 +24,10 @@ void handle_alarm(int sig) {
     exit(1);
 }
 
-void handle_client(int client) {
+void handle_client(int client, char *client_str) {
     struct itimerval it_val;
+    bool client_logged = false;
+
     signal(SIGALRM, handle_alarm);
     it_val.it_value.tv_sec = CLIENT_TIMEOUT;
     it_val.it_value.tv_usec = 0;
@@ -44,6 +47,10 @@ void handle_client(int client) {
         }
         say(client, "Command ==> ");
         get(client, buf, BUF_SIZE);
+        if (!client_logged) {
+            printf("Client address is %s.\n", client_str);
+            client_logged = true;
+        }
 
         // Commands rate limiting per connection.
         if (last_cmd_time != 0) {
