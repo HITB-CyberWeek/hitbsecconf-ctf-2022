@@ -36,7 +36,10 @@ sed -i 's|"1"|"0"|' mnt/etc/apt/apt.conf.d/20auto-upgrades
 echo ibm > mnt/etc/hostname
 
 # Set up ssh access
+mkdir -p mnt/root/.ssh
 cat files/id_rsa.pub >> mnt/root/.ssh/authorized_keys
+chown root.root mnt/root/.ssh mnt/root/.ssh/authorized_keys
+chmod go-rwx mnt/root/.ssh mnt/root/.ssh/authorized_keys
 sed -i 's/^#PermitRootLogin/PermitRootLogin/' mnt/etc/ssh/sshd_config
 
 # Copy pre-compiled service and systemd unit inside
