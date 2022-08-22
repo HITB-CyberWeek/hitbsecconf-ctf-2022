@@ -104,6 +104,10 @@ proxies:
       # [TCP only] Amount of simultaneous connections accepted by the proxy FROM ONE TEAM.
       # Optional. Default is unlimited. 
       tcp_simultaneous_connections: 1
+      # [HTTP only] Make a server default for incoming requests.
+      # Optional and dangerous! Use only if you understand what you do. Default value is false.
+      # Nginx can not handle multiple "default" servers.
+      default: false
     upstream:
       # Host's index on team's network where proxy should send all requests.
       # I.e, if service is deployed on 10.60.10.3, specify 3 here.

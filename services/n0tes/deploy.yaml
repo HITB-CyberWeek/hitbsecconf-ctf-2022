@@ -18,6 +18,7 @@ proxies:
     listener:
       protocol: http
       certificate: wildcard.ctf.hitb.org
+      default: true
     upstream:
       host_index: 8
       port: 443

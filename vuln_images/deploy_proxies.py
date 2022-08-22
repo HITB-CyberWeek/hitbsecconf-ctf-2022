@@ -71,6 +71,7 @@ async def deploy_http_proxy(host: str, team_id: int, service_name: str, proxy: P
 
         jinja2_variables = {
             "service_name": service_name,
+            "default": proxy.listener.default,
             "proxy_name": proxy.name,
             "server_name": proxy.listener.hostname if proxy.listener.hostname else f"{service_name}.*",
             "use_ssl": proxy.listener.certificate is not None,
@@ -204,7 +205,11 @@ async def prepare_host_for_proxies(host: str):
         await asyncssh.scp("iptables/too_many_requests.service", (ssh, "/etc/systemd/system/too_many_requests.service"))
         await ssh.run("systemctl daemon-reload", check=True)
 
-        # 5. Enable too_many_requests.service
+        # 5. Disable default nginx site
+        typer.echo(f"[{host}]    Unlinking /etc/nginx/sites-enabled/default")
+        await ssh.run("unlink /etc/nginx/sites-enabled/default")
+
+        # 6. Enable too_many_requests.service
         typer.echo(f"[{host}]    Enabling and starting /etc/systemd/system/too_many_requests.service")
         await ssh.run("systemctl enable too_many_requests", check=True)
         await ssh.run("systemctl start too_many_requests", check=True)

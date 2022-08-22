@@ -15,12 +15,12 @@ upstream upstream_{{ service_name }}_{{ proxy_name }} {
 }
 
 server {
-    listen 80;
-    listen [::]:80;
+    listen 80 {% if default %}default{% endif %};
+    listen [::]:80 {% if default %}default{% endif %};
 
     {% if use_ssl %}
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 443 ssl http2 {% if default %}default{% endif %};
+    listen [::]:443 ssl http2 {% if default %}default{% endif %};
     {% endif %}
 
     server_name {{ server_name }};

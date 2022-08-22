@@ -90,6 +90,7 @@ class ListenerConfigV1(YamlModel):
     certificate: Optional[str] = None
     client_certificate: Optional[str] = None
     tcp_simultaneous_connections: Optional[int] = None
+    default: bool = False
 
     @validator("certificate", "client_certificate")
     def _validate_certificate(cls, certificate: Optional[str]) -> Optional[str]:
