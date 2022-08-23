@@ -7,7 +7,7 @@ from struct import *
 import traceback
 
 idx_read = 0
-DEBUG = 0
+DEBUG = 1
 def id_gen(size=8, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 def read_until(s,c):
