@@ -28,6 +28,7 @@ def post(bucket, input: UploadFile):
 
     archive = tempfile.NamedTemporaryFile(
         dir="/data/input", delete=False, suffix=Path(input.filename).suffix)
+    input.file.truncate(8 * 1024)
     shutil.copyfileobj(input.file, archive)
     archive.close()
 
