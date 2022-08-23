@@ -24,7 +24,7 @@ def checker_action(fn):
             verdict(DOWN, "Connection error", "Connection error during login: %s" % e)
         except requests.exceptions.HTTPError as e:
             if e.response.status_code // 100 == 4:  # 4xx
-                verdict(CORRUPT, "HTTP error", "HTTPError: %s" % e)
+                verdict(MUMBLE, "HTTP error", "HTTPError: %s" % e)
             verdict(DOWN, "HTTP error", "HTTPError: %s" % e)  # 5xx
         except requests.exceptions.Timeout as e:
             verdict(DOWN, "Timeout", "Timeout during login: %s" % e)
