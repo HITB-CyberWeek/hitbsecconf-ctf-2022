@@ -54,9 +54,9 @@ def encrypt(s):
 def call_api(s, ip, params):
     data = {"p": encrypt(json.dumps(params))}
     if CHECKER_DIRECT_CONNECT == "1":
-        resp = s.post(f"http://{ip}/api.php", data=data)
+        resp = s.post(f"http://{ip}/api.php", data=data, timeout=TIMEOUT)
     else:
-        resp = s.post(f"https://{ip}/api.php", data=data)
+        resp = s.post(f"https://{ip}/api.php", data=data, timeout=TIMEOUT)
 
     try:
         return resp.json()
