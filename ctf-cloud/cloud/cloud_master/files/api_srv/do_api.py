@@ -217,7 +217,7 @@ def take_vm_snapshot(token, droplet_id, snapshot_name, attempts=5, timeout=20):
             call_do_api(token, "post", url, data=data)
             return True
         except Exception as e:
-            log("reboot_vm_by_id trying again %s" % (e,))
+            log("take_vm_snapshot trying again %s" % (e,))
         time.sleep(timeout)
     log("failed to take shapshot of vm")
     return None
