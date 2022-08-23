@@ -10,29 +10,6 @@
 
 using csl = const std::string&;
 
-class DumpedQuery {
-    static const int DUMP_SIZE = 300;
-
-public:
-    void set_queue_id(const std::string& queue_id) ;
-
-    void set_ticket_id(const std::string& ticket_id) ;
-
-    void set_title(const std::string& title) ;
-
-    void set_description(const std::string& description) ;
-
-    std::string dump() ;
-
-private:
-    void add_field(const std::string& fld_value, unsigned long& fld_len);
-    unsigned long offset = 0;
-    unsigned long queue_id_len{};
-    unsigned long ticket_id_len{};
-    unsigned long title_len{};
-    unsigned long description_len{};
-    char composed_query[DUMP_SIZE]{};
-};
 
 int get_ticket_sub_id(const std::string& ticket_id);
 
@@ -65,7 +42,7 @@ public:
 };
 
 
-bool is_ticket_correct(Queue& queue, std::string& ticket_id);
+bool is_ticket_correct(Queue& queue, const std::string& ticket_id);
 
 bool is_title_correct(std::string& title);
 

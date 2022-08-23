@@ -6,9 +6,11 @@
 
 std::regex username_regexp("^[a-zA-Z0-9]{3,20}$");
 std::regex queue_name_regexp(R"(^[a-zA-Z0-9\s\.\-]{3,50}$)");
-std::regex ticket_title_regexp(R"(^[a-zA-Z0-9\s\.\-]{3,100}$)");
-std::regex ticket_description_regexp(R"(^[a-zA-Z0-9\s\.\-]{3,1000}$)");
 
+
+bool dummy_validator(const nlohmann::basic_json<>& obj) {
+    return true;
+}
 
 auto get_validator_with_regexp(std::regex& regexp) {
     return [&regexp](const nlohmann::basic_json<>& obj) -> bool {
@@ -16,6 +18,15 @@ auto get_validator_with_regexp(std::regex& regexp) {
     };
 }
 
+auto get_length_validator(int min, int max) {
+    return [min, max](const nlohmann::basic_json<>& obj) -> bool {
+        if (!obj.is_string()) {
+            return false;
+        }
+        auto str_obj = obj.get<std::string>();
+        return min <= str_obj.length() && str_obj.length() <= max;
+    };
+}
 
 bool validate_queue_name(const nlohmann::basic_json<>& obj) {
     return validate_json_string(obj, queue_name_regexp);
@@ -25,11 +36,10 @@ bool validate_json_string(const nlohmann::basic_json<>& obj, std::regex& regexp)
     if (!obj.is_string()) {
         return false;
     }
-    std::string str_obj = to_string(obj);
-    std::string cropped_str_obj = str_obj.substr(1, str_obj.length() - 2);
+    std::string str_obj = obj.get<std::string>();
     std::cmatch m;
 
-    return std::regex_match(cropped_str_obj.c_str(), m, regexp);
+    return std::regex_match(str_obj.c_str(), m, regexp);
 }
 
 bool validate_json_number(const nlohmann::basic_json<>& obj) {
@@ -71,8 +81,8 @@ bool validate_add_queue_req(const nlohmann::basic_json<>& obj) {
 bool validate_add_ticket_req(const nlohmann::basic_json<>& obj) {
     return validate_json_object(obj, {
             {"queue_id", validate_json_number},
-            {"title", get_validator_with_regexp(ticket_title_regexp)},
-            {"description", get_validator_with_regexp(ticket_description_regexp)},
+            {"title", get_length_validator(0, 1000)},
+            {"description", get_length_validator(0, 10000)},
     });
 }
 
@@ -80,9 +90,9 @@ bool validate_find_tickets_req(const nlohmann::basic_json<>& obj) {
     return validate_json_object(obj,
             {
                 {"queue_id", validate_json_number},
-                {"ticket_id", get_validator_with_regexp(ticket_title_regexp)},
-                {"title", get_validator_with_regexp(ticket_title_regexp)},
-                {"description", get_validator_with_regexp(ticket_description_regexp)},
+                {"ticket_id", dummy_validator},
+                {"title", get_length_validator(0, 1000)},
+                {"description", get_length_validator(0, 10000)},
             },
             {
                 "ticket_id", "title", "description"

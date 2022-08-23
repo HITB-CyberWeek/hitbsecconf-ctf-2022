@@ -2,6 +2,7 @@
 #include <iostream>
 #include "api.h"
 #include "utils.h"
+#include "hasher.h"
 
 
 std::string dump_ticket(const std::string& title, const std::string& description) {
@@ -94,22 +95,22 @@ std::string Api::add_ticket(unsigned long queue_id, std::string &title, std::str
     return ticket_id;
 }
 
+
 std::vector<Ticket> Api::find_tickets(unsigned long queue_id, const std::string &ticket_id, const std::string &title,
                                       const std::string &description)  {
-    DumpedQuery dumped_q;
-    dumped_q.set_queue_id(std::to_string(queue_id));
-    if (!ticket_id.empty()) {
-        dumped_q.set_ticket_id(ticket_id);
-    }
-    if (!title.empty()) {
-        dumped_q.set_title(title);
-    }
-    if (!description.empty()) {
-        dumped_q.set_description(description);
-    }
     auto queue = get_queue(queue_id);
 
     if (!ticket_id.empty()) {
+        if (!is_ticket_correct(queue, ticket_id)) {
+            throw std::runtime_error("invalid ticket id");
+        }
+
+        Hasher::perform_hashing(ticket_id, title, description);
+
+        if (!digest.empty()) {
+
+        }
+
         int ticket_sub_id = get_ticket_sub_id(ticket_id);
         std::stringstream queue_to_tickets_key;
         queue_to_tickets_key << "queues/" << queue_id;
@@ -127,38 +128,7 @@ std::vector<Ticket> Api::find_tickets(unsigned long queue_id, const std::string 
 }
 
 
-void DumpedQuery::set_queue_id(const std::string &queue_id) {
-    add_field(queue_id, queue_id_len);
-}
-
-void DumpedQuery::set_ticket_id(const std::string &ticket_id) {
-    add_field(ticket_id, ticket_id_len);
-}
-
-void DumpedQuery::set_title(const std::string &title) {
-    add_field(title, title_len);
-}
-
-void DumpedQuery::set_description(const std::string &description) {
-    add_field(description, description_len);
-}
-
-std::string DumpedQuery::dump() {
-    auto res_size = boost::beast::detail::base64::encoded_size(DUMP_SIZE);
-    auto res = new char[res_size];
-    boost::beast::detail::base64::encode(res, composed_query, res_size);
-
-    return {res};
-}
-
-void DumpedQuery::add_field(const std::string &fld_value, unsigned long &fld_len) {
-    fld_len = fld_value.length();
-    std::memcpy(composed_query + offset, fld_value.c_str(), fld_len);
-    offset += fld_len;
-}
-
-
-bool is_ticket_correct(Queue& queue, std::string& ticket_id) {
+bool is_ticket_correct(Queue& queue, const std::string& ticket_id) {
     std::stringstream pattern;
     pattern << "^" << queue.key << R"(\-\d{1,6}$)";
 

@@ -2,6 +2,7 @@
 #include <cgicc/HTTPHTMLHeader.h>
 #include <cgicc/HTTPCookie.h>
 #include "handlers.h"
+#include "utils.h"
 #include "validators.h"
 
 
@@ -55,14 +56,19 @@ void add_queue_handler(Api& api, const nlohmann::basic_json<>& req, const std::s
 
     auto [queue_id, queue_key] = api.add_queue(queue_name, username);
 
-    std::cout << "queue_id: " << queue_id << " " << queue_key;
+    nlohmann::json res = {
+            {"queue_id",  queue_id},
+            {"queue_key", queue_key},
+    };
+    std::cout << res.dump();
 }
 
 
 void add_ticket_handler(Api& api, const nlohmann::basic_json<>& req, const std::string& username) {
     auto queue_id = req["queue_id"].get<unsigned long>();
-    auto title = req["title"].get<std::string>();
-    auto description = req["description"].get<std::string>();
+
+    auto title = base64decode(req["title"].get<std::string>());
+    auto description = base64decode(req["description"].get<std::string>());
 
     try {
         auto queue = api.get_queue(queue_id);
@@ -91,23 +97,28 @@ void find_tickets_handler(Api& api, const nlohmann::basic_json<>& req, const std
         ticket_id = req["ticket_id"].get<std::string>();
     }
     if (req.contains("title")) {
-        title = req["title"].get<std::string>();
+        title = base64decode(req["title"].get<std::string>());
     }
     if (req.contains("description")) {
-        description = req["description"].get<std::string>();
+        description = base64decode(req["description"].get<std::string>());
     }
 
-    auto tickets = api.find_tickets(queue_id, ticket_id, title, description);
+    try {
+        auto tickets = api.find_tickets(queue_id, ticket_id, title, description);
 
-    nlohmann::json res = nlohmann::json::array();
-    for (auto &t: tickets) {
-        nlohmann::json ticket_json = {
-                {"description", t.description},
-                {"title",       t.title},
-        };
-        res.push_back(ticket_json);
+        nlohmann::json res = nlohmann::json::array();
+        for (auto &t: tickets) {
+            nlohmann::json ticket_json = {
+                    {"description", t.description},
+                    {"title",       t.title},
+            };
+            res.push_back(ticket_json);
+        }
+        std::cout << res.dump();
+
+    } catch (const std::runtime_error &e) {
+        bad_request("invalid find params");
     }
-    std::cout << res.dump();
 }
 
 

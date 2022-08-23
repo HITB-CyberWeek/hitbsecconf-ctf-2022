@@ -1,8 +1,8 @@
-#include <iostream>
 #include <cgicc/Cgicc.h>
 #include "handlers.h"
 #include "json.h"
 #include "router.h"
+#include "utils.h"
 
 using namespace cgicc;
 
@@ -25,7 +25,7 @@ std::string get_user_from_cookies(Api& api, const std::vector<HTTPCookie>& cooki
 }
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv, char **envp) {
     RedisConfig redis_config{"localhost:6379", ""};
     Api api(redis_config);
 
