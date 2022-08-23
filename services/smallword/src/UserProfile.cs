@@ -99,7 +99,7 @@ public static class UserProfile
     private const string DataDirectoryPath = "data/";
     private const string DocsDirectoryPath = "docs/";
 
-    private const int MaxProfileSize = 4096;
+    private const int MaxProfileSize = 8192;
 }
 
 public static class AuthHelper

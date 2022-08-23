@@ -20,6 +20,7 @@ builder.WebHost
     {
         opts.Listen(IPAddress.Any, 5000);
         opts.Limits.MaxRequestBodySize = 8192;
+        opts.Limits.MaxRequestHeadersTotalSize = 4096;
     });
 builder.Services
     .AddControllers(options => options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true)
