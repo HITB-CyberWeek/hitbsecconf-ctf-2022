@@ -226,7 +226,7 @@ if sys.argv[1] == 'check':
     val1 = LoadVal(proc,id1)
     if val1 != str(p1):
         print("Value was not received")
-        exit(102)
+        exit(103)
 
     s2 = id_gen(random.randint(3,50))
     p2 = "d9%02x%02s" % (len(s2), s2.encode().hex())
@@ -236,8 +236,7 @@ if sys.argv[1] == 'check':
     #print(val2,s2)
     if val2 !=s2:
         print("Value was not received")
-        exit(102)
-
+        exit(103)
 elif sys.argv[1] == 'put':
     flagid = sys.argv[3]
     flag = sys.argv[4]
@@ -253,7 +252,7 @@ elif sys.argv[1] == 'put':
     res = LoadVal2(proc,flagid,password)
     if not flag in res:
         print("No flag stored")
-        exit(102)
+        exit(103)
     print(f"{flagid},{password}")
 elif sys.argv[1] == 'get':
     flagid,password = sys.argv[3].split(",")
