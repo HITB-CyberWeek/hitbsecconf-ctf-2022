@@ -241,7 +241,7 @@ def get(host, flag_id, flag, vuln):
 
     if stored_flag != flag:
         verdict(CORRUPT, "No such flags",
-            "No such flag %s, stored_flag %d" % (flag, stored_flag))
+            "No such flag %s, stored_flag %s" % (flag, stored_flag))
 
 
     verdict(OK, flag_id)
