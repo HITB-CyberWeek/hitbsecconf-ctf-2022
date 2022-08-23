@@ -35,6 +35,8 @@ jobs:
     runs-on: self-hosted
     needs: [build-image]
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
       - name: Save private key
         run: 'echo "$SSH_KEY" > ~/cloud_ssh_private_key; chmod 600 ~/cloud_ssh_private_key'
         shell: bash
