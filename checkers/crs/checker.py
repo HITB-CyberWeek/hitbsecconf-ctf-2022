@@ -57,8 +57,9 @@ class Client:
                 select_timeout = 0.1  # Last chance!
             ready = select.select([self.s], [], [], select_timeout)
             if not ready[0]:
-                raise Exception("No expected response from remote side in {} sec. Actual response: {!r}".format(
-                    timeout, response))
+                msg = "No expected response from remote side in {} sec.".format(timeout)
+                logging.error(msg + " Actual response: {!r}".format(response))
+                raise ProtocolViolationError(msg)
             response += self.s.recv(RECV_BUFFER).decode(errors="ignore")
 
             if all(e in response for e in end):
