@@ -1,6 +1,6 @@
 #!/bin/bash
 
-screen -dmS ClearOld ./ClearLast20mins.py
+screen -dmS ClearOld python3 ./ClearLast20mins.py
 
 mkdir -p data
 chown mypack:mypack data

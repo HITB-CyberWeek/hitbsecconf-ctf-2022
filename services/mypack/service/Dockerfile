@@ -1,7 +1,7 @@
 FROM ubuntu
 
 RUN apt update
-RUN apt install -y socat screen
+RUN apt install -y socat screen python3
 RUN useradd mypack
 EXPOSE 3777/tcp
 WORKDIR /home/service

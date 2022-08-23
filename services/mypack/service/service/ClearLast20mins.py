@@ -20,6 +20,5 @@ def CleanOld(dirpath,last_time):
     return
 
 while 1:
-    CleanOld("spacemans",datetime.timedelta(minutes=30))
-    CleanOld("spaceships",datetime.timedelta(minutes=30))
+    CleanOld("data",datetime.timedelta(minutes=30))
     time.sleep(60)
