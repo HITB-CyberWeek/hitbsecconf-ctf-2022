@@ -5,8 +5,8 @@ RUN apt-get update && \
         python3 python3-pip \
         p7zip bzip2 gzip unrar unzip
 
-ARG DOKER_GROUP=999
-RUN groupadd -g ${DOKER_GROUP} docker
+ARG DOCKER_GROUP=999
+RUN groupadd -g ${DOCKER_GROUP} docker
 RUN useradd sh -m -u 12345 -U -G docker
 
 WORKDIR /home/sh
