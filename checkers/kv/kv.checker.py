@@ -123,7 +123,12 @@ def get(args):
     }
     filename = data['filename']
 
-    resp = get_filename(url, creds, filename)
+    try:
+        resp = get_filename(url, creds, filename)
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code // 100 == 4:  # 4xx
+            verdict(CORRUPT, "HTTP error", "HTTPError: %s" % e)
+        raise
 
     if "headers" not in resp:
         verdict(MUMBLE, "Bad get response", "No 'headers' key in answer")
