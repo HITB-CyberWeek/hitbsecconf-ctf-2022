@@ -1,7 +1,10 @@
 #!/bin/bash
 
 n=$1
-export CHECKER_DIRECT_CONNECT=1
+HOST="${HOST:-localhost}"
+CHECKER_DIRECT_CONNECT="${CHECKER_DIRECT_CONNECT:-1}"
+export CHECKER_DIRECT_CONNECT
+
 
 function random_string () {
     chars=123qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM
@@ -27,14 +30,14 @@ do
     flag=${rand_string}
     flag_id=$RANDOM
 
-    ./kv.checker.py check localhost
+    ./kv.checker.py check $HOST
     check_verdict
 
-    flag_id=$(./kv.checker.py put localhost $flag_id $flag 1)
+    flag_id=$(./kv.checker.py put $HOST $flag_id $flag 1)
     check_verdict
     echo "FLAG_ID:${flag_id}"
 
-    ./kv.checker.py get localhost "${flag_id}" "${flag}" 1
+    ./kv.checker.py get $HOST "${flag_id}" "${flag}" 1
     check_verdict
 
 done
