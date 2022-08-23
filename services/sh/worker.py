@@ -7,7 +7,7 @@ NETWORK = "sh_s3"
 ULIMITS = [
     docker.types.Ulimit(name="CPU", soft=10, hard=10),
     docker.types.Ulimit(name="FSIZE", soft=50 * 1024, hard=50 * 1024),
-    docker.types.Ulimit(name="NPROC", soft=30, hard=30),
+    docker.types.Ulimit(name="NPROC", soft=50, hard=50),
     docker.types.Ulimit(name="NOFILE", soft=15, hard=15)
 ]
 
