@@ -99,21 +99,22 @@ std::string Api::add_ticket(unsigned long queue_id, std::string &title, std::str
 std::vector<Ticket> Api::find_tickets(unsigned long queue_id, const std::string &ticket_id, const std::string &title,
                                       const std::string &description)  {
     auto queue = get_queue(queue_id);
+    std::stringstream queue_to_tickets_key;
+    queue_to_tickets_key << "queues/" << queue_id;
 
     if (!ticket_id.empty()) {
         if (!is_ticket_correct(queue, ticket_id)) {
             throw std::runtime_error("invalid ticket id");
         }
 
-        Hasher::perform_hashing(ticket_id, title, description);
-
-        if (!digest.empty()) {
-
+        if (!title.empty() && !description.empty()) {
+            Hasher::perform_hashing(ticket_id, title, description);
+            if (cache.find(digest) != cache.end()) {
+                return cache[digest];
+            }
         }
 
         int ticket_sub_id = get_ticket_sub_id(ticket_id);
-        std::stringstream queue_to_tickets_key;
-        queue_to_tickets_key << "queues/" << queue_id;
 
         std::vector<std::string> res;
         redis_client.LRANGE(queue_to_tickets_key.str(), ticket_sub_id, ticket_sub_id, res);
@@ -122,9 +123,47 @@ std::vector<Ticket> Api::find_tickets(unsigned long queue_id, const std::string 
         for (auto &dumped_ticket: res) {
             ticket_res.push_back(load_ticket(dumped_ticket));
         }
+
+        if (!title.empty() && !description.empty()) {
+            cache[digest] = ticket_res;
+        }
         return ticket_res;
     }
-    throw std::runtime_error("not implemented");
+
+    std::vector<Ticket> title_filtered_res;
+
+    if (!title.empty()) {
+        std::vector<std::string> res;
+        redis_client.LRANGE(queue_to_tickets_key.str(), 0, -1, res);
+
+        if (res.empty()) {
+            return {};
+        }
+
+        for (auto &dumped_ticket: res) {
+            auto ticket = load_ticket(dumped_ticket);
+
+            if (ticket.title.find(title) != std::string::npos) {
+                title_filtered_res.push_back(ticket);
+            }
+        }
+
+        if (title_filtered_res.empty()) {
+            return {};
+        }
+    }
+
+    if (!description.empty()) {
+        std::vector<Ticket> final_res;
+        for (auto& t: title_filtered_res) {
+            if (t.description.find(description) != std::string::npos) {
+                final_res.push_back(t);
+            }
+        }
+        return final_res;
+    }
+
+    return title_filtered_res;
 }
 
 
@@ -136,14 +175,4 @@ bool is_ticket_correct(Queue& queue, const std::string& ticket_id) {
     std::cmatch m;
 
     return std::regex_match(ticket_id.c_str(), m, regexp);
-}
-
-
-bool is_title_correct(std::string& title) {
-    return title.length() <= 100;
-}
-
-
-bool is_description_correct(std::string& title) {
-    return title.length() <= 10000;
 }

@@ -20,8 +20,7 @@ Ticket load_ticket(const std::string& dumped_ticket);
 class Api {
 public:
     explicit Api(const RedisConfig& redis_config);
-    std::vector<Queue> queues;
-    std::vector<std::unordered_map<std::string, Ticket>> queue_id_to_tickets;
+    std::unordered_map<std::string, std::vector<Ticket>> cache;
 
     std::pair<long long, std::string> add_queue(std::string& name, const std::string& owner);
 
@@ -43,9 +42,5 @@ public:
 
 
 bool is_ticket_correct(Queue& queue, const std::string& ticket_id);
-
-bool is_title_correct(std::string& title);
-
-bool is_description_correct(std::string& title);
 
 #endif //ISSUECKER_API_H
