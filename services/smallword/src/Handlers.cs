@@ -51,8 +51,8 @@ public class Handlers : Controller
             return StatusCode(404);
 
         return export
-            ? new FileContentResult(await Converter.ConvertToDocx(stream, stream.Name, HttpContext.RequestAborted), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-            : new FileStreamResult(stream, new MediaTypeHeaderValue("text/html"));
+            ? new FileContentResult(await Converter.ConvertToDocx(stream, stream.Name, HttpContext.RequestAborted), "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {FileDownloadName = fileId + ".docx"}
+            : new FileStreamResult(stream, new MediaTypeHeaderValue("text/html")) {FileDownloadName = fileId + ".html"};
     }
 
     [HttpPut("/file/{fileId}")]

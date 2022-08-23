@@ -38,7 +38,7 @@ const request = function(title, subtitle, form, path, success) {
 			if(!value) return;
 			const data = Object.fromEntries(Array.from(new FormData(form).entries()).filter(([_, value]) => !!value?.length));
 			fetch(path, { method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(data) })
-				.then(handleErrors).then(response => { swal('Success', success, 'success'); checklogin(); })
+				.then(handleErrors).then(response => { swal('Success', success, 'success'); checklogin(); updateList(); })
 				.catch(e => swal('Fail', e?.toString() ?? 'Unknown error', 'error').then(() => setTimeout(() => request.apply(this, args), 1)));
 		});
 }
@@ -101,15 +101,15 @@ tinymce.init({
 			onAction: () => {
 				fetch(`/file/${encodeURIComponent(fileId)}?export=true`)
 					.then(handleErrors)
-					.then(response => response.blob())
-					.then(blob => {
+					.then(response => response.blob().then(blob => {
 						const a = document.createElement('a');
 						a.href = window.URL.createObjectURL(blob);
+						a.download = response.headers.get('content-disposition')?.match(/filename=['"]?([\w-]*.docx)['"]?/)?.slice(-1)[0] ?? crypto.randomUUID() + ".docx";
 						document.body.appendChild(a);
 						a.click();
 						a.remove();
 						notify('exported', 'success');
-					})
+					}))
 					.catch(e => notify('failed to export: ' + (e?.toString() ?? 'unknown error'), 'error'));
 			}
 		});
