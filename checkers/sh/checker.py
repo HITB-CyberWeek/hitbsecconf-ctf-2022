@@ -125,15 +125,17 @@ def get(host, flag_id, flag, vuln):
     logging.info(f"Get from url '{url}' on host '{host}'")
 
     r = requests.get(url, timeout=5)
+    if r.status_code == 404:
+        verdict(CORRUPT, public="Wrong HTTP status code")
     if r.status_code != 200:
         verdict(MUMBLE, public="Wrong HTTP status code")
+
+    responce = r.text
+    if responce != flag:
+        logging.info(f"Responce '{responce}' does not equal flag '{flag}'")
+        verdict(CORRUPT, public="Wrong flag data")
     else:
-        responce = r.text
-        if responce != flag:
-            logging.info(f"Responce '{responce}' does not equal flag '{flag}'")
-            verdict(CORRUPT, public="Wrong flag data")
-        else:
-            verdict(OK)
+        verdict(OK)
 
 
 def main(args):
