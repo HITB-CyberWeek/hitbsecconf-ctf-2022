@@ -128,7 +128,7 @@ public static class AuthHelper
         => new(SHA256.HashData(Encoding.UTF8.GetBytes(login))[..16]);
 
     private static byte[] Hmac(string login, byte[] key)
-        => HMACSHA256.HashData(key, Encoding.UTF8.GetBytes(login));
+        => HMACSHA256.HashData(key, login.ToUserId().ToByteArray());
 
     private const char Delim = ' ';
 }
