@@ -40,4 +40,5 @@ COPY checkers/wallet /app/checkers/wallet
 COPY checkers/n0tes /app/checkers/n0tes
 RUN pip install -r /app/checkers/n0tes/requirements.txt
 COPY checkers/kv /app/checkers/kv
+COPY checkers/obscurity /app/checkers/obscurity
 COPY --from=build-dot-net-checkers /app/smallword-publish/ /app/checkers/smallword/src/bin/Release/net6.0/publish
