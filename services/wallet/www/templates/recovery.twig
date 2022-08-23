@@ -59,7 +59,7 @@
             <button type="submit" class="btn btn-primary">Recovery</button>
         </form>
     {% elseif recovery_step == 2 and recovery_type == "email" %}
-        <p>Error send mail</p>
+        <p>Recovery by email is not supported now, sorry. Come back later or try another recovery method</p>
     {% elseif recovery_step == 3 %}
         <p>Set new password </p>
     {% endif %}
