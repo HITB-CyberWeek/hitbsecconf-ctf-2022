@@ -90,6 +90,8 @@ def create_note(host, session, title, content):
     if len(row_element) != 1:
         return (MUMBLE, "Unexpected result", "Can't find note in '%s'" % r.text)
 
+    trace("Note with title '%s' successfully created" % title)
+
     return (OK, "", "")
 
 def put(args):
