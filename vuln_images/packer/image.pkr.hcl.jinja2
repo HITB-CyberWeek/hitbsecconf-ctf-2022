@@ -61,6 +61,45 @@ build {
     ]
   }
 
+  # Update motd
+  provisioner "shell" {
+    inline = [
+      "chmod -x /etc/update-motd.d/*"
+    ]
+  }
+
+  provisioner "file" {
+    content = <<EOT
+#!/bin/bash
+
+if [[ -f /etc/motd ]]; then exit; fi
+
+export TERM=xterm
+
+cat << EOF
+
+$(tput setaf 2)Welcome to the "sh" instance!$(tput setaf 7)
+
+Service is located on $(tput bold)/home/sh/$(tput sgr0)
+
+View logs: $(tput bold)docker compose logs -f$(tput sgr0)
+Rebuild service: $(tput bold)docker compose build$(tput sgr0)
+Restart service: $(tput bold)docker compose restart$(tput sgr0)
+
+HITB SECCONF CTF 2022, ctf@hitb.org
+https://2022.ctf.hitb.org/hitb-ctf-singapore-2022
+$(tput sgr0)
+EOF
+EOT
+    destination = "/etc/update-motd.d/60-ctf"
+  }
+
+  provisioner "shell" {
+    inline = [
+      "chmod +x /etc/update-motd.d/60-ctf"
+    ]
+  }
+
   {% if username %}
   # Add user for the service
   provisioner "shell" {
@@ -97,7 +136,7 @@ build {
   provisioner "shell" {
     inline = [
       {% for command in build_inside_vm %}
-      "{{ command }}"{% if not loop.last %},{% endif %}
+      "{{ command|replace('"', '\\"') }}"{% if not loop.last %},{% endif %}
       {% endfor %}
     ]
   }
