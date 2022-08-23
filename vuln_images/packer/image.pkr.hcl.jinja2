@@ -78,9 +78,9 @@ export TERM=xterm
 
 cat << EOF
 
-$(tput setaf 2)Welcome to the "sh" instance!$(tput setaf 7)
+$(tput setaf 2)Welcome to the "{{ service }}" instance!$(tput setaf 7)
 
-Service is located on $(tput bold)/home/sh/$(tput sgr0)
+Service is located on $(tput bold)/home/{{ username }}/$(tput sgr0)
 
 View logs: $(tput bold)docker compose logs -f$(tput sgr0)
 Rebuild service: $(tput bold)docker compose build$(tput sgr0)
