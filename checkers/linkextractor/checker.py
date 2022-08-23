@@ -86,11 +86,11 @@ def call_get_page(session, base_url, page_id):
 def call_parse_page(session, base_url, page_url, text):
     r = session.post(urljoin(base_url, "/pages/?url=%s" % quote_plus(page_url)), data=text)
     if r.status_code != 200:
-        verdict(MUMBLE, "Can't POST page to parse", "Unexpected POST page with url '%s' and text '%s' to parse result: %d -> %s" %(page_url, text, r.status_code, r.text))
+        verdict(MUMBLE, "Can't POST page to parse", "Unexpected POST page to parse with url '%s' and text '%s' result: %d -> %s" %(page_url, text, r.status_code, r.text))
     try:
         return r.json()
     except Exception:
-        verdict(MUMBLE, f"Bad json in POST page to parse result", "Bad json in POST page with url '%s' and text '%s' to parse result: %s (exception %s)" % (page_url, text, r.text, traceback.format_exc()))
+        verdict(MUMBLE, f"Bad json in POST page to parse result", "Bad json in POST page to parse with url '%s' and text '%s' result: '%s' (exception %s)" % (page_url, text, r.text, traceback.format_exc()))
 
 def gen_page(page_url):
     links = []
