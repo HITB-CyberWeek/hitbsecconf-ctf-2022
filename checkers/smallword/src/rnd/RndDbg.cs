@@ -24,7 +24,7 @@ namespace checker.rnd
 			return $"TEAM{RndUtil.GetInt(1, 1000):000}_{new string(flag)}";
 		}
 
-		private const int FlagSuffixLength = 31;
+		private const int FlagSuffixLength = 32;
 		private static readonly char[] Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".ToCharArray();
 	}
 }
