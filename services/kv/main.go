@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +15,33 @@ import (
 )
 
 var ctx = context.Background()
+
+const INDEX_TEMPLATE = `
+<html>
+<head>
+<title>KV Service</title>
+</head>
+<body>
+<h1>KV Service</h1>
+<p>Welocme to the KV service!</p>
+<p><code>/register</code> and then put and get (<code>/kv/{fileame}</code>) your data!
+<p>Currently stored keys: %d</p>
+</body>
+</html>
+`
+
+func IndexHandler(db *redis.Client) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		keysCount, err := db.DBSize(ctx).Result()
+		if err != nil {
+			render.Render(w, r, ErrServerError(errors.New("error getting keys count from DB")))
+			return
+		}
+
+		resp := fmt.Sprintf(INDEX_TEMPLATE, keysCount)
+		w.Write([]byte(resp))
+	}
+}
 
 func main() {
 	redisAddr := os.Getenv("REDIS_ADDR")
@@ -31,5 +60,6 @@ func main() {
 	r.Post("/register", RegisterHandler(db))
 	r.Put("/kv/{filename}", SetHandler(db))
 	r.Get("/kv/{filename}", GetHandler(db))
+	r.Get("/", IndexHandler(db))
 	http.ListenAndServe(":3000", r)
 }
