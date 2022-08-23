@@ -7,8 +7,11 @@ import random
 import string
 import http
 import json
+import ssl
+import socket
 from urllib.parse import urljoin
 from lxml import etree
+from random import randint
 requests.packages.urllib3.disable_warnings()
 from checker_helper import *
 
@@ -141,6 +144,50 @@ def get_note_content(host, session, note_row_element):
 
     return (OK, "", "", note_content[0].strip())
 
+def export_notes(host):
+    class WrapSSSLContext(ssl.SSLContext):
+            '''
+            HTTPSConnection provides no way to specify the
+            server_hostname in the underlying socket. We
+            accomplish this by wrapping the context to
+            overrride the wrap_socket behavior (called later
+            by HTTPSConnection) to specify the
+            server_hostname that we want.
+            '''
+            def __new__(cls, server_hostname, protocol, *args, **kwargs):
+                return super().__new__(cls, protocol, *args, *kwargs)
+
+
+            def __init__(self, server_hostname, protocol, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self._server_hostname = server_hostname
+
+
+            def wrap_socket(self, sock, *args, **kwargs):
+                kwargs['server_hostname'] = self._server_hostname
+                return super().wrap_socket(sock, *args, **kwargs)
+
+
+    context = WrapSSSLContext(server_hostname='admin.n0tes.ctf.hitb.org', protocol=ssl.PROTOCOL_TLS_CLIENT)
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+
+    #context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile='n0tes.crt')
+
+    context.load_cert_chain(certfile='n0tes-admin.crt', keyfile='n0tes-admin.key')
+
+    connection = http.client.HTTPSConnection(host, port=443, timeout=TIMEOUT, context=context)
+    headers = {'Host': 'admin.n0tes.ctf.hitb.org'}
+    connection.request(method="POST", url="/export", headers=headers)
+    response = connection.getresponse()
+
+    if response.status != 200:
+        return (MUMBLE, "Can't export notes", "Unexpected status code during export: '%d'" % response.status, None)
+
+    trace("Successfully exported notes")
+
+    return (OK, "", "", json.loads(response.read()))
+
 def put(args):
     if len(args) != 4:
         verdict(CHECKER_ERROR, "Checker error", "Wrong args count for put()")
@@ -173,17 +220,28 @@ def get(args):
     password = info['password']
     note_title = info['public_flag_id']
 
-    (status, out, err, session, html) = login(host, user, password)
-    if status != OK:
-        verdict(status, out, err)
+    if randint(0, 1):
+        (status, out, err, notes) = export_notes(host)
+        if status != OK:
+            verdict(status, out, err)
 
-    (status, out, err, row_element) = parse_note_element(html, note_title)
-    if status != OK:
-        verdict(status, out, err)
+        filtered_notes = [x['content'] for x in notes if x['user'] == user and x['title'] == note_title]
+        if len(filtered_notes) != 1:
+            verdict(MUMBLE, "Can't find note", "Can't find note in %s" % str(notes))
 
-    (status, out, err, note_content) = get_note_content(host, session, row_element)
-    if status != OK:
-        verdict(status, out, err)
+        note_content = filtered_notes[0]
+    else:
+        (status, out, err, session, html) = login(host, user, password)
+        if status != OK:
+            verdict(status, out, err)
+
+        (status, out, err, row_element) = parse_note_element(html, note_title)
+        if status != OK:
+            verdict(status, out, err)
+
+        (status, out, err, note_content) = get_note_content(host, session, row_element)
+        if status != OK:
+            verdict(status, out, err)
 
     if note_content != flag_data:
         verdict(CORRUPT, "Can't find flag in note", "Can't find flag in note, actual flag: '%s'" % note_content)
