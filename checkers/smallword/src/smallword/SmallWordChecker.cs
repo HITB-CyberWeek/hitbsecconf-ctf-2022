@@ -159,6 +159,8 @@ namespace checker.smallword
 
 				var data = JsonSerializer.SerializeToUtf8Bytes(new User {Login = user.Login, Password = user.Password}, JsonOptions); 
 				result = await client.DoRequestAsync(HttpMethod.Post, ApiLogin, new Dictionary<string, string> {{"Content-Type", "application/json"}}, data, NetworkOpTimeout, MaxHttpBodySize).ConfigureAwait(false);
+				if(result.StatusCode == HttpStatusCode.Forbidden)
+					throw new CheckerException(ExitCode.CORRUPT, $"post {ApiLogin} failed: forbidden");
 				if(result.StatusCode != HttpStatusCode.OK)
 					throw new CheckerException(result.StatusCode.ToExitCode(), $"post {ApiLogin} failed: {result.StatusCode.ToReadableCode()}");
 
@@ -174,7 +176,7 @@ namespace checker.smallword
 			if(RndUtil.Bool())
 			{
 				result = await client.DoRequestAsync(HttpMethod.Get, ApiList, null, null, NetworkOpTimeout, MaxHttpBodySize).ConfigureAwait(false);
-				if(result.StatusCode == HttpStatusCode.NotFound)
+				if(result.StatusCode == HttpStatusCode.Unauthorized || result.StatusCode == HttpStatusCode.NotFound)
 					throw new CheckerException(ExitCode.CORRUPT, $"get {ApiList} failed: {result.StatusCode.ToReadableCode()}");
 				if(result.StatusCode != HttpStatusCode.OK)
 					throw new CheckerException(result.StatusCode.ToExitCode(), $"get {ApiList} failed: {result.StatusCode.ToReadableCode()}");
@@ -190,7 +192,7 @@ namespace checker.smallword
 			{
 				var relative = string.Format(ApiFileFormat, fileId);
 				result = await client.DoRequestAsync(HttpMethod.Get, relative, null, null, NetworkOpTimeout, MaxHttpBodySize).ConfigureAwait(false);
-				if(result.StatusCode == HttpStatusCode.NotFound)
+				if(result.StatusCode == HttpStatusCode.Unauthorized || result.StatusCode == HttpStatusCode.NotFound)
 					throw new CheckerException(ExitCode.CORRUPT, $"get {relative} failed: {result.StatusCode.ToReadableCode()}");
 				if(result.StatusCode != HttpStatusCode.OK)
 					throw new CheckerException(result.StatusCode.ToExitCode(), $"get {relative} failed: {result.StatusCode.ToReadableCode()}");
@@ -202,7 +204,7 @@ namespace checker.smallword
 			{
 				var relative = string.Format(ApiFileFormat, fileId) + "?export=true";
 				result = await client.DoRequestAsync(HttpMethod.Get, relative, null, null, NetworkOpTimeout, MaxHttpBodySize).ConfigureAwait(false);
-				if(result.StatusCode == HttpStatusCode.NotFound)
+				if(result.StatusCode == HttpStatusCode.Unauthorized || result.StatusCode == HttpStatusCode.NotFound)
 					throw new CheckerException(ExitCode.CORRUPT, $"get {relative} failed: {result.StatusCode.ToReadableCode()}");
 				if(result.StatusCode != HttpStatusCode.OK)
 					throw new CheckerException(result.StatusCode.ToExitCode(), $"get {relative} failed: {result.StatusCode.ToReadableCode()}");
