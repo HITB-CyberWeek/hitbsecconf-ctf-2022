@@ -7,7 +7,7 @@ namespace checker.smallword;
 
 public static class RndImage
 {
-    public static void Generate(int width, int height, Stream stream)
+    public static void Generate(int width, int height, Stream stream, out string format)
     {
         using var surface = SKSurface.Create(new SKImageInfo(width, height, SKColorType.Argb4444));
         using var canvas = surface.Canvas;
@@ -16,7 +16,9 @@ public static class RndImage
         GenCircles(canvas, width, height);
 
         using var image = surface.Snapshot();
-        using var data = image.Encode(RndUtil.Choice(SKEncodedImageFormat.Png, SKEncodedImageFormat.Jpeg), 80);
+        var imgFormat = RndUtil.Choice(SKEncodedImageFormat.Png, SKEncodedImageFormat.Jpeg);
+        format = imgFormat.ToString().ToLowerInvariant();
+        using var data = image.Encode(imgFormat, 80);
 
         data.SaveTo(stream);
 

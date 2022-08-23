@@ -27,8 +27,11 @@ public static class Converter
             SystemId = "xhtml1-strict.dtd"
         };*/
         using var reader = XmlReader.Create(stream, XmlReaderSettings);
-        return await XElement.LoadAsync(reader, LoadOptions.PreserveWhitespace, cancellationToken);
+        return (XElement)RemoveNamespaces(await XElement.LoadAsync(reader, LoadOptions.PreserveWhitespace, cancellationToken));
     }
+
+    private static XNode RemoveNamespaces(XNode node, int depth = 0)
+        => node is not XElement element ? node : depth >= 64 ? throw new Exception("Recursion limit exceeded") : new XElement(element.Name.LocalName, element.Attributes().Where(a => !a.IsNamespaceDeclaration), element.Nodes().Select(n => RemoveNamespaces(n, depth + 1)));
 
     private static readonly XmlReaderSettings XmlReaderSettings = new()
     {

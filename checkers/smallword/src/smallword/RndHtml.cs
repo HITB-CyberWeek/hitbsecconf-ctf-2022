@@ -12,7 +12,9 @@ public static class RndHtml
         => new StringBuilder()
             .RndHeader()
             .RndParagraph()
+            .Append("<hr />")
             .AddText(flag)
+            .Append("<hr />")
             .RndParagraph()
             .RndHeader()
             .RndImg(out b64img)
@@ -36,8 +38,8 @@ public static class RndHtml
     {
         var ms = new MemoryStream();
         var size = RndUtil.GetInt(32, 65);
-        RndImage.Generate(size, size, ms);
-        return builder.Append("<img src=\"data:image/png;base64,").Append(b64img = Convert.ToBase64String(new Span<byte>(ms.GetBuffer(), 0, (int)ms.Position))).Append("\" />");
+        RndImage.Generate(size, size, ms, out var format);
+        return builder.Append("<img src=\"data:image/").Append(format).Append(";base64,").Append(b64img = Convert.ToBase64String(new Span<byte>(ms.GetBuffer(), 0, (int)ms.Position))).Append("\" />");
     }
 
     private static string RandomStyle()

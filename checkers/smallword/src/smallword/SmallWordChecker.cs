@@ -212,13 +212,15 @@ namespace checker.smallword
 				var flagFound = false;
 				var imageFound = image == null;
 
-				if(!await DocxTraverse(result.Body, stream => ExtractTextFromXml(stream).ForEach(text => flagFound |= text.Contains(flag)), stream => imageFound |= ImageHelper.Equals(image, stream)).ConfigureAwait(false))
-					throw new CheckerException(ExitCode.MUMBLE, $"invalid {relative} response: failed to open docx");
-				if(!imageFound)
-					throw new CheckerException(ExitCode.MUMBLE, $"invalid {relative} response: some content not found in docx");
+				void CheckXml(Stream stream) => ExtractTextFromXml(stream).ForEach(text => flagFound |= text.Contains(flag));
+				void CheckImg(Stream stream) => imageFound |= ImageHelper.Equals(image, stream);
 
+				if(!await DocxTraverse(result.Body, CheckXml, CheckImg).ConfigureAwait(false))
+					throw new CheckerException(ExitCode.MUMBLE, $"invalid {relative} response: failed to open docx");
 				if(!flagFound)
 					throw new CheckerException(ExitCode.CORRUPT, $"invalid {relative} response: flag not found");
+				if(!imageFound)
+					throw new CheckerException(ExitCode.MUMBLE, $"invalid {relative} response: some content not found in docx");
 			}
 
 			await Console.Error.WriteLineAsync($"total sleep: {slept} msec").ConfigureAwait(false);
@@ -248,7 +250,7 @@ namespace checker.smallword
 
 		private static IEnumerable<string> ExtractTextFromXml(Stream stream)
 		{
-			using var reader = XmlReader.Create(stream);
+			using var reader = XmlReader.Create(stream, XmlReaderSettings);
 			while(reader.Read())
 			{
 				if(reader.NodeType == XmlNodeType.Text)
@@ -258,11 +260,11 @@ namespace checker.smallword
 
 		private const int Port = 443;
 
-		private const int MaxHttpBodySize = 128 * 1024;
+		private const int MaxHttpBodySize = 64 * 1024;
 		private const int MaxCookieSize = 256;
 
 		private const int MaxDelay = 3000;
-		private const int NetworkOpTimeout = 10000;
+		private const int NetworkOpTimeout = 15000;
 
 		private static Uri GetBaseUri(string host) => new($"https://{host}:{Port}/");
 
@@ -271,6 +273,17 @@ namespace checker.smallword
 			IncludeFields = true,
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+		};
+
+		private static readonly XmlReaderSettings XmlReaderSettings = new()
+		{
+			Async = true,
+			CheckCharacters = false,
+			XmlResolver = null,
+			DtdProcessing = DtdProcessing.Prohibit,
+			IgnoreProcessingInstructions = true,
+			MaxCharactersFromEntities = 32768,
+			MaxCharactersInDocument = 65536
 		};
 
 		private const string ApiList = "/files";
