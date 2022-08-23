@@ -220,7 +220,7 @@ except Exception as e:
     traceback.print_tb(e.__traceback__)
     exit(104)
 if sys.argv[1] == 'check':
-    p1 = random.randint(0,128)
+    p1 = random.randint(0,127)
     id1 = StoreVal(proc,"%02x" %p1)
 
     val1 = LoadVal(proc,id1)

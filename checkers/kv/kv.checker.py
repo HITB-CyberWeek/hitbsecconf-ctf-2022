@@ -3,16 +3,19 @@
 import json
 import os
 import random
+import re
 import requests
 import string
 import sys
 import traceback
+
 requests.packages.urllib3.disable_warnings()
 from checker_helper import *
 
 PORT = 3000
 TIMEOUT = 30
 CHECKER_DIRECT_CONNECT = os.environ.get("CHECKER_DIRECT_CONNECT")
+KEYS_COUNT_RE = re.compile(r'Currently stored keys: (\d+)')
 
 
 def info():
@@ -63,7 +66,16 @@ def check(args):
     if len(args) != 1:
         verdict(CHECKER_ERROR, "Checker error", "Wrong args count for check()")
     host = args[0]
-    trace("check(%s)" % host)
+    url = url_prefix(host)
+    trace(f"check({url})")
+
+    resp = requests.get(url, timeout=TIMEOUT)
+    resp.raise_for_status()
+
+    content = resp.text
+    match = KEYS_COUNT_RE.search(content)
+    if not match:
+        verdict(MUMBLE, "Bad index page; can't find keys count", f"CONTENT:{content}")
 
     verdict(OK)
 
@@ -111,7 +123,14 @@ def get(args):
     }
     filename = data['filename']
 
-    resp = get_filename(url, creds, filename)
+    try:
+        resp = get_filename(url, creds, filename)
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code // 100 == 4:  # 4xx
+            err = f"HTTP error! URL:{e.response.url}; http status:{e.response.status_code}"
+            err_private = f"HTTPError:{e}"
+            verdict(CORRUPT, err, err_private)
+        raise
 
     if "headers" not in resp:
         verdict(MUMBLE, "Bad get response", "No 'headers' key in answer")
