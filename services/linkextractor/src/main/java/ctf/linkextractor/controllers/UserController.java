@@ -50,8 +50,8 @@ public class UserController {
             responses = {
             }
     )
-    public static void whoami(Context ctx) throws Exception {
-        String user = ctx.attribute("user");
-        ctx.result(user);
+    public static void whoami(Context ctx) {
+        User user = ctx.attribute("user");
+        ctx.result(user.getLogin());
     }
 }

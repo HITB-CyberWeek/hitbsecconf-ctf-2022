@@ -2,6 +2,7 @@ package ctf.linkextractor.services;
 
 import ctf.linkextractor.DB;
 import ctf.linkextractor.entities.Page;
+import ctf.linkextractor.entities.User;
 import ctf.linkextractor.models.PageLinksModel;
 import ctf.linkextractor.models.PageModel;
 
@@ -31,8 +32,11 @@ public class PageService {
         return DB.singletone.getPageById(id);
     }
 
-    public List<PageModel> getPages(String user) {
-        return DB.singletone.getUserPages(user)
+    public List<PageModel> getPages(User user) {
+        if(user.pages == null)
+            user.setPages(DB.singletone.getUserPages(user.getLogin()));
+
+        return user.pages
                 .stream()
                 .map(p -> new PageModel(p.getId(), p.getUrl(), getDistinctLinks(p.getId()).getLinks().size()))
                 .toList();
@@ -41,12 +45,14 @@ public class PageService {
     public PageLinksModel getDistinctLinks(Integer pageId) {
         Page page = DB.singletone.getPageById(pageId);
 
+        if(page.links == null)
+            page.setLinks(DB.singletone.getLinksByPageId(page.getId()));
+
         return new PageLinksModel(
                 page.getId(),
                 page.getUrl(),
-                DB.singletone.getLinksByPageId(page.getId())
+                page.links
                         .stream()
-                        .distinct()
                         .map(l -> new PageLinksModel.LinkModel(l.getId(), l.toUrl().toString()))
                         .toList());
     }

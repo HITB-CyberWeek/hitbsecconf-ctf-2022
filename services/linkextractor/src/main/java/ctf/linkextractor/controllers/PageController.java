@@ -1,9 +1,11 @@
 package ctf.linkextractor.controllers;
 
 import ctf.linkextractor.entities.Page;
+import ctf.linkextractor.entities.User;
 import ctf.linkextractor.models.PageModel;
 import ctf.linkextractor.services.PageService;
 import io.javalin.http.Context;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.NotFoundResponse;
 import io.javalin.plugin.openapi.annotations.*;
 
@@ -28,8 +30,8 @@ public class PageController {
         //TODO chould we check for uniqness of the page url?
 
         String pageUrl = validQueryParamUrl(ctx);
-        String user = ctx.attribute("user");
-        PageModel pageModel = PageService.singletone.parseAndAddPage(user, pageUrl, ctx.body());
+        User user = ctx.attribute("user");
+        PageModel pageModel = PageService.singletone.parseAndAddPage(user.getLogin(), pageUrl, ctx.body());
 
         ctx.json(pageModel);
     }
@@ -45,7 +47,7 @@ public class PageController {
             }
     )
     public static void getAll(Context ctx) {
-        String user = ctx.attribute("user");
+        User user = ctx.attribute("user");
         ctx.json(PageService.singletone.getPages(user));
     }
 
@@ -61,12 +63,12 @@ public class PageController {
     )
     public static void getOne(Context ctx) {
         Integer pageId = validPathParamPageId(ctx);
-        String user = ctx.attribute("user");
+        User user = ctx.attribute("user");
         Page page = PageService.singletone.getPage(pageId);
         if(page == null)
             throw new NotFoundResponse("Requested page not found");
-        if(!user.equals(page.getUser()))
-            ctx.status(403).result("Forbidden");
+        if(!user.getLogin().equals(page.getUser()))
+            throw new ForbiddenResponse("Forbidden");
 
         ctx.json(PageService.singletone.getDistinctLinks(pageId));
     }

@@ -59,7 +59,6 @@ public class UserService {
         ObjectInputStream objectInputStream = null;
 
         try {
-            //TODO use classloader to protect from deserialization vulnerabilities ^_^
             objectInputStream = new ObjectInputStream(byteArrayInputStream);
             return (User)objectInputStream.readObject();
         } catch (Exception e) {

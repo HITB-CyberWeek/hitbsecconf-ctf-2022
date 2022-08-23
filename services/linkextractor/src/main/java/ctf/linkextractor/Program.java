@@ -2,30 +2,30 @@ package ctf.linkextractor;
 
 import ctf.linkextractor.controllers.PageController;
 import ctf.linkextractor.controllers.UserController;
-import ctf.linkextractor.entities.Link;
+import ctf.linkextractor.entities.EntitiesObjectInputFilter;
+import ctf.linkextractor.entities.Page;
 import ctf.linkextractor.entities.User;
+import ctf.linkextractor.services.PageService;
 import ctf.linkextractor.services.UserService;
 import io.javalin.Javalin;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashSet;
 
 import io.javalin.core.security.RouteRole;
+import io.javalin.http.UnauthorizedResponse;
 import io.javalin.plugin.openapi.OpenApiOptions;
 import io.javalin.plugin.openapi.OpenApiPlugin;
 import io.javalin.plugin.openapi.ui.SwaggerOptions;
 import io.swagger.v3.oas.models.info.Info;
-import org.apache.commons.codec.binary.Base64;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class Program {
+    public static void main(String[] args) {
+        ObjectInputFilter.Config.setSerialFilter(new EntitiesObjectInputFilter());
 
-    public static void main(String[] args) throws IOException {
         //TODO log errors to STDOUT everywhere where needed
-
         Javalin app = Javalin.create(config -> {
             config.registerPlugin(getConfiguredOpenApiPlugin());
             config.defaultContentType = "application/json";
@@ -36,7 +36,7 @@ public class Program {
                 {
                     if(UserService.singletone.ValidateUser(user))
                     {
-                        ctx.attribute("user", user.getLogin());
+                        ctx.attribute("user", user);
                         userRole = Role.USER;
                     }
                 }
@@ -44,9 +44,7 @@ public class Program {
                 if (routeRoles.contains(userRole)) {
                     handler.handle(ctx);
                 } else {
-                    {
-                        ctx.status(401).result("Unauthorized");
-                    }
+                    throw new UnauthorizedResponse("Unauthorized");
                 }
             });
         }).routes(() -> {
