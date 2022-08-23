@@ -14,9 +14,10 @@ OK, CORRUPT, MUMBLE, DOWN, CHECKER_ERROR = 101, 102, 103, 104, 110
 
 
 PORT = 4444
-CMD_DELAY = 5
+CMD_DELAY = 5.5
 RECV_BUFFER = 32 * 1024
 CONNECT_TIMEOUT = 15
+CONNECT_RETRIES = 5
 CHARSET = string.ascii_lowercase + string.digits
 
 
@@ -28,8 +29,19 @@ class Client:
     def __init__(self, host):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.settimeout(CONNECT_TIMEOUT)
-        logging.info("Connecting to %s:%d ...", host, PORT)
-        self.s.connect((host, PORT))
+        retry = 1
+        while True:
+            try:
+                logging.info("Connecting to %s:%d ...", host, PORT)
+                self.s.connect((host, PORT))
+                break
+            except OSError as e:
+                if retry == CONNECT_RETRIES:
+                    raise
+                logging.warning("Connection problem: %s, retrying (%d)...", e, retry)
+                retry += 1
+                time.sleep(CMD_DELAY)
+
         logging.info("Connected.")
         self._recv("Command ==> ")
         self._last_cmd_time = 0
