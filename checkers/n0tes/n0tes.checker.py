@@ -5,6 +5,7 @@ import traceback
 import requests
 import random
 import string
+import http
 import json
 from urllib.parse import urljoin
 from lxml import etree
@@ -12,6 +13,7 @@ requests.packages.urllib3.disable_warnings()
 from checker_helper import *
 
 PORT = 443
+VERIFY = False
 TIMEOUT = 30
 
 def info():
@@ -36,7 +38,7 @@ def login(host, user, password):
     session = requests.Session()
 
     try:
-        r = session.post(urljoin(n0tes_url, "/login"), data=login_data, verify=False)
+        r = session.post(urljoin(n0tes_url, "/login"), data=login_data, timeout=TIMEOUT, verify=VERIFY)
     except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
         return (DOWN, "Connection error", "Connection error during login: %s" % e, None)
     except requests.exceptions.Timeout as e:
@@ -46,7 +48,9 @@ def login(host, user, password):
         return (MUMBLE, "Can't login", "Unexpected login result: '%d'" % r.status_code)
 
     try:
-        doc = etree.HTML(r.text)
+        parser = etree.HTMLParser()
+        parser.feed(r.text)
+        doc = parser.close()
     except Exception as e:
         return (MUMBLE, "Unexpected login result", "Can't parse result html: '%s'" % e)
 
@@ -60,6 +64,34 @@ def login(host, user, password):
 
     return (OK, "", "", session)
 
+def create_note(host, session, title, content):
+    n0tes_url = f"https://{host}:{PORT}/"
+
+    note_data = {"Title": title, "Content": content}
+    try:
+        r = session.post(urljoin(n0tes_url, "/notes"), data=note_data, timeout=TIMEOUT, verify=VERIFY)
+    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
+        return (DOWN, "Connection error", "Connection error during creating note: %s" % e, None)
+    except requests.exceptions.Timeout as e:
+        return (DOWN, "Timeout", "Timeout during creating note: %s" % e, None)
+
+    if r.status_code != 200:
+        return (MUMBLE, "Can't create note", "Unexpected status code when creating a note: '%d'" % r.status_code)
+
+    try:
+        parser = etree.HTMLParser()
+        parser.feed(r.text)
+        doc = parser.close()
+    except Exception as e:
+        return (MUMBLE, "Unexpected result", "Can't parse result html after note creation: '%s'" % e)
+
+    row_element = doc.xpath("//tbody/tr[td/a[contains(text(), '%s')]]" % title)
+
+    if len(row_element) != 1:
+        return (MUMBLE, "Unexpected result", "Can't find note in '%s'" % r.text)
+
+    return (OK, "", "")
+
 def put(args):
     if len(args) != 4:
         verdict(CHECKER_ERROR, "Checker error", "Wrong args count for put()")
@@ -71,6 +103,10 @@ def put(args):
     password = get_random_string(7, 20)
 
     (status, out, err, session) = login(host, user, password)
+    if status != OK:
+        verdict(status, out, err)
+
+    (status, out, err) = create_note(host, session, note_title, flag)
     if status != OK:
         verdict(status, out, err)
 
