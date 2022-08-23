@@ -4,8 +4,12 @@ WORKDIR /app
 COPY checkers/smallword/src/ /app/
 RUN dotnet publish -c release -o ./smallword-publish
 
+FROM ghcr.io/hackerdom/ctf-scoreboard-client:master AS scoreboard
 
 FROM ghcr.io/hackerdom/checksystem:master
+
+COPY --from=scoreboard /scoreboard/build /scoreboard
+ENV CS_STATIC=/scoreboard
 
 # Checker deps
 RUN apt-get update && \
