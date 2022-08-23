@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess as sp,sys,time,re
-import string,random
+import string,random,json
 from socket import *
 from struct import *
 import traceback
@@ -207,7 +207,7 @@ def LoadVal2(proc,mid,password):
         exit(102)
     return res
 if sys.argv[1] == "info":
-    print("vulns: 1")
+    print("vulns: 1\npublic_flag_description: Flag ID is id of packet to store\n")
     exit(101)
 #proc = sp.Popen("./serv12",shell=True,stdin=sp.PIPE,stdout=sp.PIPE)
 proc = socket(AF_INET,SOCK_STREAM)
@@ -253,9 +253,13 @@ elif sys.argv[1] == 'put':
     if not flag in res:
         print("No flag stored")
         exit(103)
-    print(f"{flagid},{password}")
+    #print(f"{flagid},{password}")
+    print(json.dumps({"public_flag_id": str(flagid), "password": password}))
 elif sys.argv[1] == 'get':
-    flagid,password = sys.argv[3].split(",")
+    #flagid,password = sys.argv[3].split(",")
+    jsn = json.loads(sys.argv[3])
+    flagid = jsn['public_flag_id']
+    password = jsn['password']
     flag = sys.argv[4]
     res = LoadVal2(proc,flagid,password)
     if not flag in res:
