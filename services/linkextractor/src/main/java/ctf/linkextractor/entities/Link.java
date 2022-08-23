@@ -9,7 +9,7 @@ import java.net.URL;
 public class Link implements Serializable {
     private int id;
     private int pageId;
-    private String parsed_url;
+    private String parsedUrl;
 
     public int getId() {
         return id;
@@ -19,8 +19,8 @@ public class Link implements Serializable {
         return pageId;
     }
 
-    public String getParsed_url() {
-        return parsed_url;
+    public String getParsedUrl() {
+        return parsedUrl;
     }
 
     @Override
@@ -38,12 +38,12 @@ public class Link implements Serializable {
         if (!(o instanceof Link)) {
             return false;
         }
-        var rhs = (Link) o;
+        Link rhs = (Link) o;
 
         if(rhs == null)
             return false;
-        var o1url = this.toUrl();
-        var o2url = rhs.toUrl();
+        URL o1url = this.toUrl();
+        URL o2url = rhs.toUrl();
         if(o1url == null && o2url == null)
             return true;
         if(o1url == null || o1url == null)
@@ -51,24 +51,30 @@ public class Link implements Serializable {
         return o1url.equals(o2url);
     }
 
-    public Link(int id, int pageId, String parsed_url) {
+    public Link(int id, int pageId, String parsedUrl) {
         this.id = id;
         this.pageId = pageId;
-        this.parsed_url = parsed_url;
+        this.parsedUrl = parsedUrl;
     }
 
+    private URL resolvedUrl;
     public URL toUrl(){
-        var page = DB.singletone.getPageById(pageId);
+        if(resolvedUrl == null)
+            resolvedUrl = resolveUrl();
+        return resolvedUrl;
+    }
+
+    private URL resolveUrl() {
+        Page page = DB.singletone.getPageById(pageId);
         if(page == null)
             return null;
         try {
-            return toAbsoluteUrl(page.getUrl(), parsed_url);
+            return toAbsoluteUrl(page.getUrl(), parsedUrl);
         } catch (MalformedURLException e) {
             return null;
         }
     }
 
-    //TODO add caching
     private URL toAbsoluteUrl(String page_url, String link_url) throws MalformedURLException {
         if (link_url.contains("://"))
             return new URL(link_url);
@@ -76,11 +82,11 @@ public class Link implements Serializable {
             return new URL(new URL(page_url).getProtocol() + ":" + link_url);
         if (link_url.startsWith("/"))
         {
-            var pageUrl = new URL(page_url);
+            URL pageUrl = new URL(page_url);
             return new URL(pageUrl.getProtocol() + "://" + pageUrl.getAuthority() + link_url);
         }
         if (link_url.startsWith("../")){
-            var pageProtocol = new URL(page_url).getProtocol();
+            String pageProtocol = new URL(page_url).getProtocol();
             int pos = page_url.lastIndexOf("/");
             String baseUrl;
             if(pos == -1 || (baseUrl = page_url.substring(0, pos + 1)).equals(pageProtocol + "://")){

@@ -24,7 +24,7 @@ public class PageController {
             }
     )
     public static void parse(Context ctx) {
-        //TODO chould we check for uniqness of the page?
+        //TODO chould we check for uniqness of the page url?
 
         String pageUrl = validQueryParamUrl(ctx);
         String user = ctx.attribute("user");
@@ -66,7 +66,6 @@ public class PageController {
         if(!user.equals(page.getUser()))
             ctx.status(403).result("Forbidden");
 
-        //TODO add page to result model
         ctx.json(PageService.singletone.getDistinctLinks(pageId));
     }
 

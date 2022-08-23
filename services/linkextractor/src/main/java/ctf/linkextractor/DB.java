@@ -36,14 +36,12 @@ public class DB {
     private ObjectOutputStream linksOutputObjectStream;
 
 
-
-    //TODO make consistent usage of var/explicit types
     public DB(String dbDir) {
         Path dbPaths = Paths.get(dbDir);
         try {
             Files.createDirectories(dbPaths);
 
-            var usersFilePath = Paths.get(dbDir, "users");
+            Path usersFilePath = Paths.get(dbDir, "users");
             if(Files.exists(usersFilePath))
             {
                 LoadUsers(usersFilePath);
@@ -54,7 +52,7 @@ public class DB {
             usersOutputObjectStream = new ObjectOutputStream(usersOutputFileStream);
 
 
-            var pagesFilePath = Paths.get(dbDir, "pages");
+            Path pagesFilePath = Paths.get(dbDir, "pages");
             if(Files.exists(pagesFilePath))
             {
                 LoadPages(pagesFilePath);
@@ -67,7 +65,7 @@ public class DB {
             lastPageId = new AtomicInteger(pages.size() > 0 ? Collections.max(pages.values().stream().map(p -> p.getId()).toList()) : 0);
 
 
-            var linksFilePath = Paths.get(dbDir, "links");
+            Path linksFilePath = Paths.get(dbDir, "links");
             if(Files.exists(linksFilePath))
             {
                 LoadLinks(linksFilePath);
@@ -85,8 +83,8 @@ public class DB {
     }
 
     private void LoadUsers(Path usersFilePath) throws IOException {
-        try (var inputStream = new FileInputStream(usersFilePath.toString());
-             var objectInputStream = new ObjectInputStream(inputStream)) {
+        try (FileInputStream inputStream = new FileInputStream(usersFilePath.toString());
+             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
 
             //TODO is that correct? what about buffering?
             while(inputStream.available() > 0)
@@ -101,8 +99,8 @@ public class DB {
     }
 
     private void LoadPages(Path pagesFilePath) throws IOException {
-        try (var inputStream = new FileInputStream(pagesFilePath.toString());
-             var objectInputStream = new ObjectInputStream(inputStream)) {
+        try (FileInputStream inputStream = new FileInputStream(pagesFilePath.toString());
+             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
 
             while (inputStream.available() > 0) {
                 try {
@@ -115,8 +113,8 @@ public class DB {
     }
 
     private void LoadLinks(Path linksFilePath) throws IOException {
-        try (var inputStream = new FileInputStream(linksFilePath.toString());
-             var objectInputStream = new ObjectInputStream(inputStream)) {
+        try (FileInputStream inputStream = new FileInputStream(linksFilePath.toString());
+             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
 
             while (inputStream.available() > 0) {
                 try {
@@ -130,7 +128,7 @@ public class DB {
 
 
     public User registerNewUser(UserRegisterModel model){
-        var user = new User(model.getLogin(), model.getPassword());
+        User user = new User(model.getLogin(), model.getPassword());
         if(TryAddUserToMemory(user)){
             try {
                 PersistUser(user);
@@ -159,8 +157,8 @@ public class DB {
 
 
     public Page addPage(String user, String url){
-        var id = lastPageId.incrementAndGet();
-        var page = new Page(id, user, url);
+        int id = lastPageId.incrementAndGet();
+        Page page = new Page(id, user, url);
         AddPageToMemory(page);
         try {
             PersistPage(page);
@@ -191,8 +189,8 @@ public class DB {
 
 
     public Link addLink(int linkId, String url){
-        var id = lastLinkId.incrementAndGet();
-        var link = new Link(id, linkId, url);
+        int id = lastLinkId.incrementAndGet();
+        Link link = new Link(id, linkId, url);
 
         AddLinkToMemory(link);
         try {

@@ -2,7 +2,7 @@ package ctf.linkextractor.services;
 
 import ctf.linkextractor.DB;
 import ctf.linkextractor.entities.Page;
-import ctf.linkextractor.models.LinkModel;
+import ctf.linkextractor.models.PageLinksModel;
 import ctf.linkextractor.models.PageModel;
 
 import java.util.List;
@@ -29,12 +29,23 @@ public class PageService {
         return DB.singletone.getPageById(id);
     }
 
-    //TODO don't expose PageModel and LinkModel, it's for controllers
     public List<PageModel> getPages(String user) {
-        return DB.singletone.getUserPages(user).stream().map(p -> new PageModel(p.getId(), p.getUrl(), getDistinctLinks(p.getId()).size())).toList();
+        return DB.singletone.getUserPages(user)
+                .stream()
+                .map(p -> new PageModel(p.getId(), p.getUrl(), getDistinctLinks(p.getId()).getLinks().size()))
+                .toList();
     }
 
-    public List<LinkModel> getDistinctLinks(Integer pageId) {
-        return DB.singletone.getLinksByPageId(pageId).stream().distinct().map(l -> new LinkModel(l.toUrl().toString())).toList();
+    public PageLinksModel getDistinctLinks(Integer pageId) {
+        Page page = DB.singletone.getPageById(pageId);
+
+        return new PageLinksModel(
+                page.getId(),
+                page.getUrl(),
+                DB.singletone.getLinksByPageId(page.getId())
+                        .stream()
+                        .distinct()
+                        .map(l -> new PageLinksModel.LinkModel(l.getId(), l.toUrl().toString()))
+                        .toList());
     }
 }

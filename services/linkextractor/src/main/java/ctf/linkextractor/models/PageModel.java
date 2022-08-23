@@ -1,16 +1,16 @@
 package ctf.linkextractor.models;
 
 public class PageModel {
-    int id;
+    int pageId;
     String pageUrl;
     int linksCount;
 
-    public int getId() {
-        return id;
+    public int getPageId() {
+        return pageId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setPageId(int pageId) {
+        this.pageId = pageId;
     }
 
     public String getPageUrl() {
@@ -29,8 +29,8 @@ public class PageModel {
         this.linksCount = linksCount;
     }
 
-    public PageModel(int id, String pageUrl, int linksCount) {
-        this.id = id;
+    public PageModel(int pageId, String pageUrl, int linksCount) {
+        this.pageId = pageId;
         this.pageUrl = pageUrl;
         this.linksCount = linksCount;
     }
