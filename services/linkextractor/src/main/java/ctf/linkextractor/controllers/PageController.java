@@ -1,6 +1,7 @@
 package ctf.linkextractor.controllers;
 
 import ctf.linkextractor.entities.Page;
+import ctf.linkextractor.models.PageModel;
 import ctf.linkextractor.services.PageService;
 import io.javalin.http.Context;
 import io.javalin.http.NotFoundResponse;
@@ -28,8 +29,9 @@ public class PageController {
 
         String pageUrl = validQueryParamUrl(ctx);
         String user = ctx.attribute("user");
-        PageService.singletone.parseAndAddPage(user, pageUrl, ctx.body());
+        PageModel pageModel = PageService.singletone.parseAndAddPage(user, pageUrl, ctx.body());
 
+        ctx.json(pageModel);
     }
 
     @OpenApi(

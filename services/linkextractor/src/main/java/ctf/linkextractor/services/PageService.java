@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class PageService {
     public static PageService singletone = new PageService();
 
-    public void parseAndAddPage(String user, String pageUrl, String body) {
+    public PageModel parseAndAddPage(String user, String pageUrl, String body) {
         Pattern p = Pattern.compile(" href\s*=\s*\"(.+?)\"");
         Matcher m = p.matcher(body);
         String url;
@@ -23,6 +23,8 @@ public class PageService {
             url = m.group(1);
             DB.singletone.addLink(page.getId(), url);
         }
+
+        return new PageModel(page.getId(), page.getUrl(), getDistinctLinks(page.getId()).getLinks().size());
     }
 
     public Page getPage(int id) {
