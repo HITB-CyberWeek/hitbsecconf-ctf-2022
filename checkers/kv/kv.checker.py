@@ -112,8 +112,20 @@ def get(args):
     filename = data['filename']
 
     resp = get_filename(url, creds, filename)
-    content = resp.get('Content')
-    if resp['Content'] == flag_data:
+
+    if "headers" not in resp:
+        verdict(MUMBLE, "Bad get response", "No 'headers' key in answer")
+
+    if "content" not in resp:
+        verdict(MUMBLE, "Bad get response", "No 'content' key in answer")
+
+    headers = resp["headers"]
+    for header in ['Content-type', "Host"]:
+        if header not in headers:
+            verdict(MUMBLE, "Bad get response", f"No '{header}' header in answer")
+
+    content = resp.get('content')
+    if content == flag_data:
         verdict(OK)
     verdict(CORRUPT, "Wrong flag", f"{flag_data} != {content}")
 

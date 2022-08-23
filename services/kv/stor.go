@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -16,6 +15,17 @@ import (
 	"github.com/go-chi/render"
 	"github.com/go-redis/redis/v8"
 )
+
+var HEADERS = []string{"Content-type", "Host"}
+
+type GetResp struct {
+	Headers map[string]string `json:"headers"`
+	Content string            `json:"content"`
+}
+
+func (rd *GetResp) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
 
 func Key(db *redis.Client, r *http.Request) (string, error) {
 	filename := chi.URLParam(r, "filename")
@@ -89,12 +99,13 @@ func SetHandler(db *redis.Client) http.HandlerFunc {
 		}
 		content = content[:n]
 
-		contentType := r.Header.Get("Content-type")
-
-		err = db.HSet(ctx, keyStr, "Content-type", contentType).Err()
-		if err != nil {
-			render.Render(w, r, ErrServerError(errors.New("error saving value")))
-			return
+		for _, header := range HEADERS {
+			value := r.Header.Get(header)
+			err = db.HSet(ctx, keyStr, header, value).Err()
+			if err != nil {
+				render.Render(w, r, ErrServerError(errors.New("error saving value")))
+				return
+			}
 		}
 
 		err = db.HSet(ctx, keyStr, "Content", string(content)).Err()
@@ -124,12 +135,19 @@ func GetHandler(db *redis.Client) http.HandlerFunc {
 			return
 		}
 
-		resp, err := json.Marshal(data)
-		if err != nil {
-			render.Render(w, r, ErrServerError(errors.New("error saving value")))
-			return
+		resp := &GetResp{}
+		resp.Headers = make(map[string]string)
+		for key, value := range data {
+			if key == "Content" {
+				resp.Content = value
+				continue
+			}
+			resp.Headers[key] = value
 		}
 
-		w.Write(resp)
+		if err := render.Render(w, r, resp); err != nil {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
 	}
 }
