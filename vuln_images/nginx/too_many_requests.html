@@ -1,16 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Too many requests</title>
-</head>
-<body>
-    <h1>Too many requests</h1>
-    <div>This CTF service <b>has a limitation</b> for request count from the team.</div>
-    <div>
-        Your team has made too many requests, and now service will return HTTP code 429 and this message for some time.
-        Take a break!
-    </div>
+	<title>429 Too many requests</title>
+    <style>
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
 
+html {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+}
+
+body {
+    font-family:Open Sans,Arial,serif;
+    color:#454545;
+    font-size:16px;
+    margin:2em auto;
+    max-width:800px;
+    padding:1em;
+    line-height:1.4;
+    text-align:justify
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.error-middle{
+	display: block;
+	vertical-align: middle;
+}
+
+html{
+        background-color: #f1c40f;
+}
+
+body{
+        color: #fefefe;
+}
+    </style>
+</head>
+
+<body>
+<div class="error-middle">
+        <h1>Error 429 – Too many requests</h1>
+        <p>
+            This CTF service <b>has a limitation</b> for request count from the team.
+        </p>
+        <p>
+            Your team has made too many requests, and now service will return HTTP code 429 and this message for some time.
+        Take a break!
+        </p>
+</div>
 </body>
 </html>

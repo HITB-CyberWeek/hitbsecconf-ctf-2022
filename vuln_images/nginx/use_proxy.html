@@ -1,14 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Use a proxy</title>
+	<title>403 Use a proxy</title>
+    <style>
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+html {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+}
+
+body {
+    font-family:Open Sans,Arial,serif;
+    color:#454545;
+    font-size:16px;
+    margin:2em auto;
+    max-width:800px;
+    padding:1em;
+    line-height:1.4;
+    text-align:justify
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.error-middle{
+	display: block;
+	vertical-align: middle;
+}
+
+html{
+    background-color: #e74c3c;
+}
+
+body{
+    color: #fefefe;
+}
+    </style>
 </head>
+
 <body>
-    <h1>Use a proxy</h1>
-    <div>Direct connections to other teams' services are prohibited.</div>
-    <div>
-        Please, use a proxy located on <code>https://&lt;service-name&gt;.team&lt;team-id&gt;.ctf.hitb.org</code>
-    </div>
+<div class="error-middle">
+        <h1>Error 403 – Use a proxy</h1>
+        <p>
+            Direct connections to other teams' services are prohibited.
+        </p>
+        <p>
+            Please, use a proxy located on <code>https://&lt;service-name&gt;.team&lt;team-id&gt;.ctf.hitb.org</code>
+        </p>
+</div>
 </body>
 </html>
