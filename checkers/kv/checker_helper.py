@@ -23,7 +23,9 @@ def checker_action(fn):
         except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
             verdict(DOWN, "Connection error", "Connection error during login: %s" % e)
         except requests.exceptions.HTTPError as e:
-            verdict(DOWN, "HTTP error", "HTTPError: %s" % e)
+            if e.response.status_code // 100 == 4:  # 4xx
+                verdict(CORRUPT, "HTTP error", "HTTPError: %s" % e)
+            verdict(DOWN, "HTTP error", "HTTPError: %s" % e)  # 5xx
         except requests.exceptions.Timeout as e:
             verdict(DOWN, "Timeout", "Timeout during login: %s" % e)
         except requests.exceptions.JSONDecodeError as e:
