@@ -24,6 +24,8 @@ import static io.javalin.apibuilder.ApiBuilder.*;
 public class Program {
 
     public static void main(String[] args) throws IOException {
+        //TODO log errors to STDOUT everywhere where needed
+
         Javalin app = Javalin.create(config -> {
             config.registerPlugin(getConfiguredOpenApiPlugin());
             config.defaultContentType = "application/json";
@@ -61,8 +63,8 @@ public class Program {
                     get(UserController::whoami, Role.USER);
                 });
             });
-        }).start("0.0.0.0",8080);
-        System.out.println("Check out Swagger UI docs at http://localhost:8080/swagger-ui");
+        }).start("0.0.0.0",80);
+        System.out.println("Check out Swagger UI docs at http://localhost/swagger-ui");
    }
 
     private static OpenApiPlugin getConfiguredOpenApiPlugin() {

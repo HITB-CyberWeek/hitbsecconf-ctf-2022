@@ -3,8 +3,10 @@ package ctf.linkextractor.controllers;
 import ctf.linkextractor.entities.User;
 import ctf.linkextractor.models.UserRegisterModel;
 import ctf.linkextractor.services.UserService;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpCode;
+import io.javalin.http.UnauthorizedResponse;
 import io.javalin.plugin.openapi.annotations.*;
 
 public class UserController {
@@ -25,14 +27,13 @@ public class UserController {
             userCreationModel = ctx.bodyAsClass(UserRegisterModel.class);
         }
         catch (Exception e){
-            ctx.status(HttpCode.BAD_REQUEST).result("Can't parse request model");
-            return;
+            throw new BadRequestResponse("Can't parse request model");
         }
 
         User user = UserService.singletone.RegisterOrLoginUser(userCreationModel);
 
         if(user == null)
-            throw new Exception("invalid credentials");
+            throw new UnauthorizedResponse("invalid credentials");
 
         //TODO move to common place with usage in accessManager
         ctx.cookie("user", UserService.singletone.createUserCookie(user));
