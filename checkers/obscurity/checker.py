@@ -89,7 +89,7 @@ def gen_color():
 
 
 def gen_text():
-    return random.choice([gen_password(), gen_login(), gen_color(), "hello", "cccc", "#121212121"])
+    return random.choice([gen_password(), gen_login().replace("'", ""), gen_color(), "hello", "cccc", "#121212121"])
 
 
 def gen_action():
