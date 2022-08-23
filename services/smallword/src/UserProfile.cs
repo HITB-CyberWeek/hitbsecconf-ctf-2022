@@ -29,20 +29,7 @@ public class User
 
 public static class UserProfile
 {
-    static UserProfile()
-    {
-        Directory.CreateDirectory(DataDirectoryPath);
-        CleanupTimer = new Timer(_ =>
-        {
-            var readyToDelete = DateTime.UtcNow.AddMinutes(-60);
-            Directory.EnumerateDirectories(DataDirectoryPath, "????????-????-????-????-????????????", new EnumerationOptions {RecurseSubdirectories = true, MaxRecursionDepth = 2})
-                .Where(dir => Directory.EnumerateFiles(dir, "*.*", SearchOption.AllDirectories).All(file => File.GetLastWriteTimeUtc(file) < readyToDelete))
-                .ForEach(dir => { try {
-                    Thread.Yield();
-                    Directory.Delete(dir, true);
-                } catch { /* ignored */ } });
-        }, null, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5));
-    }
+    static UserProfile() => Directory.CreateDirectory(DataDirectoryPath);
 
     public static async Task<User?> Find(Guid userId, CancellationToken cancellationToken)
     {
@@ -109,8 +96,6 @@ public static class UserProfile
         return path;
     }
 
-    private static readonly Timer CleanupTimer;
-
     private const string DataDirectoryPath = "data/";
     private const string DocsDirectoryPath = "docs/";
 
@@ -161,13 +146,4 @@ public static class PasswordHelper
 
     private static byte[] HashPassword(string password, byte[] salt, byte[] pepper)
         => KeyDerivation.Pbkdf2(password, salt, KeyDerivationPrf.HMACSHA256, iterationCount: 7, 256 / 8).Select((b, i) => (byte)(b ^ pepper[i % pepper.Length])).ToArray();
-}
-
-public static class Helper
-{
-    public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
-    {
-        foreach(T element in source) 
-            action(element);
-    }
 }
