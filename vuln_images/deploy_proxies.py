@@ -51,15 +51,13 @@ def get_team_network(team_id: int) -> ipaddress.IPv4Network:
     return ipaddress.IPv4Network(f"{team_network_ip}/{settings.TEAM_NETWORK_MASK}")
 
 
-def get_upstream_address(proxy: ProxyConfigV1, team_id: int):
+def get_upstream_ip_address(proxy: ProxyConfigV1, team_id: int) -> ipaddress.IPv4Address:
     team_network = get_team_network(team_id)
-    upstream_ip = team_network[proxy.upstream.host_index]
-    # TODO (andgein): retunr only upstream_ip?
-    return f"{upstream_ip}:{proxy.upstream.port}"
+    return team_network[proxy.upstream.host_index]
 
 
 async def deploy_http_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
-    upstream_address = get_upstream_address(proxy, team_id)
+    upstream_ip = get_upstream_ip_address(proxy, team_id)
 
     locations = []
     has_global_location = False
@@ -91,7 +89,7 @@ async def deploy_http_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_i
             f"/etc/ssl/{proxy.listener.client_certificate}/fullchain.pem"
             if proxy.listener.client_certificate else None
         ),
-        "upstream_address": upstream_address,
+        "upstream_address": f"{upstream_ip}:{proxy.upstream.port}",
         "upstream_protocol": proxy.upstream.protocol,
         "upstream_client_certificate": (
             f"/etc/ssl/{proxy.upstream.client_certificate}/fullchain.pem"
@@ -118,12 +116,12 @@ async def deploy_http_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_i
 
 async def deploy_tcp_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
     # 1. Deploy nginx part
-    upstream_address = get_upstream_address(proxy, team_id)
+    upstream_ip = get_upstream_ip_address(proxy, team_id)
 
     jinja2_variables = {
         "service_name": service_name,
         "proxy_name": proxy.name,
-        "upstream_address": upstream_address,
+        "upstream_address": f"{upstream_ip}:{proxy.upstream.port}",
         "port": proxy.listener.port,
         "simultaneous_connections": proxy.listener.tcp_simultaneous_connections,
     }
@@ -175,13 +173,9 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
             raise ValueError(f"Unknown proxy type for deploying: {proxy.listener.protocol}")
 
         # 2. Remove old iptables rules
-        upstream_address, upstream_port = get_upstream_address(proxy, team_id).split(":")
+        upstream_ip = get_upstream_ip_address(proxy, team_id)
 
-        result = await ssh.run(f"iptables-save -t nat | grep -- '--dport {upstream_port}' | grep -- '-d {upstream_address}/32'")
-        rules = result.stdout.splitlines()
-        for rule in rules:
-            typer.echo(f"[{host}]    Removing old iptables rules: {rule}")
-            await ssh.run(f"iptables -t nat {rule.replace('-A', '-D')}")
+        await remove_iptables_rules_blocking_direct_connections(ssh, host, proxy, upstream_ip)
 
         # 3. Deploy blocking direct access rule
         if proxy.listener.protocol == "http":
@@ -191,19 +185,36 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
         else:
             raise ValueError()
 
-        typer.echo(f"[{host}] Rejecting all incoming requests to {upstream_address}:{upstream_port} "
+        typer.echo(f"[{host}] Rejecting all incoming requests to {upstream_ip}:{proxy.upstream.port} "
                    f"by redirecting them to :{redirect_port}")
 
         allow_same_team_rule = IPTABLES_ALLOW_SAME_TEAM_RULE.format(
-            host=host, redirect_port=redirect_port, upstream=upstream_address, upstream_port=upstream_port,
+            host=host, redirect_port=redirect_port, upstream=upstream_ip, upstream_port=proxy.upstream.port,
             source=get_team_network(team_id),
         )
         block_rule = IPTABLES_BLOCK_DIRECT_RULE.format(
-            host=host, redirect_port=redirect_port, upstream=upstream_address, upstream_port=upstream_port,
+            host=host, redirect_port=redirect_port, upstream=upstream_ip, upstream_port=proxy.upstream.port,
         )
         for rule in [allow_same_team_rule, block_rule]:
             typer.echo(f"[{host}]    {rule}")
             await ssh.run(rule, check=True)
+
+
+async def disable_proxy(host: str, proxy: ProxyConfigV1, upstream_ip: ipaddress.IPv4Address):
+    async with create_ssh_connection(host) as ssh:
+        await remove_iptables_rules_blocking_direct_connections(ssh, host, proxy, upstream_ip)
+
+
+async def remove_iptables_rules_blocking_direct_connections(
+        ssh: asyncssh.SSHClientConnection, host: str, proxy: ProxyConfigV1, upstream_ip: ipaddress.IPv4Address,
+):
+    result = await ssh.run(
+        f"iptables-save -t nat | grep -- '--dport {proxy.upstream.port}' | grep -- '-d {upstream_ip}/32'"
+    )
+    rules = result.stdout.splitlines()
+    for rule in rules:
+        typer.echo(f"[{host}]    Removing old iptables rules: {rule}")
+        await ssh.run(f"iptables -t nat {rule.replace('-A', '-D')}")
 
 
 async def prepare_host_for_proxies(host: str, team_id: int):
@@ -318,6 +329,14 @@ async def deploy_proxies_for_team(
 
     # 3. Deploy new configs for all proxies in specified in the config
     for proxy in config.proxies:
+        if proxy.disable:
+            typer.echo(f"[{host}] Disabling proxy {config.service}:{proxy.name}")
+            upstream_ip = get_upstream_ip_address(proxy, team_id)
+            await disable_proxy(host, proxy, upstream_ip)
+            for dns_record_prefix in proxy.dns_records:
+                await create_dns_record(dns_record_prefix + f".team{team_id}", str(upstream_ip))
+            continue
+
         await deploy_proxy(host, team_id, config.service, proxy)
         for dns_record_prefix in proxy.dns_records:
             await create_dns_record(dns_record_prefix + f".team{team_id}", host)

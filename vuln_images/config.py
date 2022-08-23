@@ -1,7 +1,7 @@
 import pathlib
 from typing import List, Union, Optional, Literal, Iterable
 
-from pydantic import validator, conint, NonNegativeInt, constr, PositiveInt, root_validator, ValidationError
+from pydantic import validator, conint, NonNegativeInt, constr, PositiveInt, root_validator, ValidationError, Field
 from pydantic_yaml import YamlModel, YamlStrEnum
 
 import settings
@@ -121,6 +121,7 @@ class ListenerConfigV1(YamlModel):
 
 
 class ProxyConfigV1(YamlModel):
+    disable: bool = Field(alias="__disable", default=False)  # Hidden option for disabling (and removing) proxies
     name: constr(min_length=1)
     listener: ListenerConfigV1
     upstream: UpstreamConfigV1
