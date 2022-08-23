@@ -50,7 +50,7 @@ def get_base_url(host):
 
 
 def info():
-    verdict(OK, "vulns: 1\npublic_flag_description: Flag ID is a bucket name, flag is a data in file with '.txt' suffix in bucket")
+    verdict(OK, "vulns: 1\npublic_flag_description: Flag ID is a bucket name, flag is a content of the file with '.txt' suffix in the bucket")
 
 
 def check(host):
