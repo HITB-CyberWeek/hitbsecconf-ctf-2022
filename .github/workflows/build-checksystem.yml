@@ -5,6 +5,8 @@ on:
     paths:
       - "cs/**"
       - "checkers/**"
+    branches:
+      - main
 
 env:
   REGISTRY: registry.digitalocean.com
