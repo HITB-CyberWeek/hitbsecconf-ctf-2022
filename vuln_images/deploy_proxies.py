@@ -175,9 +175,6 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
         # 2. Remove old iptables rules
         upstream_ip = get_upstream_ip_address(proxy, team_id)
 
-        await remove_iptables_rules_blocking_direct_connections(ssh, host, proxy, upstream_ip)
-
-        # 3. Deploy blocking direct access rule
         if proxy.listener.protocol == "http":
             redirect_port = 10
         elif proxy.listener.protocol == "tcp":
@@ -187,7 +184,9 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
 
         typer.echo(f"[{host}] Rejecting all incoming requests to {upstream_ip}:{proxy.upstream.port} "
                    f"by redirecting them to :{redirect_port}")
+        await remove_iptables_rules_blocking_direct_connections(ssh, host, proxy, upstream_ip)
 
+        # 3. Deploy blocking direct access rule
         allow_same_team_rule = IPTABLES_ALLOW_SAME_TEAM_RULE.format(
             host=host, redirect_port=redirect_port, upstream=upstream_ip, upstream_port=proxy.upstream.port,
             source=get_team_network(team_id),
@@ -196,7 +195,7 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
             host=host, redirect_port=redirect_port, upstream=upstream_ip, upstream_port=proxy.upstream.port,
         )
         for rule in [allow_same_team_rule, block_rule]:
-            typer.echo(f"[{host}]    {rule}")
+            typer.echo(f"[{host}]    Adding new iptables rule: {rule}")
             await ssh.run(rule, check=True)
 
 

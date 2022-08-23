@@ -5,9 +5,9 @@
 {% endfor %}
 
 upstream upstream_{{ service_name }}_{{ proxy_name }} {
-    server {{ upstream_address }};
-    server {{ upstream_address }};
-    server {{ upstream_address }};
+    server {{ upstream_address }} max_fails=0;
+    server {{ upstream_address }} max_fails=0;
+    server {{ upstream_address }} max_fails=0;
 
     # We recommend setting the parameter to twice the number of servers listed in the upstream{} block.
     # https://www.nginx.com/blog/avoiding-top-10-nginx-configuration-mistakes/#no-keepalives
