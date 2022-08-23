@@ -5,8 +5,15 @@ set -eu
 sed -i 's|root:\*:|root:$y$j9T$Qeof7nTZR1kT1cFwdlZqd0$B5.LdYzAcE8IwmEjeOUR9RwIwpalyyj/oxaiDqnryZ/:|' mnt/etc/shadow
 
 # Speed up system
-sed -i 's|"1"|"0"|' mnt/etc/apt/apt.conf.d/20auto-upgrades
+sed -i 's|"1"|"0"|'             mnt/etc/apt/apt.conf.d/20auto-upgrades
+sed -i 's|WAIT=10|WAIT=1|'      mnt/etc/default/pollinate
+sed -i 's|enabled=1|enabled=0|' mnt/etc/default/apport
+
 touch mnt/etc/cloud/cloud-init.disabled
+cp -v files/netplan.yaml mnt/etc/netplan/config.yaml
+
+rm -v mnt/etc/systemd/system/dbus-org.freedesktop.ModemManager1.service
+rm -v mnt/etc/systemd/system/multi-user.target.wants/ModemManager.service
 
 # Set hostname
 echo ibm > mnt/etc/hostname
