@@ -34,9 +34,11 @@ def call_do_api(token, method, endpoint, data=None):
 
 
 
-def get_all_vms(token, attempts=5, timeout=10):
+def get_all_vms(token, name=None, attempts=5, timeout=10):
     vms = {}
     url = "https://api.digitalocean.com/v2/droplets?per_page=200"
+    if name:
+        url += "&name=" + requests.utils.quote(name)
 
     cur_attempt = 1
 
@@ -64,7 +66,7 @@ def get_all_vms(token, attempts=5, timeout=10):
 def get_ids_by_vmname(token, vm_name):
     ids = set()
 
-    droplets = get_all_vms(token)
+    droplets = get_all_vms(token, name=vm_name)
     if droplets is None:
         return None
 
@@ -75,7 +77,7 @@ def get_ids_by_vmname(token, vm_name):
 
 
 def check_vm_exists(token, vm_name):
-    droplets = get_all_vms(token)
+    droplets = get_all_vms(token, name=vm_name)
     if droplets is None:
         return None
 
@@ -155,7 +157,7 @@ def get_ip_by_id(token, droplet_id, attempts=5, timeout=20):
 def get_ip_by_vmname(token, vm_name):
     ids = set()
 
-    droplets = get_all_vms(token)
+    droplets = get_all_vms(token, name=vm_name)
     if droplets is None:
         return None
 
@@ -190,7 +192,7 @@ def reboot_vm_by_id(token, droplet_id, attempts=5, timeout=20):
 def reboot_vm_by_vmname(token, vm_name):
     ids = set()
 
-    droplets = get_all_vms(token)
+    droplets = get_all_vms(token, name=vm_name)
     if droplets is None:
         return None
 
@@ -301,7 +303,7 @@ def add_tag(token, droplet_id, tag, attempts=5, timeout=20):
 def add_tag_by_vmname(token, vm_name, tag):
     ids = set()
 
-    droplets = get_all_vms(token)
+    droplets = get_all_vms(token, name=vm_name)
     if droplets is None:
         return None
 
@@ -339,7 +341,7 @@ def remove_tag(token, droplet_id, tag, attempts=5, timeout=20):
 def remove_tag_by_vmname(token, vm_name, tag):
     ids = set()
 
-    droplets = get_all_vms(token)
+    droplets = get_all_vms(token, name=vm_name)
     if droplets is None:
         return None
 
