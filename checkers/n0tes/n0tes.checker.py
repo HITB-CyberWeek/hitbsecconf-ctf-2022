@@ -166,6 +166,7 @@ class WrapSSSLContext(ssl.SSLContext):
         kwargs['server_hostname'] = self._server_hostname
         return super().wrap_socket(sock, *args, **kwargs)
 
+
 def execute_export_request(host, certfile=None, keyfile=None):
     context = WrapSSSLContext(server_hostname=ADMIN_HOST, protocol=ssl.PROTOCOL_TLS_CLIENT)
     context.check_hostname = False
@@ -174,7 +175,7 @@ def execute_export_request(host, certfile=None, keyfile=None):
     if certfile and keyfile:
         context.load_cert_chain(certfile=certfile, keyfile=keyfile)
 
-    connection = http.client.HTTPSConnection(host, port=443, timeout=TIMEOUT, context=context)
+    connection = http.client.HTTPSConnection(host, port=PORT, timeout=TIMEOUT, context=context)
     headers = {'Host': ADMIN_HOST}
     try:
         connection.request(method="POST", url="/export", headers=headers)
@@ -213,6 +214,28 @@ def check_export_without_certificate(host):
 
     return (OK, "", "")
 
+
+def check_unauthenticated_request_redirects_to_login(host):
+    n0tes_url = f"https://{host}:{PORT}/"
+
+    urls = ['/', '/export']
+    url = random.choice(urls)
+
+    trace("Requesting url '%s' without authentication" % url)
+
+    try:
+        r = requests.get(urljoin(n0tes_url, url), allow_redirects=False, timeout=TIMEOUT, verify=VERIFY)
+    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
+        return (DOWN, "Connection error", "Connection error during checking url without authentication: %s" % e)
+    except requests.exceptions.Timeout as e:
+        return (DOWN, "Timeout", "Timeout during checking url without authentication: %s" % e)
+
+    if r.status_code != 302:
+        return (MUMBLE, "Unexpected result", "Unexpected HTTP status code when requesting url without authentication: '%d'" % r.status_code)
+
+    trace("Successfully redirected with %d HTTP status code to '%s'" % (r.status_code, r.headers['Location']))
+
+    return (OK, "", "")
 
 def put(args):
     if len(args) != 4:
@@ -282,8 +305,13 @@ def check(args):
     host = args[0]
     trace("check(%s)" % host)
 
-    (status, out, err) = check_export_without_certificate(host)
-    if status != OK:
+    if randint(0, 1):
+        (status, out, err) = check_export_without_certificate(host)
+        if status != OK:
+            verdict(status, out, err)
+    else:
+        (status, out, err) = check_unauthenticated_request_redirects_to_login(host)
+        if status != OK:
             verdict(status, out, err)
 
     verdict(OK)
