@@ -85,6 +85,8 @@ server {
 
     proxy_set_header User-Agent CTF;
     proxy_set_header Host $host;
+    proxy_set_header Accept "*/*";
+    proxy_set_header Accept-Language "";
     proxy_set_header Accept-Encoding "gzip, deflate, br";
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header Connection "";
