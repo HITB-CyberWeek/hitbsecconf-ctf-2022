@@ -139,6 +139,9 @@ def gen_relative_url_upper():
 def gen_relative_url():
     return "/".join(gen_path_segment() for i in range(random.randrange(0,5)))
 
+def format_flag(flag):
+    return "https://" + flag + ".linkextractor.ctf.hitb.org"
+
 
 #TODO random small timeouts between requests
 def check(host):
@@ -165,7 +168,7 @@ def put(host, flag_id, flag, vuln):
     password = gen_password()
     call_register_or_login_user(session, linkextractor_base_url, login, password)
 
-    page_url = "https://" + flag
+    page_url = format_flag(flag)
     (page_content, links) = gen_page(page_url)
     page_model = call_parse_page(session, linkextractor_base_url, page_url, page_content)
 
@@ -205,12 +208,13 @@ def get(host, flag_id, flag, vuln):
         verdict(MUMBLE, "Failed to get page", "Failed to get page %s: %s %s" % (page_id, login, password))
 
     page_url = page_model["pageUrl"]
-    expected_page_url = "https://" + flag
+    expected_page_url = format_flag(flag)
 
     if page_url != expected_page_url:
         verdict(CORRUPT, "Flag not found", "Flag not found expected %s, got %s" %(expected_page_url, page_url))
 
     verdict(OK)
+
 
 def main(args):
     CMD_MAPPING = {
