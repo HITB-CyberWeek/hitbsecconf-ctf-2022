@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -62,25 +61,13 @@ func Key(db *redis.Client, r *http.Request) (string, error) {
 		return "", errors.New("wrong clientId")
 	}
 
-	fmt.Printf("CLIENT_ID:%d\n", c)
-
-	// TODO: Fix me
 	key := make([]byte, 2)
 	binary.BigEndian.PutUint16(key, uint16(c%math.MaxUint16))
 
 	key = append(key, []byte(filename)...)
 	keyHash := Hash(key)
 
-	fmt.Println("DEBUG:")
-	fmt.Println(hex.EncodeToString([]byte(filename)))
-
-	fmt.Println(len(key))
-	fmt.Println(hex.EncodeToString(key))
-	fmt.Println(hex.EncodeToString(keyHash))
-	fmt.Println("======")
-
 	keyStr := fmt.Sprintf("%d", binary.LittleEndian.Uint64(keyHash[len(keyHash)-8:]))
-	fmt.Printf("keyStr:%s\n", keyStr)
 	return keyStr, nil
 }
 
