@@ -16,7 +16,7 @@ CHECKER_DIRECT_CONNECT = os.environ.get("CHECKER_DIRECT_CONNECT")
 
 
 def info():
-    verdict(OK, "vulns: 1\npublic_flag_description: ")
+    verdict(OK, "vulns: 1\npublic_flag_description: flag ID is a client secret and a filename, flag is a file content")
 
 
 def get_random_string(min_len, max_len):
