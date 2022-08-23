@@ -12,13 +12,12 @@ from urllib.parse import urljoin, quote_plus, urlparse
 
 import requests
 
+requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
+
 OK, CORRUPT, MUMBLE, DOWN, CHECKER_ERROR = 101, 102, 103, 104, 110
 
 PORT = 80
 TIMEOUT = 10 #TODO use it ! :)
-
-#TODO
-#CHECKER_DIRECT_CONNECT = os.environ.get("CHECKER_DIRECT_CONNECT")
 
 def verdict(exit_code, public="", private=""):
     if public:
