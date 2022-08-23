@@ -18,21 +18,17 @@ from checker_helper import *
 PORT = 443
 VERIFY = False
 TIMEOUT = 30
+ADMIN_HOST = 'admin.n0tes.ctf.hitb.org'
+ADMIN_CERT = 'n0tes-admin.crt'
+ADMIN_KEY = 'n0tes-admin.key'
 
 def info():
     verdict(OK, "vulns: 1\npublic_flag_description: Flag ID is a title of the note containing the flag")
 
-def check(args):
-    if len(args) != 1:
-        verdict(CHECKER_ERROR, "Checker error", "Wrong args count for check()")
-    host = args[0]
-    trace("check(%s)" % host)
-
-    verdict(OK)
-
 def get_random_string(min_len, max_len):
     letters = string.ascii_lowercase + string.digits
     return ''.join(random.choice(letters) for i in range(random.randint(min_len, max_len)))
+
 
 def login(host, user, password):
     n0tes_url = f"https://{host}:{PORT}/"
@@ -71,6 +67,7 @@ def login(host, user, password):
 
     return (OK, "", "", session, r.text)
 
+
 def parse_note_element(html, note_title):
     try:
         parser = etree.HTMLParser()
@@ -85,6 +82,7 @@ def parse_note_element(html, note_title):
         return (MUMBLE, "Unexpected result", "Can't find note '%s' in '%s'" % (note_title, html), None)
 
     return (OK, "", "", row_element[0])
+
 
 def create_note(host, session, title, content):
     n0tes_url = f"https://{host}:{PORT}/"
@@ -108,8 +106,10 @@ def create_note(host, session, title, content):
 
     return (OK, "", "")
 
+
 def dom_element_to_str(element):
     return etree.tostring(element, pretty_print=True)
+
 
 def get_note_content(host, session, note_row_element):
     n0tes_url = f"https://{host}:{PORT}/"
@@ -144,42 +144,54 @@ def get_note_content(host, session, note_row_element):
 
     return (OK, "", "", note_content[0].strip())
 
-def export_notes(host):
-    class WrapSSSLContext(ssl.SSLContext):
-            '''
-            HTTPSConnection provides no way to specify the
-            server_hostname in the underlying socket. We
-            accomplish this by wrapping the context to
-            overrride the wrap_socket behavior (called later
-            by HTTPSConnection) to specify the
-            server_hostname that we want.
-            '''
-            def __new__(cls, server_hostname, protocol, *args, **kwargs):
-                return super().__new__(cls, protocol, *args, *kwargs)
+class WrapSSSLContext(ssl.SSLContext):
+    '''
+    HTTPSConnection provides no way to specify the
+    server_hostname in the underlying socket. We
+    accomplish this by wrapping the context to
+    overrride the wrap_socket behavior (called later
+    by HTTPSConnection) to specify the
+    server_hostname that we want.
+    '''
+    def __new__(cls, server_hostname, protocol, *args, **kwargs):
+        return super().__new__(cls, protocol, *args, *kwargs)
 
 
-            def __init__(self, server_hostname, protocol, *args, **kwargs):
-                super().__init__(*args, **kwargs)
-                self._server_hostname = server_hostname
+    def __init__(self, server_hostname, protocol, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._server_hostname = server_hostname
 
 
-            def wrap_socket(self, sock, *args, **kwargs):
-                kwargs['server_hostname'] = self._server_hostname
-                return super().wrap_socket(sock, *args, **kwargs)
+    def wrap_socket(self, sock, *args, **kwargs):
+        kwargs['server_hostname'] = self._server_hostname
+        return super().wrap_socket(sock, *args, **kwargs)
 
-
-    context = WrapSSSLContext(server_hostname='admin.n0tes.ctf.hitb.org', protocol=ssl.PROTOCOL_TLS_CLIENT)
+def execute_export_request(host, certfile=None, keyfile=None):
+    context = WrapSSSLContext(server_hostname=ADMIN_HOST, protocol=ssl.PROTOCOL_TLS_CLIENT)
     context.check_hostname = False
     context.verify_mode = ssl.CERT_NONE
 
-    #context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile='n0tes.crt')
-
-    context.load_cert_chain(certfile='n0tes-admin.crt', keyfile='n0tes-admin.key')
+    if certfile and keyfile:
+        context.load_cert_chain(certfile=certfile, keyfile=keyfile)
 
     connection = http.client.HTTPSConnection(host, port=443, timeout=TIMEOUT, context=context)
-    headers = {'Host': 'admin.n0tes.ctf.hitb.org'}
-    connection.request(method="POST", url="/export", headers=headers)
+    headers = {'Host': ADMIN_HOST}
+    try:
+        connection.request(method="POST", url="/export", headers=headers)
+    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
+        return (DOWN, "Connection error", "Connection error during exporting notes: %s" % e, None)
+    except requests.exceptions.Timeout as e:
+        return (DOWN, "Timeout", "Timeout during exporting notes: %s" % e, None)
+
     response = connection.getresponse()
+
+    return (OK, "", "", response)
+
+
+def export_notes(host):
+    (status, out, err, response) = execute_export_request(host, certfile=ADMIN_CERT, keyfile=ADMIN_KEY)
+    if status != OK:
+        return (status, out, err, None)
 
     if response.status != 200:
         return (MUMBLE, "Can't export notes", "Unexpected status code during export: '%d'" % response.status, None)
@@ -187,6 +199,20 @@ def export_notes(host):
     trace("Successfully exported notes")
 
     return (OK, "", "", json.loads(response.read()))
+
+
+def check_export_without_certificate(host):
+    (status, out, err, response) = execute_export_request(host)
+    if status != OK:
+        return (status, out, err)
+
+    if response.status != 403:
+        return (MUMBLE, "Unexpected export result", "Unexpected export response status without certificate: '%d'" % response.status)
+
+    trace("/export returned expected 403 error without client certificate")
+
+    return (OK, "", "")
+
 
 def put(args):
     if len(args) != 4:
@@ -208,6 +234,7 @@ def put(args):
 
     flag_id = json.dumps({"public_flag_id": note_title, "user": user, "password": password})
     verdict(OK, flag_id)
+
 
 def get(args):
     if len(args) != 4:
@@ -247,6 +274,20 @@ def get(args):
         verdict(CORRUPT, "Can't find flag in note", "Can't find flag in note, actual flag: '%s'" % note_content)
 
     verdict(OK)
+
+
+def check(args):
+    if len(args) != 1:
+        verdict(CHECKER_ERROR, "Checker error", "Wrong args count for check()")
+    host = args[0]
+    trace("check(%s)" % host)
+
+    (status, out, err) = check_export_without_certificate(host)
+    if status != OK:
+            verdict(status, out, err)
+
+    verdict(OK)
+
 
 def main(args):
     if len(args) == 0:
