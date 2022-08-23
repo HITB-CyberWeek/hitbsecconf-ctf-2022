@@ -391,7 +391,7 @@ int ParsesAll(char * buffer, unsigned int rest_size,Element ** el){
         auto el2 = new Element(TYPE_STR);
         *el = el2;
         el2->buffer = new char[len+1];
-        el2->buffer_len = len;
+        el2->buffer_len = std::min(len,rest_size-2);
 //         printf("LLEN %d\n",len);
         #ifdef DEBUG
 //         printf("Element at %p\n",el2);
@@ -791,6 +791,9 @@ void StartProcessing(){
             myslots[cur_slot] = cur_buffer;
             myslots_sizes[cur_slot] = nbytes;
             printf("Loaded id %s to slot %d\n",buffer,cur_slot);fflush(stdout);
+#ifdef DEBUG
+            printf("Slot %d addr %p\n",cur_slot,myslots[cur_slot]);
+#endif
         }
         else if (!strcmp(buffer,"print\n")){
             printf("Enter slot number(0-%d)\n",SLOT_COUNT-1);fflush(stdout);
@@ -833,7 +836,7 @@ void StartProcessing(){
                     printf("Invalid password\n");fflush(stdout);
                 }
             }
-            delete pel ;
+         //   delete pel ;
         }
         else if (!strcmp(buffer,"unload\n")){
             printf("Enter slot number(0-%d)\n",SLOT_COUNT-1);fflush(stdout);
