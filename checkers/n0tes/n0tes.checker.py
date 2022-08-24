@@ -45,6 +45,9 @@ def login(host, user, password):
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during login: %s" % e, None, None)
 
+    if r.status_code == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway", None, None)
+
     if r.status_code != 200:
         return (MUMBLE, "Can't login", "Unexpected login result: '%d'" % r.status_code, None, None)
 
@@ -95,12 +98,15 @@ def create_note(host, session, title, content):
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during creating note: %s" % e)
 
+    if r.status_code == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway")
+
     if r.status_code != 200:
         return (MUMBLE, "Can't create note", "Unexpected status code when creating a note: '%d'" % r.status_code)
 
     (status, out, err, row_element) = parse_note_element(r.text, title)
     if status != OK:
-        verdict(status, out, err)
+        return (status, out, err)
 
     trace("Note with title '%s' successfully created" % title)
 
@@ -124,6 +130,9 @@ def get_note_content(host, session, note_row_element):
         return (DOWN, "Connection error", "Connection error during reading a note: %s" % e, None)
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during reading a note: %s" % e, None)
+
+    if r.status_code == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway", None)
 
     if r.status_code != 200:
         return (MUMBLE, "Can't create note", "Unexpected status code when reading a note: '%d'" % r.status_code, None)
@@ -194,6 +203,9 @@ def export_notes(host):
     if status != OK:
         return (status, out, err, None)
 
+    if response.status == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway", None)
+
     if response.status != 200:
         return (MUMBLE, "Can't export notes", "Unexpected status code during export: '%d'" % response.status, None)
 
@@ -229,6 +241,9 @@ def check_unauthenticated_request_redirects_to_login(host):
         return (DOWN, "Connection error", "Connection error during checking url without authentication: %s" % e)
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during checking url without authentication: %s" % e)
+
+    if r.status_code == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway")
 
     if r.status_code != 302:
         return (MUMBLE, "Unexpected result", "Unexpected HTTP status code when requesting url without authentication: '%d'" % r.status_code)
