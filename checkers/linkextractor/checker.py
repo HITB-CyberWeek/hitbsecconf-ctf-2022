@@ -17,7 +17,7 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 OK, CORRUPT, MUMBLE, DOWN, CHECKER_ERROR = 101, 102, 103, 104, 110
 
 PORT = 80
-TIMEOUT = 10 #TODO use it ! :)
+TIMEOUT = 5
 
 def verdict(exit_code, public="", private=""):
     if public:
@@ -58,12 +58,12 @@ def gen_path_segment():
 
 def call_register_or_login_user(session, base_url, user, password):
     register_data = {"login": user, "password": password}
-    r = session.post(urljoin(base_url, "/users"), data=json.dumps(register_data), verify=False)
+    r = session.post(urljoin(base_url, "/users"), data=json.dumps(register_data), verify=False, timeout=TIMEOUT)
     if r.status_code != 200:
         verdict(MUMBLE, "Can't register or login", "Unexpected register or login result on cred '%s': %d -> %s" %(register_data, r.status_code, r.text))
 
 def call_get_pages(session, base_url):
-    r = session.get(urljoin(base_url, "/pages"))
+    r = session.get(urljoin(base_url, "/pages"), verify=False, timeout=TIMEOUT)
     if r.status_code != 200:
         verdict(MUMBLE, "Can't GET pages", "Unexpected GET /pages result: %d -> %s" %(r.status_code, r.text))
 
@@ -73,7 +73,7 @@ def call_get_pages(session, base_url):
         verdict(MUMBLE, "Bad json in GET pages result", "Bad json in GET /pages result: %s (exception %s)" % (r.text, traceback.format_exc()))
 
 def call_get_page(session, base_url, page_id):
-    r = session.get(urljoin(base_url, f"/pages/{page_id}"))
+    r = session.get(urljoin(base_url, f"/pages/{page_id}"), verify=False, timeout=TIMEOUT)
     if r.status_code != 200:
         verdict(MUMBLE, f"Can't GET page {page_id}", "Unexpected GET /pages/%d result: %d -> %s" %(page_id, r.status_code, r.text))
 
@@ -83,7 +83,7 @@ def call_get_page(session, base_url, page_id):
         verdict(MUMBLE, f"Bad json in GET page {page_id} result", "Bad json in GET /pages/%d result: %s (exception %s)" % (page_id, r.text, traceback.format_exc()))
 
 def call_parse_page(session, base_url, page_url, text):
-    r = session.post(urljoin(base_url, "/pages/?url=%s" % quote_plus(page_url)), data=text)
+    r = session.post(urljoin(base_url, "/pages/?url=%s" % quote_plus(page_url)), data=text, verify=False, timeout=TIMEOUT)
     if r.status_code != 200:
         verdict(MUMBLE, "Can't POST page to parse", "Unexpected POST page to parse with url '%s' and text '%s' result: %d -> %s" %(page_url, text, r.status_code, r.text))
     try:
@@ -154,7 +154,7 @@ def check(host):
     if random.random() < 0.65:
         call_register_or_login_user(session, linkextractor_base_url, login, password)
 
-    r = session.get(urljoin(linkextractor_base_url, "/users/whoami"))
+    r = session.get(urljoin(linkextractor_base_url, "/users/whoami"), verify=False, timeout=TIMEOUT)
 
     if r.status_code != 200 or r.text != login:
         verdict(MUMBLE, "Can't check user", "Unexpected whoami result: '%d' -> %s" %(r.status_code, r.text))
