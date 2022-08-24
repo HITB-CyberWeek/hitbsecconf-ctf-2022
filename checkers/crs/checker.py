@@ -76,7 +76,7 @@ class Client:
             if select_timeout < 0:
                 select_timeout = 0.1  # Last chance!
             ready = select.select([self.s], [], [], select_timeout)
-            if not ready[0]:
+            if not ready[0]:  # Timeout reached, but no new data received.
                 msg = "No expected response from remote side in {} sec.".format(timeout)
                 logging.error(msg + " Actual response: {!r}".format(response))
                 raise ProtocolViolationError(msg)
@@ -85,6 +85,9 @@ class Client:
             if all(e in response for e in end):
                 logging.info("Received <<< %r.", response)
                 return response
+
+            if "ERROR. Wrong username or password" in response:
+                raise WrongUsernameOrPassword()
 
     def _send(self, line):
         logging.info("Sending  >>> %r.", line)
@@ -233,6 +236,10 @@ class ProtocolViolationError(Exception):
     pass
 
 
+class WrongUsernameOrPassword(Exception):
+    pass
+
+
 def main(args):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
@@ -257,7 +264,9 @@ def main(args):
 
     try:
         handler(*args)
-    except ProtocolViolationError as E:
+    except WrongUsernameOrPassword:
+        verdict(CORRUPT, "Login failed: wrong username or password", "")
+    except ProtocolViolationError:
         verdict(MUMBLE, "Protocol violation", "Protocol violation: %s" % traceback.format_exc())
     except ConnectionRefusedError as E:
         verdict(DOWN, "Connect refused", "Connect refused: %s" % E)
