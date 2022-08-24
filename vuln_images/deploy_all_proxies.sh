@@ -4,7 +4,7 @@ prepared=0
 for deploy_yaml in ../services/*/deploy.yaml
 do
   # We need to run preparation steps only once
-  if [[ $prepared == 0 ]]
+  if [[ $prepared == 0 && $1 != "--skip-preparation" ]]
   then
     ./deploy_proxies.py --prepare-only "$deploy_yaml"
     prepared=1

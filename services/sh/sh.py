@@ -9,7 +9,7 @@ import redis
 import shutil
 import tempfile
 
-app = FastAPI()
+app = FastAPI(docs_url="/")
 
 s3_client = Minio("s3:9000", os.getenv('MINIO_SH_USER'),
                   os.getenv('MINIO_SH_PASSWORD'), secure=False)

@@ -30,6 +30,11 @@ IPTABLES_ALLOW_SAME_TEAM_RULE = "iptables -t nat -A PREROUTING -p tcp -j ACCEPT 
 IPTABLES_BLOCK_DIRECT_RULE = "iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination {host}:{redirect_port} --destination {upstream} -m tcp --dport {upstream_port}"
 
 
+# Block connections to metrics exporters
+# -I because it should before DOCKER chain
+IPTABLES_BLOCK_EXPORTERS_RULE = "iptables -t nat -I PREROUTING ! -s 10.10.10.0/24 -d {host}/32 -p tcp --dport {port} -j DNAT --to-destination {host}:1"
+
+
 def create_ssh_connection(host):
     return asyncssh.connect(host,
                             port=settings.PROXY_SSH_PORT,
@@ -167,11 +172,7 @@ async def deploy_tcp_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_id
         os.unlink(filename)
 
     # 2. Remove old iptables rules
-    result = await ssh.run(f"iptables-save -t nat | grep -- '--dport {proxy.listener.port}' | grep -- '-d {host}/32'")
-    rules = result.stdout.splitlines()
-    for rule in rules:
-        typer.echo(f"[{host}]    Removing old iptables rules: {rule}")
-        await ssh.run(f"iptables -t nat {rule.replace('-A', '-D')}")
+    await remove_iptables_blocking_rules(ssh, host, host, proxy.listener.port)
 
     # 3. Deploy new iptables rules
     assert len(proxy.limits) <= 1, "TCP proxy can have at most one limit"
@@ -213,7 +214,7 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
 
         typer.echo(f"[{host}] Rejecting all incoming requests to {upstream_ip}:{proxy.upstream.port} "
                    f"by redirecting them to :{redirect_port}")
-        await remove_iptables_rules_blocking_direct_connections(ssh, host, proxy, upstream_ip)
+        await remove_iptables_blocking_rules(ssh, host, str(upstream_ip), proxy.upstream.port)
 
         # 3. Deploy blocking direct access rule
         allow_same_team_rule = IPTABLES_ALLOW_SAME_TEAM_RULE.format(
@@ -230,14 +231,14 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
 
 async def disable_proxy(host: str, proxy: ProxyConfigV1, upstream_ip: ipaddress.IPv4Address):
     async with create_ssh_connection(host) as ssh:
-        await remove_iptables_rules_blocking_direct_connections(ssh, host, proxy, upstream_ip)
+        await remove_iptables_blocking_rules(ssh, host, str(upstream_ip), proxy.upstream.port)
 
 
-async def remove_iptables_rules_blocking_direct_connections(
-        ssh: asyncssh.SSHClientConnection, host: str, proxy: ProxyConfigV1, upstream_ip: ipaddress.IPv4Address,
+async def remove_iptables_blocking_rules(
+    ssh: asyncssh.SSHClientConnection, host: str, destination_host: str, destination_port: int
 ):
     result = await ssh.run(
-        f"iptables-save -t nat | grep -- '--dport {proxy.upstream.port}' | grep -- '-d {upstream_ip}/32'"
+        f"iptables-save -t nat | grep -- '--dport {destination_port}' | grep -- '-d {destination_host}/32'"
     )
     rules = result.stdout.splitlines()
     for rule in rules:
@@ -313,12 +314,18 @@ async def prepare_host_for_proxies(host: str, team_id: int):
         await ssh.run("nginx -t", check=True)
         await ssh.run("systemctl restart nginx", check=True)
 
+        # 8.
         typer.echo(f"[{host}]    Uploading monitoring config to /root/monitoring/docker-compose.yaml "
                    f"and /root/monitoring/config/prometheus-nginxlog-exporter.yaml")
         await asyncssh.scp("monitoring/docker-compose.yaml", (ssh, "/root/monitoring/docker-compose.yaml"))
         await asyncssh.scp("monitoring/prometheus-nginxlog-exporter.yaml",
                            (ssh, "/root/monitoring/config/prometheus-nginxlog-exporter.yaml"))
         await ssh.run("docker-compose -f /root/monitoring/docker-compose.yaml up -d", check=True)
+
+        typer.echo(f"[{host}]    Blocking incoming connections to metrics exporters: :59999 and :59998")
+        for port in [59998, 59999]:
+            await remove_iptables_blocking_rules(ssh, host, host, port)
+            await ssh.run(IPTABLES_BLOCK_EXPORTERS_RULE.format(port=port, host=host), check=True)
 
 
 async def post_deploy(host: str, team_id: int):
