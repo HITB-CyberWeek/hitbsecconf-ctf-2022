@@ -24,7 +24,7 @@ const INDEX_TEMPLATE = `
 <body>
 <h1>KV Service</h1>
 <p>Welcome to the KV service!</p>
-<p><code>/register</code> and then put and get (<code>/kv/{fileame}</code>) your data!
+<p><code>/register</code> and then put and get (<code>/kv/{filename}</code>) your data!
 <p>Currently stored keys: %d</p>
 </body>
 </html>
