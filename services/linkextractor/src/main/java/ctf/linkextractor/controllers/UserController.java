@@ -5,11 +5,15 @@ import ctf.linkextractor.models.UserRegisterModel;
 import ctf.linkextractor.services.UserService;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
-import io.javalin.http.HttpCode;
 import io.javalin.http.UnauthorizedResponse;
 import io.javalin.plugin.openapi.annotations.*;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class UserController {
+
+    static Pattern loginRegex = Pattern.compile("^[a-zA-Z0-9$@()'._\\-]{1,32}$ ");
 
     @OpenApi(
             path = "/users",
@@ -30,6 +34,10 @@ public class UserController {
         catch (Exception e){
             throw new BadRequestResponse("Can't parse request model");
         }
+
+        Matcher m = loginRegex.matcher(userCreationModel.getLogin());
+        if(!m.matches())
+            throw new BadRequestResponse("login is too long or has invalid characters");
 
         User user = UserService.singletone.RegisterOrLoginUser(userCreationModel);
 
