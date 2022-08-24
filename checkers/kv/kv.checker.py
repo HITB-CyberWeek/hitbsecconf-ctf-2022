@@ -55,7 +55,8 @@ def put_filename(url_prefix, creds, filename, content):
     url = url_prefix + "/kv/{}".format(filename)
     headers = {
         'X-Client-ID': creds['client_id'],
-        'X-Client-Secret': creds['client_secret']
+        'X-Client-Secret': creds['client_secret'],
+        'Content-Type': 'application/json',
     }
     resp = requests.put(url, data=content, headers=headers, timeout=TIMEOUT)
     resp.raise_for_status()
@@ -139,7 +140,7 @@ def get(args):
         verdict(MUMBLE, "Bad get response", "No 'content' key in answer")
 
     headers = resp["headers"]
-    for header in ['Content-type', "Host"]:
+    for header in ["X-Forwarded-Proto", "Content-Length", "Content-Type"]:
         if header not in headers:
             verdict(MUMBLE, "Bad get response", f"No '{header}' header in answer")
 
