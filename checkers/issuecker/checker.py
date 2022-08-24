@@ -20,7 +20,7 @@ import generators
 checker = NewChecker()
 
 
-URL_TEMPLATE = 'http://{host}/cgi-bin/{method}'
+URL_TEMPLATE = 'http://{host}/cgi-bin/app/{method}'
 
 
 def make_request(host, method, data, cookies=None):
@@ -52,6 +52,8 @@ class ErrorChecker:
             print(exc_type)
             print(exc_value.__dict__)
             traceback.print_tb(exc_traceback, file=sys.stdout)
+
+        self.verdict = Verdict.CHECKER_ERROR('error')
         return True
 
 
