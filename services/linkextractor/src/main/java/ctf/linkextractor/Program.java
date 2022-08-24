@@ -61,7 +61,6 @@ public class Program {
                 });
             });
         }).start("0.0.0.0",80);
-        System.out.println("Check out Swagger UI docs at http://localhost/swagger-ui");
    }
 
     private static OpenApiPlugin getConfiguredOpenApiPlugin() {
