@@ -86,12 +86,14 @@ public class DB {
         try (FileInputStream inputStream = new FileInputStream(usersFilePath.toString());
              ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
 
-            //TODO is that correct? what about buffering?
-            while(inputStream.available() > 0)
+            while(true)
             {
                 try {
                     TryAddUserToMemory((User)objectInputStream.readObject());
-                } catch (ClassNotFoundException e) {
+                } catch (EOFException eof){
+                    break;
+                }
+                catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -102,9 +104,11 @@ public class DB {
         try (FileInputStream inputStream = new FileInputStream(pagesFilePath.toString());
              ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
 
-            while (inputStream.available() > 0) {
+            while (true){
                 try {
                     AddPageToMemory((Page) objectInputStream.readObject());
+                } catch (EOFException eof){
+                    break;
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -116,9 +120,11 @@ public class DB {
         try (FileInputStream inputStream = new FileInputStream(linksFilePath.toString());
              ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
 
-            while (inputStream.available() > 0) {
+            while (true) {
                 try {
                     AddLinkToMemory((Link) objectInputStream.readObject());
+                } catch (EOFException eof){
+                    break;
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }

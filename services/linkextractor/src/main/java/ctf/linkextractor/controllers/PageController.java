@@ -27,8 +27,6 @@ public class PageController {
             }
     )
     public static void parse(Context ctx) {
-        //TODO chould we check for uniqness of the page url?
-
         String pageUrl = validQueryParamUrl(ctx);
         User user = ctx.attribute("user");
         PageModel pageModel = PageService.singletone.parseAndAddPage(user.getLogin(), pageUrl, ctx.body());
