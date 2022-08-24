@@ -46,6 +46,9 @@ def send_mes(s,mes):
     #time.sleep(0.5)
 def StoreVal(proc,val):
     res = read_until(proc,b"\n")
+    if len(res)==0:
+        print("Empty response")
+        exit(104)
     if res != "Enter command":
         print("Invalid greeter")
         exit(103)
@@ -68,6 +71,9 @@ def StoreVal(proc,val):
     return id1
 def StoreVal2(proc,val,id1):
     res = read_until(proc,b"\n")
+    if len(res)==0:
+        print("Empty response")
+        exit(104)
     if res != "Enter command":
         print("Invalid greeter")
         exit(103)
@@ -146,6 +152,9 @@ def LoadVal(proc,mid):
     return res
 def LoadVal2(proc,mid,password):
     res = read_until(proc,b"\n")
+    if len(res)==0:
+        print("Empty response")
+        exit(104)
     if res != "Enter command":
         print("Invalid greeter")
         exit(103)
