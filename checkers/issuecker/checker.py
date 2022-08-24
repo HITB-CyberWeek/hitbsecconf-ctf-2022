@@ -51,9 +51,10 @@ class ErrorChecker:
         if exc_type:
             print(exc_type)
             print(exc_value.__dict__)
+
+            self.verdict = Verdict.CHECKER_ERROR('error')
             traceback.print_tb(exc_traceback, file=sys.stdout)
 
-        self.verdict = Verdict.CHECKER_ERROR('error')
         return True
 
 
