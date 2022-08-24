@@ -6,7 +6,7 @@
 
 
 std::regex username_regexp("^[a-zA-Z0-9]{3,20}$");
-std::regex queue_name_regexp(R"(^[a-zA-Z0-9\s\.\-]{3,50}$)");
+std::regex queue_name_regexp(R"(^[a-zA-Z0-9\s\.\-]{3,40}$)");
 
 
 bool dummy_validator(const nlohmann::basic_json<>& obj) {

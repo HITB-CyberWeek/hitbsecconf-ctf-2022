@@ -6,10 +6,10 @@
 
 
 std::string get_queue_hash(std::string_view name) {
-    auto res = name[0] * pow(10, 0);
+    auto res = name[0] * pow(2, 0);
 
     for (int i = 0; i < name.length(); ++i) {
-        res += name[i] * pow(10, i);
+        res += ((uint)(name[i] * pow(2, (i % 10))) % (uint)(i % 100 + 1)) * 1749;
     }
     std::stringstream ss;
     ss << res;
