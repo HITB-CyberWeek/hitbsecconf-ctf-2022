@@ -119,8 +119,8 @@ void find_tickets_handler(Api& api, const nlohmann::basic_json<>& req, const std
         nlohmann::json res = nlohmann::json::array();
         for (auto &t: tickets) {
             nlohmann::json ticket_json = {
-                    {"description", t.description},
-                    {"title",       t.title},
+                    {"description", base64encode(t.description)},
+                    {"title",       base64encode(t.title)},
             };
             res.push_back(ticket_json);
         }
