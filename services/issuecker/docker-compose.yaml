@@ -8,7 +8,7 @@ services:
       - "./lighttpd:/etc/lighttpd"
       - "./build:/var/www/localhost/cgi-bin"
     ports:
-      - "4444:80"
+      - "80:80"
     tty: true
   redis:
     restart: unless-stopped
