@@ -164,7 +164,7 @@ def get_do_image_local_ips_and_tags_by_cloud(cloud_names):
                 cloud2team2service2tag[cloud_name][team][service_num] = None
 
             try:
-                ip = vm["networks"]["v4"][1]["ip_address"]
+                ip = vm["networks"]["v4"][0]["ip_address"]
                 if not ip.startswith("10.6"):
                     # take next
                     ip = vm['networks']['v4'][1]['ip_address']
