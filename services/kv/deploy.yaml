@@ -9,7 +9,16 @@ scripts:
     docker compose -f /home/kv/docker-compose.yml up -d
 
 files:
-  - source: ./*
+  - sources:
+      - Dockerfile
+      - common.go
+      - docker-compose.yml
+      - go.mod
+      - go.sum
+      - main.go
+      - register.go
+      - stor.go
+      - vendor
     destination: /home/kv
 
 proxies:
