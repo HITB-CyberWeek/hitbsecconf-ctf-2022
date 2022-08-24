@@ -19,7 +19,7 @@ public class UserController {
             tags = {"User"},
             requestBody = @OpenApiRequestBody(content = {@OpenApiContent(from = UserRegisterModel.class)}),
             responses = {
-                    //TODO here and in other result models swagger descriptions
+                @OpenApiResponse(status = "200"),
             }
     )
     public static void registerOrLogin(Context ctx) throws Exception {
@@ -39,7 +39,6 @@ public class UserController {
         ctx.cookie("user", UserService.singletone.createUserCookie(user));
     }
 
-    //TODO swagger now tries to parse result as json, but it's just a string
     @OpenApi(
             path = "/users/whoami",
             method = HttpMethod.GET,
@@ -47,6 +46,7 @@ public class UserController {
             operationId = "whoami",
             tags = {"User"},
             responses = {
+                @OpenApiResponse(status = "200", content = {@OpenApiContent(from = String.class)})
             }
     )
     public static void whoami(Context ctx) {

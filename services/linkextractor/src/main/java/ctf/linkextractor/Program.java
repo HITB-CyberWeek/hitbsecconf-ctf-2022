@@ -25,7 +25,6 @@ public class Program {
     public static void main(String[] args) {
         ObjectInputFilter.Config.setSerialFilter(new EntitiesObjectInputFilter());
 
-        //TODO log errors to STDOUT everywhere where needed
         Javalin app = Javalin.create(config -> {
             config.registerPlugin(getConfiguredOpenApiPlugin());
             config.defaultContentType = "application/json";
@@ -73,8 +72,6 @@ public class Program {
                 .swagger(new SwaggerOptions("/"))
                 .roles(Role.ANYONE, Role.USER)
                 .defaultDocumentation(doc -> {
-//                    doc.json("500", InternalServerErrorResponse.class);//TODO more specific class
-//                    doc.json("503", ServiceUnavailableResponse.class);
                 });
         return new OpenApiPlugin(options);
     }

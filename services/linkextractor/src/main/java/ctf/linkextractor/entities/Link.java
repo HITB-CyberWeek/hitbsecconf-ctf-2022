@@ -92,7 +92,6 @@ public class Link implements Serializable {
             if(pos == -1 || (baseUrl = page_url.substring(0, pos + 1)).equals(pageProtocol + "://")){
                 return new URL(page_url + "/" + link_url);
             }
-            //TODO case domain/../path can also be simplified
             return new URL(baseUrl + link_url);
         }
         return new URL(page_url + link_url);

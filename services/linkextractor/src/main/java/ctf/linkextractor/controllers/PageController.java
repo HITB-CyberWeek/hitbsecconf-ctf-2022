@@ -2,6 +2,7 @@ package ctf.linkextractor.controllers;
 
 import ctf.linkextractor.entities.Page;
 import ctf.linkextractor.entities.User;
+import ctf.linkextractor.models.PageLinksModel;
 import ctf.linkextractor.models.PageModel;
 import ctf.linkextractor.services.PageService;
 import io.javalin.http.Context;
@@ -10,6 +11,7 @@ import io.javalin.http.NotFoundResponse;
 import io.javalin.plugin.openapi.annotations.*;
 
 import java.net.URL;
+import java.util.List;
 
 public class PageController {
     @OpenApi(
@@ -21,9 +23,7 @@ public class PageController {
             tags = {"Page"},
             requestBody = @OpenApiRequestBody(content = {@OpenApiContent(from = String.class)}, description = "html page with urls to parse"),
             responses = {
-//                    @OpenApiResponse(status = "204"),
-//                    @OpenApiResponse(status = "400"),
-//                    @OpenApiResponse(status = "404")
+                @OpenApiResponse(status = "200", content = {@OpenApiContent(from = PageModel.class)})
             }
     )
     public static void parse(Context ctx) {
@@ -41,7 +41,7 @@ public class PageController {
             operationId = "getAll",
             tags = {"Page"},
             responses = {
-
+                @OpenApiResponse(status = "200", content = {@OpenApiContent(from = PageModel[].class)})
             }
     )
     public static void getAll(Context ctx) {
@@ -57,6 +57,8 @@ public class PageController {
             pathParams = {@OpenApiParam(name = "pageId", type = Integer.class, description = "pageId")},
             tags = {"Page"},
             responses = {
+                @OpenApiResponse(status = "404"),
+                @OpenApiResponse(status = "200", content = {@OpenApiContent(from = PageLinksModel.class)})
             }
     )
     public static void getOne(Context ctx) {
