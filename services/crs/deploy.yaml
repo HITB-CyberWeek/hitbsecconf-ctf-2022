@@ -24,7 +24,7 @@ proxies:
     listener:
       protocol: tcp
       port: 4444
-      tcp_simultaneous_connections: 1
+      tcp_simultaneous_connections: 5
     upstream:
       host_index: 10
       port: 4444
