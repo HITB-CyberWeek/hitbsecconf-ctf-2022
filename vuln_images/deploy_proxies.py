@@ -214,7 +214,7 @@ async def deploy_proxy(host: str, team_id: int, service_name: str, proxy: ProxyC
 
         typer.echo(f"[{host}] Rejecting all incoming requests to {upstream_ip}:{proxy.upstream.port} "
                    f"by redirecting them to :{redirect_port}")
-        await remove_iptables_rules_blocking_direct_connections(ssh, host, proxy, upstream_ip)
+        await remove_iptables_blocking_rules(ssh, host, str(upstream_ip), proxy.upstream.port)
 
         # 3. Deploy blocking direct access rule
         allow_same_team_rule = IPTABLES_ALLOW_SAME_TEAM_RULE.format(
