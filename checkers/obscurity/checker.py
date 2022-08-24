@@ -58,6 +58,9 @@ def call_api(s, ip, params):
     else:
         resp = s.post(f"https://{ip}/api.php", data=data, timeout=TIMEOUT)
 
+    if resp.status_code == 502:
+        verdict(DOWN, "Proxy returned 502", "Proxy returned 502: %s" % resp.text)
+
     try:
         return resp.json()
     except Exception:
