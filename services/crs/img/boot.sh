@@ -6,15 +6,16 @@ CPU="max,zpci=on"
 MEM=4096
 CORES=$(nproc)
 
-if [ "${1:-}" = "--telnet" ]; then
-    # May be used if ssh to vm is broken.
-    # * use this branch (restart docker container),
-    # * telnet localhost 4441 (inside docker container),
-    # * use root password: WA7NERURoVlDegBUVyM1Kk
-    SERIAL="-serial telnet::4441,server=on,wait=off"
-else
-    SERIAL="-chardev stdio,id=char0,mux=on,logfile=serial.log,signal=off -serial chardev:char0 -mon chardev=char0"
-fi
+
+SERIAL="-chardev stdio,id=char0,mux=on,logfile=serial.log,signal=off -serial chardev:char0 -mon chardev=char0"
+
+# Telnet serial console can be used if ssh to vm is broken:
+# * uncomment,
+# * restart docker container,
+# * telnet localhost 4441,
+# * use root password: WA7NERURoVlDegBUVyM1Kk
+#
+# SERIAL="-serial telnet::4441,server=on,wait=off"
 
 qemu-system-s390x -machine s390-ccw-virtio -cpu $CPU -m $MEM \
     $SERIAL -display none \

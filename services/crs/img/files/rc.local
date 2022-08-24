@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ ! -f /etc/ssh_keys_generated ]; then
+    echo "Generating SSH host keys ..."
+    ssh-keygen -A
+    touch /etc/ssh_keys_generated
+fi

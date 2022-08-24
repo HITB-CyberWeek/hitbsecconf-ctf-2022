@@ -30,4 +30,7 @@ cp -v files/crs mnt/root/crs
 cp -v files/crs.service mnt/etc/systemd/system/crs.service
 ln -s mnt/etc/systemd/system/crs.service mnt/etc/systemd/system/multi-user.target.wants/crs.service
 
+# Ensure ssh host keys are generated during first boot
+cp -v files/rc.local mnt/etc/rc.local
+
 echo "Prepare image done. Now you may unmount it."
