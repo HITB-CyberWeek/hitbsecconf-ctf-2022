@@ -38,6 +38,11 @@ int main(int argc, char **argv, char **envp) {
 
     auto path = cgi.getEnvironment().getPathInfo();
 
+    if (path.empty()) {
+        index_handler();
+        return 0;
+    }
+
     auto [handler, validator, need_auth] = Router::route(path);
 
     if (handler == nullptr) {

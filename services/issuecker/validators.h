@@ -28,4 +28,6 @@ bool validate_find_tickets_req(const nlohmann::basic_json<>& obj);
 
 bool is_ticket_correct(Queue& queue, const std::string& ticket_id);
 
+bool dummy_validator(const nlohmann::basic_json<>& obj);
+
 #endif //ISSUECKER_VALIDATORS_H

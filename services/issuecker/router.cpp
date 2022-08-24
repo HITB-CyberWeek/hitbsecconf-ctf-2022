@@ -1,5 +1,6 @@
 #include <iostream>
 #include "router.h"
+#include "validators.h"
 
 std::unordered_map<std::string, HandlerType> Router::handlers;
 std::unordered_map<std::string, ValidatorType> Router::validators;
