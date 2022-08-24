@@ -29,9 +29,9 @@ def checker_action(fn):
                 verdict(MUMBLE, err, err_private)
             verdict(DOWN, err, err_private)  # 5xx
         except requests.exceptions.Timeout as e:
-            verdict(DOWN, "Timeout", "Timeout: %s" % e)
+            verdict(DOWN, f"Timeout! URL:{e.response.url}", "Timeout: %s" % e)
         except requests.exceptions.JSONDecodeError as e:
-            verdict(MUMBLE, "JSON expected", "JSON decode while request: %s" % e)
+            verdict(MUMBLE, f"JSON expected! URL:{e.response.url}", "JSON decode while request: %s" % e)
         except Exception as e:
             verdict(CHECKER_ERROR, "Checker err", f"Unknown exception:{e}")
     return wrapper

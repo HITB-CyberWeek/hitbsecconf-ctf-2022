@@ -15,7 +15,7 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-var HEADERS = []string{"Content-type", "Host"}
+var HEADERS = []string{"X-Forwarded-Proto", "Content-Length", "Content-Type"}
 
 type GetResp struct {
 	Headers map[string]string `json:"headers"`
