@@ -100,7 +100,7 @@ def gen_page(page_url):
     else:
         links.append(page_url + '/' + relative)
 
-    for i in range(random.randrange(0, 3)):
+    for i in range(random.randrange(1, 8)):
         choice = random.random()
         if choice < 0.2:
             links.append(gen_absolute_url())
