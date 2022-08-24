@@ -48,56 +48,56 @@ def StoreVal(proc,val):
     res = read_until(proc,b"\n")
     if res != "Enter command":
         print("Invalid greeter")
-        exit(102)
+        exit(103)
     send_mes(proc,f"store")
     res = read_until(proc,b"\n")
     if res != "Enter id":
         print("Invalid greeter 2")
-        exit(102)
+        exit(103)
     id1 = id_gen()
     send_mes(proc,f"{id1}")
     res = read_until(proc,b"\n")
     if res != "Enter pack to store":
         print("Invalid greeter 3")
-        exit(102)
+        exit(103)
     send_mes(proc,f"{val}")
     res = read_until(proc,b"\n")
     if res != f"Storing id {id1}":
         print("Invalid greeter 4")
-        exit(102)
+        exit(103)
     return id1
 def StoreVal2(proc,val,id1):
     res = read_until(proc,b"\n")
     if res != "Enter command":
         print("Invalid greeter")
-        exit(102)
+        exit(103)
     send_mes(proc,f"store")
     res = read_until(proc,b"\n")
     if res != "Enter id":
         print("Invalid greeter 2")
-        exit(102)
+        exit(103)
     send_mes(proc,f"{id1}")
     res = read_until(proc,b"\n")
     if res != "Enter pack to store":
         print("Invalid greeter 3")
-        exit(102)
+        exit(103)
     send_mes(proc,f"{val}")
     res = read_until(proc,b"\n")
     if res != f"Storing id {id1}":
         print("Invalid greeter 4")
-        exit(102)
+        exit(103)
     return id1
 def LoadVal(proc,mid):
     res = read_until(proc,b"\n")
     if res != "Enter command":
         print("Invalid greeter")
-        exit(102)
+        exit(103)
 
     send_mes(proc,f"search")
     res = read_until(proc,b"\n")
     if res != "Enter substring to search":
         print("Invalid greeter 2")
-        exit(102)
+        exit(103)
 
     pos = random.randint(0,len(mid)-3)
     pat = mid[pos:pos+2]
@@ -117,44 +117,44 @@ def LoadVal(proc,mid):
     res = read_until(proc,b"\n")
     if res != "Enter slot number(0-9)":
         print("Invalid greeter 4")
-        exit(102)
+        exit(103)
     slot_num = random.randint(0,9)
     send_mes(proc,f"{slot_num}")
     res = read_until(proc,b"\n")
     if res != "Enter id to load":
         print("Invalid greeter 5")
-        exit(102)
+        exit(103)
     send_mes(proc,f"{mid}")
     res = read_until(proc,b"\n")
     if res != f"Loaded id {mid} to slot {slot_num}":
         print("Invalid greeter 6")
-        exit(102)
+        exit(103)
     res = read_until(proc,b"\n")
     if res != "Enter command":
         print("Invalid greeter 3")
-        exit(102)
+        exit(103)
     send_mes(proc,f"print")
     res = read_until(proc,b"\n")
     if res != f"Enter slot number(0-9)":
         print("Invalid greeter 7")
-        exit(102)
+        exit(103)
     send_mes(proc,f"{slot_num}")
     res = read_until(proc,b"\n")
     if res == f"Slot is empty":
         print("No data in slot")
-        exit(102)
+        exit(103)
     return res
 def LoadVal2(proc,mid,password):
     res = read_until(proc,b"\n")
     if res != "Enter command":
         print("Invalid greeter")
-        exit(102)
+        exit(103)
 
     send_mes(proc,f"search")
     res = read_until(proc,b"\n")
     if res != "Enter substring to search":
         print("Invalid greeter 2")
-        exit(102)
+        exit(103)
 
     pos = random.randint(0,len(mid)-3)
     pat = mid[pos:pos+2]
@@ -174,32 +174,32 @@ def LoadVal2(proc,mid,password):
     res = read_until(proc,b"\n")
     if res != "Enter slot number(0-9)":
         print("Invalid greeter 4")
-        exit(102)
+        exit(103)
     slot_num = random.randint(0,9)
     send_mes(proc,f"{slot_num}")
     res = read_until(proc,b"\n")
     if res != "Enter id to load":
         print("Invalid greeter 5")
-        exit(102)
+        exit(103)
     send_mes(proc,f"{mid}")
     res = read_until(proc,b"\n")
     if res != f"Loaded id {mid} to slot {slot_num}":
         print("Invalid greeter 6")
-        exit(102)
+        exit(103)
     res = read_until(proc,b"\n")
     if res != "Enter command":
         print("Invalid greeter 3")
-        exit(102)
+        exit(103)
     send_mes(proc,f"print")
     res = read_until(proc,b"\n")
     if res != f"Enter slot number(0-9)":
         print("Invalid greeter 7")
-        exit(102)
+        exit(103)
     send_mes(proc,f"{slot_num}")
     res = read_until(proc,b"\n")
     if res != f"enter password":
         print("No data in slot")
-        exit(102)
+        exit(103)
     send_mes(proc,f"{password}")
     res = read_until(proc,b"\n")
     if not "Flag is " in res:
