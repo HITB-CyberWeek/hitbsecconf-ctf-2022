@@ -25,6 +25,9 @@ namespace checker.smallword
 		{
 			var baseUri = GetBaseUri(host);
 
+			int slept = 0;
+			await RndUtil.RndDelay(MaxOneTimeDelay, ref slept).ConfigureAwait(false);
+
 			var randomDefaultHeaders = RndHttp.RndDefaultHeaders(baseUri);
 			await Console.Error.WriteLineAsync($"random headers '{JsonSerializer.Serialize(new FakeDictionary<string, string>(randomDefaultHeaders))}'").ConfigureAwait(false);
 			var client = new AsyncHttpClient(baseUri, randomDefaultHeaders, cookies: false);
@@ -36,6 +39,8 @@ namespace checker.smallword
 			var html = result.BodyAsString.TrimStart();
 			if(!(html.StartsWith("<!doctype html", StringComparison.OrdinalIgnoreCase) || html.StartsWith("<html", StringComparison.OrdinalIgnoreCase)))
 				throw new CheckerException(ExitCode.MUMBLE, "invalid / response: html expected");
+
+			await Console.Error.WriteLineAsync($"total sleep: {slept} msec").ConfigureAwait(false);
 		}
 
 		public async Task<PutResult> Put(string host, string flagId, string flag, int vuln)
@@ -43,6 +48,8 @@ namespace checker.smallword
 			var baseUri = GetBaseUri(host);
 
 			int slept = 0;
+			await RndUtil.RndDelay(MaxOneTimeDelay, ref slept).ConfigureAwait(false);
+
 			var randomDefaultHeaders = RndHttp.RndDefaultHeaders(baseUri);
 			await Console.Error.WriteLineAsync($"random headers '{JsonSerializer.Serialize(new FakeDictionary<string, string>(randomDefaultHeaders))}'").ConfigureAwait(false);
 			var client = new AsyncHttpClient(baseUri, randomDefaultHeaders, cookies: true);
@@ -142,7 +149,9 @@ namespace checker.smallword
 			var cookie = Encoding.UTF8.GetString(Convert.FromBase64String(put.Cookie));
 
 			HttpResult result;
+
 			int slept = 0;
+			await RndUtil.RndDelay(MaxOneTimeDelay, ref slept).ConfigureAwait(false);
 
 			var randomDefaultHeaders = RndHttp.RndDefaultHeaders(baseUri);
 			await Console.Error.WriteLineAsync($"random headers '{JsonSerializer.Serialize(new FakeDictionary<string, string>(randomDefaultHeaders))}'").ConfigureAwait(false);
@@ -266,7 +275,8 @@ namespace checker.smallword
 		private const int MaxCookieSize = 256;
 
 		private const int MaxDelay = 3000;
-		private const int NetworkOpTimeout = 15000;
+		private const int MaxOneTimeDelay = 5000;
+		private const int NetworkOpTimeout = 12000;
 
 		private static Uri GetBaseUri(string host) => new($"https://{host}:{Port}/");
 
