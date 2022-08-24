@@ -20,6 +20,8 @@ CONNECT_TIMEOUT = 15
 CONNECT_RETRIES = 5
 CHARSET = string.ascii_lowercase + string.digits
 
+RECEIVED_SOMETHING = False
+
 
 def random_str(length):
     return ''.join(random.choice(CHARSET) for i in range(length))
@@ -80,7 +82,11 @@ class Client:
                 msg = "No expected response from remote side in {} sec.".format(timeout)
                 logging.error(msg + " Actual response: {!r}".format(response))
                 raise ProtocolViolationError(msg)
+
             response += self.s.recv(RECV_BUFFER).decode(errors="ignore")
+            if len(response) > 0:
+                global RECEIVED_SOMETHING
+                RECEIVED_SOMETHING = True
 
             if all(e in response for e in end):
                 logging.info("Received <<< %r.", response)
@@ -271,7 +277,10 @@ def main(args):
     except ConnectionRefusedError as E:
         verdict(DOWN, "Connect refused", "Connect refused: %s" % E)
     except ConnectionError as E:
-        verdict(MUMBLE, "Connection aborted", "Connection aborted: %s" % E)
+        if RECEIVED_SOMETHING:
+            verdict(MUMBLE, "Connection aborted", "Connection aborted: %s" % E)
+        else:
+            verdict(DOWN, "Connection aborted (no data received)", "Connection aborted (no data received): %s" % E)
     except OSError as E:
         verdict(DOWN, "Connect error", "Connect error: %s" % E)
     except Exception as E:
