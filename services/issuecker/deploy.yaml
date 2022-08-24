@@ -4,9 +4,11 @@ username: issuecker
 
 scripts:
   build_outside_vm: |
-    /home/issuecker/build_in_docker.sh
+    ./build_in_docker.sh
+  build_inside_vm: |
+    docker compose -f /home/$USERNAME/docker-compose.yaml build
   start_once: |
-    docker compose -f /home/issuecker/docker-compose.yaml up -d
+    docker compose -f /home/$USERNAME/docker-compose.yaml up -d
 files:
   - sources:
       - docker-compose.yaml
