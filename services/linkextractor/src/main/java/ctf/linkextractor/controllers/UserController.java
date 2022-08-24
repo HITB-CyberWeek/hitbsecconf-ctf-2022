@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class UserController {
 
-    static Pattern loginRegex = Pattern.compile("^[a-zA-Z0-9$@()'._\\-]{1,32}$ ");
+    static Pattern loginRegex = Pattern.compile("^[a-zA-Z0-9$@()'._\\-]{1,32}$");
 
     @OpenApi(
             path = "/users",
