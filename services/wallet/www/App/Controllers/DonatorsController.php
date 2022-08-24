@@ -10,7 +10,7 @@ class DonatorsController extends BaseController
     {
         parent::__construct($twig, $template, $authRule);
         $this->context["donaters"] = [];
-        $users = \R::findAll('users', 'donator = 1');
+        $users = \R::findAll('users', 'donator = 1 LIMIT 500');
         $all_donate_sum = 0;
         foreach ($users as $user) {
             $wallet = new Wallet(userId: $user->id);
