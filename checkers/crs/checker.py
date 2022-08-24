@@ -196,7 +196,7 @@ def get(host, flag_id, flag, vuln):
     flag2 = client.retrieve()
 
     if flag not in flag2:
-        verdict(MUMBLE, public="Flag not found")
+        verdict(CORRUPT, public="Flag not found")
 
     verdict(OK, "Flag found")
 
