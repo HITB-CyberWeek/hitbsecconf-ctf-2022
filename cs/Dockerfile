@@ -43,3 +43,6 @@ COPY checkers/kv /app/checkers/kv
 COPY checkers/obscurity /app/checkers/obscurity
 COPY --from=build-dot-net-checkers /app/smallword-publish/ /app/checkers/smallword/src/bin/Release/net6.0/publish
 COPY checkers/linkextractor /app/checkers/linkextractor
+COPY checkers/issuecker /app/checkers/issuecker
+RUN pip install -r /app/checkers/issuecker/requirements.txt
+
