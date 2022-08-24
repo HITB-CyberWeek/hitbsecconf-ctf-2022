@@ -93,7 +93,14 @@ def call_parse_page(session, base_url, page_url, text):
 
 def gen_page(page_url):
     links = []
-    for i in range(random.randrange(1, 8)):
+    relative = gen_relative_url_upper()
+    links.append(relative)
+    if page_url[-1] == '/':
+        links.append(page_url + relative)
+    else:
+        links.append(page_url + '/' + relative)
+
+    for i in range(random.randrange(0, 3)):
         choice = random.random()
         if choice < 0.2:
             links.append(gen_absolute_url())
@@ -104,8 +111,12 @@ def gen_page(page_url):
         elif choice < 0.8:
             links.append(gen_relative_url_upper())
         else:
-            links.append(gen_relative_url())
-        #TODO generate duplicates in different forms
+            if page_url[-1] == '/':
+                links.append(gen_relative_url())
+            else:
+                links.append(gen_relative_url_from_root())
+
+    random.shuffle(links)
 
     html = "<html>\n"
     for link in links:
@@ -135,7 +146,6 @@ def gen_relative_url_upper():
     path = "/".join(gen_path_segment() for i in range(random.randrange(0,5)))
     return f"{upperLevels}/{path}"
 
-#TODO only call if base_url finishes in '/'
 def gen_relative_url():
     return "/".join(gen_path_segment() for i in range(random.randrange(0,5)))
 
@@ -166,12 +176,14 @@ def put(host, flag_id, flag, vuln):
     session = requests.Session()
     login = gen_login()
     password = gen_password()
+
     call_register_or_login_user(session, linkextractor_base_url, login, password)
 
     page_url = format_flag(flag)
     (page_content, links) = gen_page(page_url)
     page_model = call_parse_page(session, linkextractor_base_url, page_url, page_content)
 
+    #TODO parse several pages
 
     try:
         parsed_pageId = int(page_model.get("pageId"))
@@ -182,8 +194,8 @@ def put(host, flag_id, flag, vuln):
             verdict(MUMBLE, f"Invalid page url returned in result model from parse page request", "Invalid page url returned in result model from parse page request '%s' with content '%s': %s" % (page_url, page_content, json.dumps(page_model)))
 
         #TODO check distinctness count or resulting links on page
-        if parsed_linksCount < 0:
-            verdict(MUMBLE, f"Invalid links count parsed from page", "Invalid links count parsed from page '%s' with content '%s': %s" % (page_url, page_content, json.dumps(page_model)))
+        if parsed_linksCount >= len(links) or parsed_linksCount < 0:
+            verdict(MUMBLE, f"Invalid links count parsed from page", "Invalid links count parsed from page '%s' (parsed %d, sent %d) with content '%s': %s" % (page_url, parsed_linksCount, len(links), page_content, json.dumps(page_model)))
     except Exception:
         verdict(MUMBLE, f"Invalid model from successful result of parse page request", "Invalid model from successful result of parse page request '%s' with content '%s': %s (exception %s)" % (page_url, page_content, json.dumps(page_model), traceback.format_exc()))
 
