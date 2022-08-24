@@ -25,6 +25,8 @@ def run(archive, bucket):
         volumes=volumes,
         ulimits=ULIMITS,
         network=NETWORK,
+        mem_limit="128m",
+        memswap_limit="128m",
         environment=env
     )
     container.start()
