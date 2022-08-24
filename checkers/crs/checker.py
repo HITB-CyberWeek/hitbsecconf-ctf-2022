@@ -25,6 +25,26 @@ def random_str(length):
     return ''.join(random.choice(CHARSET) for i in range(length))
 
 
+def service_hash(s):
+    state = [0x12, 0x87, 0x39, 0x9A]
+    for i, c in enumerate(s):
+        o = ord(c)
+        state[0] += ((state[0] + o*11) % 227)
+        state[1] += ((state[1] + o*107) % 199)
+        state[2] += ((state[2] + o*31) % 251)
+        state[3] += ((state[3] + o*167) % 229)
+        for j in range(len(state)):
+            state[j] = state[j] & 0xFF
+        state[1] ^= state[3]
+        state[0] += state[2]
+        state[1] += 12
+        state[3] += 2
+        for j in range(len(state)):
+            state[j] = state[j] & 0xFF
+    value = (state[0] << 24) + (state[1] << 16) + (state[2] << 8) + state[3]
+    return "0x%08x" % value
+
+
 class Client:
     def __init__(self, host):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -176,6 +196,14 @@ def put(host, flag_id, flag, vuln):
     client = Client(host)
     client.register(user, password)
     client.login(user, password)
+
+    hash1 = service_hash(password)
+    hash2 = client.retrieve().strip()
+    if hash1 not in hash2:
+        logging.error("Hash mismatch: expected %r, got %r.", hash1, hash2)
+        verdict(MUMBLE, "Service has been tampered with!")
+
+    logging.info("Hash check OK: expected %r, got %r", hash1, hash2)
     client.store(flag)
 
     json_flag_id = json.dumps({
