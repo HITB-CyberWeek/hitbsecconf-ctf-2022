@@ -36,7 +36,6 @@ public class UserController {
         if(user == null)
             throw new UnauthorizedResponse("invalid credentials");
 
-        //TODO move to common place with usage in accessManager
         ctx.cookie("user", UserService.singletone.createUserCookie(user));
     }
 
