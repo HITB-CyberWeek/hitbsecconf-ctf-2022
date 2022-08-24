@@ -28,7 +28,7 @@ proxies:
       certificate: wildcard.ctf.hitb.org
     upstream:
       host_index: 6
-      port: 4444
+      port: 80
     limits:
       - source: team
         location: /
