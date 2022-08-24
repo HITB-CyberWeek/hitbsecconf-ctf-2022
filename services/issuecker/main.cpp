@@ -24,9 +24,8 @@ std::string get_user_from_cookies(Api& api, const std::vector<HTTPCookie>& cooki
     return "";
 }
 
-
 int main(int argc, char **argv, char **envp) {
-    RedisConfig redis_config{"localhost:6379", ""};
+    RedisConfig redis_config{"redis:6379", ""};
     Api api(redis_config);
 
     Router::add_route("/register", register_handler, validate_user_pair_req, false);
