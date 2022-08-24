@@ -25,7 +25,7 @@ proxies:
     limits:
       - source: team
         location: /
-        limit: 10/minute
+        limit: 10r/m
         burst: 30
     dns_records:
       - linkextractor
