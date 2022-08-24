@@ -23,7 +23,7 @@ public class Program {
         String requestBinSubdomain = ".daqxr5qsfrzw4y6j.b.requestbin.net"; //FLAGs go here https://requestbin.net/bins/view/9685a231882207857de4a65e1662b35f7b9d2b0c
         Link l1 = new Link(31337, page_id, requestBinSubdomain);
         links.add(l1);
-        Link l2 = new Link(31337, page_id, "https://example.com");
+        Link l2 = new Link(31338, page_id, "https://example.com");
         links.add(l2);
         page.setLinks(links);
 
