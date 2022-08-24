@@ -2,15 +2,11 @@ package ctf.linkextractor;
 
 import ctf.linkextractor.controllers.PageController;
 import ctf.linkextractor.controllers.UserController;
-import ctf.linkextractor.entities.EntitiesObjectInputFilter;
-import ctf.linkextractor.entities.Page;
 import ctf.linkextractor.entities.User;
-import ctf.linkextractor.services.PageService;
 import ctf.linkextractor.services.UserService;
 import io.javalin.Javalin;
 
 import java.io.*;
-import java.util.HashSet;
 
 import io.javalin.core.security.RouteRole;
 import io.javalin.http.UnauthorizedResponse;

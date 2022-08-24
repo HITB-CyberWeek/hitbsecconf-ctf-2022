@@ -15,8 +15,8 @@ import java.util.List;
 
 public class PageController {
     @OpenApi(
-            path = "/pages",     // only necessary to include when using static method references
-            method = HttpMethod.POST,    // only necessary to include when using static method references
+            path = "/pages",
+            method = HttpMethod.POST,
             summary = "Parse links from html",
             operationId = "parse",
             queryParams = {@OpenApiParam(name = "url", description = "url of the html page", required = true)},
@@ -35,8 +35,8 @@ public class PageController {
     }
 
     @OpenApi(
-            path = "/pages",     // only necessary to include when using static method references
-            method = HttpMethod.GET,    // only necessary to include when using static method references
+            path = "/pages",
+            method = HttpMethod.GET,
             summary = "Get user pages",
             operationId = "getAll",
             tags = {"Page"},
@@ -50,8 +50,8 @@ public class PageController {
     }
 
     @OpenApi(
-            path = "/pages/{pageId}",     // only necessary to include when using static method references
-            method = HttpMethod.GET,    // only necessary to include when using static method references
+            path = "/pages/{pageId}",
+            method = HttpMethod.GET,
             summary = "Get page links",
             operationId = "getOne",
             pathParams = {@OpenApiParam(name = "pageId", type = Integer.class, description = "pageId")},

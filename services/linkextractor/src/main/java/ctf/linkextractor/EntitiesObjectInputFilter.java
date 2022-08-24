@@ -1,4 +1,4 @@
-package ctf.linkextractor.entities;
+package ctf.linkextractor;
 
 import java.io.ObjectInputFilter;
 
