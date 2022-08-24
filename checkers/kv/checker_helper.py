@@ -21,7 +21,7 @@ def checker_action(fn):
         except VerdictError as e:
             verdict(e.exit_code, e.public, e.private)
         except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
-            verdict(DOWN, "Connection error", "Connection error during login: %s" % e)
+            verdict(DOWN, "Connection error", "Connection error: %s" % e)
         except requests.exceptions.HTTPError as e:
             err = f"HTTP error! URL:{e.response.url}; http status:{e.response.status_code}"
             err_private = f"HTTPError:{e}"
@@ -29,7 +29,7 @@ def checker_action(fn):
                 verdict(MUMBLE, err, err_private)
             verdict(DOWN, err, err_private)  # 5xx
         except requests.exceptions.Timeout as e:
-            verdict(DOWN, "Timeout", "Timeout during login: %s" % e)
+            verdict(DOWN, "Timeout", "Timeout: %s" % e)
         except requests.exceptions.JSONDecodeError as e:
             verdict(MUMBLE, "JSON expected", "JSON decode while request: %s" % e)
         except Exception as e:
