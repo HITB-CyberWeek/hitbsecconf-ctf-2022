@@ -4,6 +4,7 @@
 #include <boost/beast/core/detail/base64.hpp>
 #include "utils.h"
 
+
 std::string get_queue_hash(std::string_view name) {
     auto res = name[0] * pow(10, 0);
 

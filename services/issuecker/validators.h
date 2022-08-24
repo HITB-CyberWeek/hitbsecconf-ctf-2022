@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "json.h"
+#include "modesl.h"
 
 
 using ValidatorType = std::function<bool(const nlohmann::basic_json<>& obj)>;
@@ -24,5 +25,7 @@ bool validate_add_queue_req(const nlohmann::basic_json<>& obj);
 bool validate_add_ticket_req(const nlohmann::basic_json<>& obj);
 
 bool validate_find_tickets_req(const nlohmann::basic_json<>& obj);
+
+bool is_ticket_correct(Queue& queue, const std::string& ticket_id);
 
 #endif //ISSUECKER_VALIDATORS_H

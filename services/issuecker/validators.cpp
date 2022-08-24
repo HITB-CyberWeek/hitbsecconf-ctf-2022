@@ -1,5 +1,6 @@
 #include <regex>
 #include <iostream>
+#include <sstream>
 #include <unordered_set>
 #include "validators.h"
 
@@ -98,4 +99,15 @@ bool validate_find_tickets_req(const nlohmann::basic_json<>& obj) {
                 "ticket_id", "title", "description"
             }
         );
+}
+
+
+bool is_ticket_correct(Queue& queue, const std::string& ticket_id) {
+    std::stringstream pattern;
+    pattern << "^" << queue.key << R"(\-\d{1,6}$)";
+
+    std::regex regexp(pattern.str());
+    std::cmatch m;
+
+    return std::regex_match(ticket_id.c_str(), m, regexp);
 }

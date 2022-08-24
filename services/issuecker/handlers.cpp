@@ -7,7 +7,7 @@
 
 
 void bad_request(const char* message, int code = 400) {
-//    std::cout << cgicc::HTTPStatusHeader(code, message);
+    std::cout << cgicc::HTTPStatusHeader(code, message);
     std::cout << message;
 }
 
