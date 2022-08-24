@@ -40,10 +40,13 @@ def login(host, user, password):
 
     try:
         r = session.post(urljoin(n0tes_url, "/login"), data=login_data, timeout=TIMEOUT, verify=VERIFY)
-    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
+    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected, socket.error) as e:
         return (DOWN, "Connection error", "Connection error during login: %s" % e, None, None)
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during login: %s" % e, None, None)
+
+    if r.status_code == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway", None, None)
 
     if r.status_code != 200:
         return (MUMBLE, "Can't login", "Unexpected login result: '%d'" % r.status_code, None, None)
@@ -90,17 +93,20 @@ def create_note(host, session, title, content):
     note_data = {"Title": title, "Content": content}
     try:
         r = session.post(urljoin(n0tes_url, "/notes"), data=note_data, timeout=TIMEOUT, verify=VERIFY)
-    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
+    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected, socket.error) as e:
         return (DOWN, "Connection error", "Connection error during creating note: %s" % e)
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during creating note: %s" % e)
+
+    if r.status_code == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway")
 
     if r.status_code != 200:
         return (MUMBLE, "Can't create note", "Unexpected status code when creating a note: '%d'" % r.status_code)
 
     (status, out, err, row_element) = parse_note_element(r.text, title)
     if status != OK:
-        verdict(status, out, err)
+        return (status, out, err)
 
     trace("Note with title '%s' successfully created" % title)
 
@@ -120,10 +126,13 @@ def get_note_content(host, session, note_row_element):
 
     try:
         r = session.get(urljoin(n0tes_url, link[0]), timeout=TIMEOUT, verify=VERIFY)
-    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
+    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected, socket.error) as e:
         return (DOWN, "Connection error", "Connection error during reading a note: %s" % e, None)
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during reading a note: %s" % e, None)
+
+    if r.status_code == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway", None)
 
     if r.status_code != 200:
         return (MUMBLE, "Can't create note", "Unexpected status code when reading a note: '%d'" % r.status_code, None)
@@ -179,7 +188,7 @@ def execute_export_request(host, certfile=None, keyfile=None):
     headers = {'Host': ADMIN_HOST}
     try:
         connection.request(method="POST", url="/export", headers=headers)
-    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
+    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected, socket.error) as e:
         return (DOWN, "Connection error", "Connection error during exporting notes: %s" % e, None)
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during exporting notes: %s" % e, None)
@@ -193,6 +202,9 @@ def export_notes(host):
     (status, out, err, response) = execute_export_request(host, certfile=ADMIN_CERT, keyfile=ADMIN_KEY)
     if status != OK:
         return (status, out, err, None)
+
+    if response.status == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway", None)
 
     if response.status != 200:
         return (MUMBLE, "Can't export notes", "Unexpected status code during export: '%d'" % response.status, None)
@@ -225,10 +237,13 @@ def check_unauthenticated_request_redirects_to_login(host):
 
     try:
         r = requests.get(urljoin(n0tes_url, url), allow_redirects=False, timeout=TIMEOUT, verify=VERIFY)
-    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected) as e:
+    except (requests.exceptions.ConnectionError, ConnectionRefusedError, http.client.RemoteDisconnected, socket.error) as e:
         return (DOWN, "Connection error", "Connection error during checking url without authentication: %s" % e)
     except requests.exceptions.Timeout as e:
         return (DOWN, "Timeout", "Timeout during checking url without authentication: %s" % e)
+
+    if r.status_code == 502:
+        return (DOWN, "Connection error", "@andgein forced me to return DOWN for 502 Bad Gateway")
 
     if r.status_code != 302:
         return (MUMBLE, "Unexpected result", "Unexpected HTTP status code when requesting url without authentication: '%d'" % r.status_code)

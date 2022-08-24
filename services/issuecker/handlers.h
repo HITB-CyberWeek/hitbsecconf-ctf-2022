@@ -10,6 +10,8 @@ void invalid_json_schema_handler();
 
 void invalid_json_format_handler();
 
+void index_handler();
+
 void register_handler(Api& api, const nlohmann::basic_json<>& req, const std::string&);
 
 void login_handler(Api& api, const nlohmann::basic_json<>& req, const std::string&);

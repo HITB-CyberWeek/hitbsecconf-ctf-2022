@@ -1,0 +1,38 @@
+version: 1
+service: issuecker
+username: issuecker
+
+scripts:
+  build_outside_vm: |
+    ./build_in_docker.sh
+  build_inside_vm: |
+    docker compose -f /home/$USERNAME/docker-compose.yaml build
+  start_once: |
+    docker compose -f /home/$USERNAME/docker-compose.yaml up -d
+files:
+  - sources:
+      - docker-compose.yaml
+      - build
+      - lighttpd
+      - api.cpp
+      - validators.cpp
+      - hasher.cpp
+      - session_manager.cpp
+      - utils.cpp
+    destination: /home/$USERNAME
+
+proxies:
+  - name: main
+    listener:
+      protocol: http
+      certificate: wildcard.ctf.hitb.org
+    upstream:
+      host_index: 6
+      port: 4444
+    limits:
+      - source: team
+        location: /
+        limit: 300r/m
+        burst: 100
+    dns_records:
+      - issuecker

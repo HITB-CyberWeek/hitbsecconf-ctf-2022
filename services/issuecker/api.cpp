@@ -165,14 +165,3 @@ std::vector<Ticket> Api::find_tickets(unsigned long queue_id, const std::string 
 
     return title_filtered_res;
 }
-
-
-bool is_ticket_correct(Queue& queue, const std::string& ticket_id) {
-    std::stringstream pattern;
-    pattern << "^" << queue.key << R"(\-\d{1,6}$)";
-
-    std::regex regexp(pattern.str());
-    std::cmatch m;
-
-    return std::regex_match(ticket_id.c_str(), m, regexp);
-}

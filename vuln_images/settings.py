@@ -31,7 +31,7 @@ TEAM_NETWORK_MASK = env.int("TEAM_NETWORK_MASK", 24)
 
 DNS_ZONE = env.str("DNS_ZONE", "ctf.hitb.org")
 
+TEAMS_COUNT = 50
 PROXY_HOSTS = {
-    1: "10.80.1.2",
-    2: "10.80.2.2",
+    team_id: f"10.80.{team_id}.2" for team_id in range(1, TEAMS_COUNT + 1)
 }

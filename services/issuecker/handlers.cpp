@@ -7,7 +7,7 @@
 
 
 void bad_request(const char* message, int code = 400) {
-//    std::cout << cgicc::HTTPStatusHeader(code, message);
+    std::cout << cgicc::HTTPStatusHeader(code, message);
     std::cout << message;
 }
 
@@ -20,6 +20,16 @@ void create_session_and_set_cookies(Api& api, const std::string& username) {
     cookie_header.setCookie(cgicc::HTTPCookie("username", username));
 
     std::cout << cookie_header;
+}
+
+
+void index_handler() {
+    std::cout << "Check out this handlers:" << std::endl;
+    std::cout << "  /register" << std::endl;
+    std::cout << "  /login" << std::endl;
+    std::cout << "  /add_queue" << std::endl;
+    std::cout << "  /add_ticket" << std::endl;
+    std::cout << "  /find_tickets" << std::endl;
 }
 
 

@@ -19,6 +19,7 @@ logging.basicConfig(format="%(asctime)s [%(process)d] %(levelname)-8s %(message)
 
 OK, CORRUPT, MUMBLE, DOWN, CHECKER_ERROR = 101, 102, 103, 104, 110
 ARCHIVE_TYPES = ["zip", "rar", "7z", "tgz", "tbz2"]
+TIMEOUT = 5
 
 
 def verdict(exit_code, public="", private=""):
@@ -61,7 +62,7 @@ def check(host):
     url = f"{base_url}~{bucket}/{file_name}.txt"
     logging.info(f"Check url '{url}' on host '{host}'")
 
-    r = requests.get(url, timeout=5)
+    r = requests.get(url, timeout=TIMEOUT)
     if r.status_code == 404:
         verdict(OK)
     else:
@@ -103,7 +104,7 @@ def put(host, flag_id, flag, vuln):
         url = f"{base_url}bucket/~{bucket}"
         logging.info(f"Put to url '{url}' on host '{host}'")
         r = requests.post(
-            url, files={"input": external_archive.open(mode="rb")})
+            url, files={"input": external_archive.open(mode="rb")}, timeout=TIMEOUT)
         if r.status_code != 200:
             verdict(MUMBLE, public="Wrong HTTP status code")
 
