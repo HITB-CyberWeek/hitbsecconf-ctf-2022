@@ -60,7 +60,7 @@ async def check_service(request: CheckRequest) -> Verdict:
     return Verdict.OK()
 
 
-@checker.define_vuln('flag_id is an ticket id')
+@checker.define_vuln('Flag ID is a ticket ID')
 class CryptoChecker(VulnChecker):
     @staticmethod
     def put(request: PutRequest) -> Verdict:
