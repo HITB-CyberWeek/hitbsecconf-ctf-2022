@@ -35,8 +35,9 @@ server {
 
 	# Enable server-side protection against BEAST attacks
 	# See https://github.com/certbot/certbot/blob/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf for inspiration
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 1440m;
+    ssl_session_cache shared:SSL_{{ service_name }}_{{ proxy_name }}:50m;
+    # See https://trac.nginx.org/nginx/ticket/621 also
+    ssl_session_timeout 30m;
     ssl_session_tickets off;
 
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -123,6 +124,14 @@ server {
         root /var/www/html;
         try_files /too_many_requests.html =404;
         internal;
+    }
+
+    location /---nginx-status--- {
+        stub_status;
+
+        access_log off;
+        allow {{ proxy_host }};
+        deny all;
     }
 
     {% if use_ssl %}

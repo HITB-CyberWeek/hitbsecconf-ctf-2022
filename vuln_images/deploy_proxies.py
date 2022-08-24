@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import asyncio
 import ipaddress
+import json
 import os
 import pathlib
 import tempfile
-from typing import Optional
+from typing import Optional, List
 
 import asyncssh
 import digitalocean
@@ -12,7 +13,7 @@ import jinja2
 import typer
 
 import settings
-from config import DeployConfigV1, DeployConfig, ProxyConfigV1
+from config import DeployConfigV1, DeployConfig, ProxyConfigV1, ListenerProtocol
 
 CURRENT_FOLDER = pathlib.Path(__file__).parent
 
@@ -100,6 +101,7 @@ async def deploy_http_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_i
             if proxy.upstream.client_certificate else None
         ),
         "locations": locations,
+        "proxy_host": host,
     }
     template = jinja2.Template((CURRENT_FOLDER / "nginx/http_server.conf.jinja2").read_text())
     filename = tempfile.mktemp(prefix=f"nginx-{service_name}-{proxy.name}-", suffix=".conf")
@@ -112,6 +114,33 @@ async def deploy_http_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_i
         await asyncssh.scp(filename, (ssh, target_nginx_config_name))
     finally:
         os.unlink(filename)
+
+
+async def deploy_http_monitoring_config(host: str, team_id: int, service_name: str, proxies: List[ProxyConfigV1]):
+    monitoring_config = "/root/monitoring/config/prometheus-nginxlog-exporter.yaml"
+    access_log_format = "$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\""
+
+    configs = []
+    for proxy in proxies:
+        configs.extend([{
+          "name": f"{service_name}_{proxy.name}_access",
+          "format": access_log_format,
+          "source": {"files": [f"/var/log/nginx/{service_name}_{proxy.name}_access.log"]},
+          "labels": {"service": service_name, "proxy": proxy.name, "team_id": team_id},
+          "histogram_buckets": [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
+        }])
+
+    async with create_ssh_connection(host) as ssh:
+        typer.echo(f"[{host}] Nginx logs monitoring")
+        typer.echo(f"[{host}]    Patching monitoring config file {monitoring_config}")
+        # Remove old configs from .namespaces and add new ones
+        await ssh.run(f"jq 'walk(if type==\"object\" and .name != null and (.name | startswith(\"{service_name}_\")) then empty else . end) "
+                      f"| .namespaces |= . + {json.dumps(configs)}' < {monitoring_config} > {monitoring_config}.new",
+                      check=True)
+        await ssh.run(f"mv {monitoring_config}.new {monitoring_config}", check=True)
+
+        typer.echo(f"[{host}]    Restarting nginx-logs-monitoring")
+        await ssh.run("docker-compose -f /root/monitoring/docker-compose.yaml restart", check=True)
 
 
 async def deploy_tcp_proxy(ssh: asyncssh.SSHClientConnection, host: str, team_id: int, service_name: str, proxy: ProxyConfigV1):
@@ -220,8 +249,8 @@ async def prepare_host_for_proxies(host: str, team_id: int):
     typer.echo(f"[{host}] Preparing host for being a proxy")
     async with create_ssh_connection(host) as ssh:
         # 1. Install nginx
-        typer.echo(f"[{host}]    Installing nginx and openssl")
-        await ssh.run("apt-get install -y nginx openssl", check=True)
+        typer.echo(f"[{host}]    Installing nginx, openssl and docker")
+        await ssh.run("apt-get install -y nginx openssl docker.io docker-compose jq", check=True)
 
         # 2. Generate dhparam — only once!
         typer.echo(f"[{host}]    Generating /etc/nginx/dhparam.pem if not exists")
@@ -262,6 +291,7 @@ async def prepare_host_for_proxies(host: str, team_id: int):
         await asyncssh.scp("nginx/use_proxy.conf", (ssh, "/etc/nginx/conf.d/use_proxy.conf"))
 
         await ssh.run("mkdir -p /etc/nginx/stream.d", check=True)
+        await ssh.run("mkdir -p /root/monitoring/config", check=True)
 
         typer.echo(f"[{host}]    Uploading /root/too_many_requests.py")
         await asyncssh.scp("iptables/too_many_requests.py", (ssh, "/root/too_many_requests.py"))
@@ -282,6 +312,13 @@ async def prepare_host_for_proxies(host: str, team_id: int):
         typer.echo(f"[{host}]    Restarting nginx")
         await ssh.run("nginx -t", check=True)
         await ssh.run("systemctl restart nginx", check=True)
+
+        typer.echo(f"[{host}]    Uploading monitoring config to /root/monitoring/docker-compose.yaml "
+                   f"and /root/monitoring/config/prometheus-nginxlog-exporter.yaml")
+        await asyncssh.scp("monitoring/docker-compose.yaml", (ssh, "/root/monitoring/docker-compose.yaml"))
+        await asyncssh.scp("monitoring/prometheus-nginxlog-exporter.yaml",
+                           (ssh, "/root/monitoring/config/prometheus-nginxlog-exporter.yaml"))
+        await ssh.run("docker-compose -f /root/monitoring/docker-compose.yaml up -d", check=True)
 
 
 async def post_deploy(host: str, team_id: int):
@@ -339,6 +376,9 @@ async def deploy_proxies_for_team(
         await deploy_proxy(host, team_id, config.service, proxy)
         for dns_record_prefix in proxy.dns_records:
             await create_dns_record(dns_record_prefix + f".team{team_id}", host)
+
+    http_proxies = [proxy for proxy in config.proxies if proxy.listener.protocol == ListenerProtocol.HTTP and not proxy.disable]
+    await deploy_http_monitoring_config(host, team_id, config.service, http_proxies)
 
     # 4. Run some post-deploy steps such as reloading nginx
     await post_deploy(host, team_id)

@@ -1,0 +1,7 @@
+{
+  "listen": {
+    "port": 4040,
+    "metrics_endpoint": "/metrics"
+  },
+  "namespaces": [ ]
+}
