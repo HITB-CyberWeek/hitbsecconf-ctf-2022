@@ -188,8 +188,6 @@ def put(host, flag_id, flag, vuln):
     (page_content, links) = gen_page(page_url)
     page_model = call_parse_page(session, linkextractor_base_url, page_url, page_content)
 
-    #TODO parse several pages
-
     try:
         parsed_pageId = int(page_model.get("pageId"))
         parsed_linksCount = int(page_model.get("linksCount"))
