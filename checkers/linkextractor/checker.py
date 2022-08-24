@@ -135,6 +135,7 @@ def gen_relative_url_upper():
     path = "/".join(gen_path_segment() for i in range(random.randrange(0,5)))
     return f"{upperLevels}/{path}"
 
+#TODO only call if base_url finishes in '/'
 def gen_relative_url():
     return "/".join(gen_path_segment() for i in range(random.randrange(0,5)))
 
@@ -194,7 +195,7 @@ def get(host, flag_id, flag, vuln):
 
     try:
         info = json.loads(flag_id)
-        page_id = info["public_flag_id"]
+        page_id = int(info["public_flag_id"])
         login = info["login"]
         password = info["password"]
     except Exception:
