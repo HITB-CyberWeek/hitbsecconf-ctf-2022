@@ -55,16 +55,9 @@ class ErrorChecker:
         return True
 
 
-# @checker.define_check
-# async def check_service(request: CheckRequest) -> Verdict:
-#     with ErrorChecker() as ec:
-#         stub = get_stub(request.hostname)
-#         message = generators.gen_string()
-#         resp = stub.Ping(pb2.PingBody(message=message), timeout=5)
-#         if resp.message != message:
-#             print(f'Different ping message: {message} != {resp.message}')
-#             return Verdict.MUMBLE('Different ping message')
-#     return ec.verdict
+@checker.define_check
+async def check_service(request: CheckRequest) -> Verdict:
+    return Verdict.OK()
 
 
 @checker.define_vuln('flag_id is an ticket id')
