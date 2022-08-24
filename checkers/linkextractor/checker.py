@@ -33,7 +33,7 @@ def info():
 
 
 def gen_login():
-    ABC = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ_$()'"
+    ABC = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ$@()'._-"
     return "".join(random.choice(ABC) for i in range(random.randrange(6, 10)))
 
 
