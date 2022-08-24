@@ -3,4 +3,6 @@ service: empty
 scripts:
   build_inside_vm: ""
   start_once: ""
-files: []
+files:
+  - source: empty/motd
+    destination: /etc/
