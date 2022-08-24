@@ -179,6 +179,11 @@ def put(host, flag_id, flag, vuln):
 
     call_register_or_login_user(session, linkextractor_base_url, login, password)
 
+    if random.random() < 0.5:
+        page_url = gen_absolute_url() + '/'
+        (page_content, links) = gen_page(page_url)
+        call_parse_page(session, linkextractor_base_url, page_url, page_content)
+
     page_url = format_flag(flag)
     (page_content, links) = gen_page(page_url)
     page_model = call_parse_page(session, linkextractor_base_url, page_url, page_content)
@@ -193,7 +198,6 @@ def put(host, flag_id, flag, vuln):
         if parsed_pageUrl != page_url:
             verdict(MUMBLE, f"Invalid page url returned in result model from parse page request", "Invalid page url returned in result model from parse page request '%s' with content '%s': %s" % (page_url, page_content, json.dumps(page_model)))
 
-        #TODO check distinctness count or resulting links on page
         if parsed_linksCount >= len(links) or parsed_linksCount < 0:
             verdict(MUMBLE, f"Invalid links count parsed from page", "Invalid links count parsed from page '%s' (parsed %d, sent %d) with content '%s': %s" % (page_url, parsed_linksCount, len(links), page_content, json.dumps(page_model)))
     except Exception:
