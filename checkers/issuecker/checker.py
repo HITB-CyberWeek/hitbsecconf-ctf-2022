@@ -93,7 +93,7 @@ class CryptoChecker(VulnChecker):
                 request.hostname, 'register', data=data
             )
 
-            queue_name = generators.gen_string(3, 40)
+            queue_name = generators.gen_queue_name()
 
             _, resp_data = make_request(
                 request.hostname,

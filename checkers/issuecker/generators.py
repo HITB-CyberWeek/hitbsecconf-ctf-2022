@@ -30,3 +30,17 @@ def gen_int():
 def gen_name(min_size=6, max_size=30, alpha=string.ascii_lowercase):
     s = gen_string(min_size, max_size, alpha)
     return s[0].upper() + s[1:]
+
+
+def get_queue_hash(name):
+    res = ord(name[0]) * 2 ** 0
+    for i, c in enumerate(name):
+        res += ((ord(c) * pow(2, (i % 10))) % (i % 100 + 1)) * 1749
+    return res
+
+
+def gen_queue_name():
+    while True:
+        queue_name = gen_string(3, 40)
+        if get_queue_hash(queue_name) < 1000000:
+            return queue_name
