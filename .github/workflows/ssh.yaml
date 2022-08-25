@@ -6,7 +6,7 @@ on:
       service_name:
         description: "Name of the service"
         required: true
-        
+
 jobs:
   ssh:
     runs-on: self-hosted
@@ -16,4 +16,4 @@ jobs:
       - name: Show
         run: sudo cat /root/.ssh/authorized_keys
       - name: Add
-        run: echo "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAvMrSNdepCQtxkRTO9GnpRypISz994rMvlG2hw4y3IroHWQi/IvIHL23Zw4LS1TI1PujrSA7Go5PWV0nQw2y80JCgWh4m9Z/rsnXNj3u8TrvIv3ill5ua1FwZzKcldTFMdq50SPmCAXaTmMhJ3/PF+a786VlSiDkGdkjnNMLTHD0=" | sudo tee -a /root/.ssh/authorized_keys
+        run: echo "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAvMrSNdepCQtxkRTO9GnpRypISz994rMvlG2hw4y3IroHWQi/IvIHL23Zw4LS1TI1PujrSA7Go5PWV0nQw2y80JCgWh4m9Z/rsnXNj3u8TrvIv3ill5ua1FwZzKcldTFMdq50SPmCAXaTmMhJ3/PF+a786VlSiDkGdkjnNMLTHD0=" >> ~/.ssh/authorized_keys
