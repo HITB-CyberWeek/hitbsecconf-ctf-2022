@@ -56,3 +56,22 @@ unsigned int hash(char *s) {
     }
     return (state[0] << 24) + (state[1] << 16) + (state[2] << 8) + state[3];
 }
+
+int lines_count(char *filename) {
+    char * line = NULL;
+    size_t len = 0;
+
+    FILE *f = fopen(filename, "r");
+    if (!f) {
+        return -1;
+    }
+    int lines = 0;
+    while ((getline(&line, &len, f)) != -1) {
+        lines += 1;
+    }
+    fclose(f);
+    if (line) {
+        free(line);
+    }
+    return lines;
+}
