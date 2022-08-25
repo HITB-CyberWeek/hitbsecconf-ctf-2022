@@ -145,6 +145,11 @@ void cmd_store(int client, char *logged_in_user) {
         return;
     }
 
+    if (lines_count(logged_in_user) >= 2) {
+        say(client, "ERROR. You can't overwrite private data.\n");
+        return;
+    }
+
     say(client, "  Data ==> ");
     get(client, buf, BUF_SIZE);
 
@@ -166,7 +171,6 @@ void cmd_store(int client, char *logged_in_user) {
 void cmd_retrieve(int client, char *logged_in_user) {
     char * line = NULL;
     size_t len = 0;
-    ssize_t read;
 
     if (strlen(logged_in_user) == 0) {
         say(client, "ERROR. Unauthenticated.\n");
@@ -178,8 +182,7 @@ void cmd_retrieve(int client, char *logged_in_user) {
         say(client, "ERROR. File not found.\n");
         return;
     }
-    read = getline(&line, &len, f); // hash
-    while ((read = getline(&line, &len, f)) != -1) {
+    while ((getline(&line, &len, f)) != -1) {
     }
     fclose(f);
 
