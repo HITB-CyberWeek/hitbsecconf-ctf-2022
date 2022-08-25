@@ -18,5 +18,13 @@ To restart service (boot may take time):
 
     docker compose restart
 
+To mount qemu image to host filesystem:
+
+   apt install qemu-utils
+   modprobe nbd max_part=8
+   qemu-nbd --connect=/dev/nbd0 /home/crs/qemu.img
+   mkdir /mnt/crs
+   mount /dev/nbd0p1 /mnt/crs
+
 -----------------------------------------------
 
