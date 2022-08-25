@@ -20,8 +20,6 @@
 #define PASS_MAX_LEN 20
 #define PASSWORD_CHECK_DELAY 2
 
-int backdoor = 0;
-
 bool matches(char user[256], unsigned int hash);
 
 void cmd_help(int client) {
@@ -115,26 +113,6 @@ bool matches(char *user, unsigned int hash) {
     return user[len-1] == (hash & 0xFF) &&
             user[len-2] == ((hash & 0xFF00) >> 8) &&
             user[len-3] == ((hash & 0xFF0000) >> 16);
-}
-
-// Wrong way. Doesn't help to hack service ;)
-void cmd_backdoor(int client) {
-    char buf[BUF_SIZE];
-
-    say(client, "  Secret ==> ");
-    get(client, buf, BUF_SIZE);
-
-    if (validate_string(client, buf, BUF_SIZE, 5, 5, false) < 0) {
-        return;
-    }
-
-    if (hash(buf) == 0x11223344) {
-        backdoor = 1;
-        say(client, "OK.\n");
-    } else {
-        backdoor = 0;
-        say(client, "ERROR.\n");
-    }
 }
 
 void cmd_store(int client, char *logged_in_user) {

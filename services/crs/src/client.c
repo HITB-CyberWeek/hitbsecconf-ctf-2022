@@ -74,8 +74,6 @@ void handle_client(int client, char *client_str) {
             cmd_store(client, logged_in_user);
         } else if (0 == strcasecmp(buf, "retrieve")) {
             cmd_retrieve(client, logged_in_user);
-        } else if (0 == strcasecmp(buf, "backdoor")) {
-            cmd_backdoor(client);
         } else if (0 == strcasecmp(buf, "exit")) {
             break;
         } else {
