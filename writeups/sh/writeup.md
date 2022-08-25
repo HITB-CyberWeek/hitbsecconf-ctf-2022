@@ -2,17 +2,19 @@
 
 ## Description
 
-Sites hosting
+SH is a service for hosting static files. There are two routes in application:
 
-## Vuln
+1. `@app.post("/bucket/~{bucket}")` for create an s3 bucket with a given name and files from archive;
+2. `@app.get("/~{bucket}/{file}")` for get a file from bucket.
 
-[CVE-2022-30333](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-30333)
+## Steps to exploit
 
-## Exploit
+- To hack this service you can exploit [CVE-2022-30333](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-30333) bug and upload a malicious `rar` archive.
+- Service will extract files from the archive and can rewrite any python module at this time (i.e. module for some archive type in patoolib).
+- Next, the service will extract other embedded archives and import malicious module for this type of arсhive and execute arbitrary code.
+- In this code you can get needed data from s3 and send it to own service over network.
 
-### Create vuln archive
-
-...
+## Howto create a vuln archive
 
 To create an archive on Windows you can follow [this instruction](https://attackerkb.com/topics/RCa4EIZdbZ/cve-2022-30333/rapid7-analysis). But you can create such archive in GNU/Linux:
 
