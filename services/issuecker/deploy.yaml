@@ -13,7 +13,8 @@ files:
   - sources:
       - Dockerfile
       - docker-compose.yaml
-      - src/build
+      - src/apache2
+      - src/server
       - src/lighttpd
       - src/api.cpp
       - src/validators.cpp
