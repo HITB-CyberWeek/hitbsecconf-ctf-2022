@@ -1,14 +1,8 @@
 FROM ubuntu:22.04
-WORKDIR /cgicc
-RUN apt update && apt install g++ make autoconf libboost-all-dev wget -y
-RUN wget "http://ftp.gnu.org/gnu/cgicc/cgicc-3.2.19.tar.gz" \
-    && tar -xzvf cgicc-3.2.19.tar.gz \
-    && cd cgicc-3.2.19 \
-    && ./configure \
-    && make \
-    && make install
 
+RUN apt update && apt install apache2 -y
 
-COPY . /app
-WORKDIR /app
-CMD ["sh", "-c", "/app/build.sh"]
+RUN a2enmod cgi
+RUN service apache2 restart
+
+CMD /usr/sbin/apache2ctl -D FOREGROUND

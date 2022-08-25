@@ -1,6 +1,8 @@
 #include <cmath>
 #include <sstream>
 #include <iostream>
+#include <fstream>
+#include <random>
 #include <boost/beast/core/detail/base64.hpp>
 #include "utils.h"
 
@@ -16,6 +18,22 @@ std::string get_queue_hash(std::string_view name) {
     return ss.str();
 }
 
+
+static const std::string ALPHA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+std::string gen_random_string(uint length) {
+    std::random_device random_device;
+    std::mt19937 generator(random_device());
+    std::uniform_int_distribution<> distribution(0, ALPHA.size() - 1);
+
+    std::stringstream random_string;
+
+    for (uint i = 0; i < length; ++i) {
+        random_string << ALPHA[distribution(generator)];
+    }
+
+    return random_string.str();
+}
 
 std::string base64encode(const std::string& source) {
     auto size = boost::beast::detail::base64::encoded_size(source.length());
@@ -34,4 +52,18 @@ std::string base64decode(const std::string& source) {
     std::string string_res(res, new_size);
     delete[] res;
     return string_res;
+}
+
+
+void log(const std::string& message)  {
+    std::ofstream outfile;
+    outfile.open(LOG_FILE, std::ios_base::app);
+
+    time_t     now = time(nullptr);
+    char       buf[80];
+    auto tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+
+    std::string sbuf = buf;
+    outfile << getpid() << ": " << sbuf << " " << message << std::endl;
 }

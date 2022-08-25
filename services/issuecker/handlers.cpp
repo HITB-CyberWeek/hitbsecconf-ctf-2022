@@ -8,7 +8,6 @@
 
 void bad_request(const char* message, int code = 400) {
     std::cout << cgicc::HTTPStatusHeader(code, message);
-    std::cout << message;
 }
 
 
@@ -24,6 +23,7 @@ void create_session_and_set_cookies(Api& api, const std::string& username) {
 
 
 void index_handler() {
+    std::cout << "Content-Type: text/plain" << std::endl << std::endl;
     std::cout << "Check out this handlers:" << std::endl;
     std::cout << "  /register" << std::endl;
     std::cout << "  /login" << std::endl;
@@ -53,7 +53,7 @@ void login_handler(Api& api, const nlohmann::basic_json<>& req, const std::strin
     auto password = req["password"].get<std::string>();
 
     if (!api.validate_password(username, password)) {
-        bad_request("invalid user or passowrd");
+        bad_request("invalid user or password");
         return;
     }
 
@@ -70,6 +70,8 @@ void add_queue_handler(Api& api, const nlohmann::basic_json<>& req, const std::s
             {"queue_id",  queue_id},
             {"queue_key", queue_key},
     };
+
+    std::cout << "Content-Type: application/json" << std::endl << std::endl;
     std::cout << res.dump();
 }
 
@@ -88,6 +90,7 @@ void add_ticket_handler(Api& api, const nlohmann::basic_json<>& req, const std::
         }
 
         auto ticket_id = api.add_ticket(queue_id, title, description);
+        std::cout << "Content-Type: application/json" << std::endl << std::endl;
         std::cout << R"({"ticket_id": ")" << ticket_id << "\"}";
 
     } catch (const std::runtime_error& e) {
@@ -124,6 +127,7 @@ void find_tickets_handler(Api& api, const nlohmann::basic_json<>& req, const std
             };
             res.push_back(ticket_json);
         }
+        std::cout << "Content-Type: application/json" << std::endl << std::endl;
         std::cout << res.dump();
 
     } catch (const std::runtime_error &e) {
@@ -133,10 +137,10 @@ void find_tickets_handler(Api& api, const nlohmann::basic_json<>& req, const std
 
 
 void not_found_handler(const std::string& path) {
+    std::cout << "Content-Type: text/plain" << std::endl << std::endl;
     std::stringstream message;
     message << "path '" << path << "' not found in routing";
     std::cout << cgicc::HTTPStatusHeader(404, message.str());
-    std::cout << message.str();
 }
 
 

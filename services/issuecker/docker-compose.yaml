@@ -1,12 +1,11 @@
 version: '2'
 
 services:
-  lighttpd:
-    image: sebp/lighttpd
+  httpd:
+    build: .
     volumes:
-#      - "./data:/data"
-      - "./lighttpd:/etc/lighttpd"
-      - "./build:/var/www/localhost/cgi-bin"
+      - "./apache2:/etc/apache2"
+      - "./build:/var/www/html"
     ports:
       - "80:80"
     tty: true

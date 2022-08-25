@@ -1,0 +1,14 @@
+FROM ubuntu:22.04
+WORKDIR /cgicc
+RUN apt update && apt install g++ make autoconf libboost-all-dev wget -y
+RUN wget "http://ftp.gnu.org/gnu/cgicc/cgicc-3.2.19.tar.gz" \
+    && tar -xzvf cgicc-3.2.19.tar.gz \
+    && cd cgicc-3.2.19 \
+    && ./configure \
+    && make \
+    && make install
+
+
+COPY . /app
+WORKDIR /app
+CMD ["sh", "-c", "/app/build.sh"]

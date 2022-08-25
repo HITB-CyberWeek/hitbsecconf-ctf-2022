@@ -20,7 +20,7 @@ import generators
 checker = NewChecker()
 
 
-URL_TEMPLATE = 'http://{host}/cgi-bin/app/{method}'
+URL_TEMPLATE = 'http://{host}/app.cgi/{method}'
 
 
 def make_request(host, method, data, cookies=None):
@@ -155,9 +155,12 @@ class CryptoChecker(VulnChecker):
             if res_data[0]['description'] != flag_id_json['ticket_description']:
                 return Verdict.CORRUPT('Incorrect ticket description')
 
+            actual_flag = base64.b64decode(res_data[0]['description'].encode()).decode().split()[-1].strip()
+            if actual_flag != request.flag:
+                return Verdict.CORRUPT('Incorrect flag')
+
         return ec.verdict
 
 
 if __name__ == '__main__':
     checker.run()
-# print(generators.gen_description())
