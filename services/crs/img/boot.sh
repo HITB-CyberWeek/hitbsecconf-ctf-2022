@@ -2,7 +2,7 @@
 set -eu
 
 IMAGE="qemu.img"
-CPU="max,zpci=on"
+CPU="max,zpci=on,msa-base=off"
 MEM=4096
 CORES=$(nproc)
 

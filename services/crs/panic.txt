@@ -1,0 +1,58 @@
+[    4.445535] Run /init as init process
+Loading, please wait...
+Starting version 245.4-4ubuntu3.17
+[    5.213460] random: systemd-udevd: uninitialized urandom read (16 bytes read)
+[    5.285781] random: systemd-udevd: uninitialized urandom read (16 bytes read)
+[    5.286638] random: systemd-udevd: uninitialized urandom read (16 bytes read)
+[    7.857882] hrtimer: interrupt took 36333423 ns
+[    8.212915] virtio_blk virtio0: [vda] 4612096 512-byte logical blocks (2.36 GB/2.20 GiB)
+[    8.285785]  vda: vda1
+[    9.455038] virtio_net virtio1 enc2: renamed from eth0
+[   10.209105] Unable to handle kernel pointer dereference in virtual kernel address space
+[   10.209190] Failing address: 000003ff80009000 TEID: 000003ff80009803
+[   10.209208] Fault in home space mode while using kernel ASCE.
+[   10.209290] AS:0000000001494007 R3:00000000fecdc007 S:00000000fec2a000 P:00000000f5ce003d 
+[   10.209834] Oops: 0011 ilc:1 [#1] SMP 
+[   10.209898] Modules linked in: ghash_s390(-) pkey(+) zcrypt crc32_vx_s390 aes_s390 des_s390 libdes virtio_net net_failover virtio_blk failover sha_common
+[   10.210309] CPU: 2 PID: 149 Comm: systemd-udevd Not tainted 5.4.0-125-generic #141-Ubuntu
+[   10.210340] Hardware name: QEMU 3906 QEMU (KVM/Linux)
+[   10.210448] Krnl PSW : 0704c00180000000 000003ff800092b0 (0x3ff800092b0)
+[   10.210715]            R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:3 CC:0 PM:0 RI:0 EA:3
+[   10.210759] Krnl GPRS: 0000000000000000 000003e000c77c10 ffffffffffffffed 0000000000fa8708
+[   10.210789]            00000000fc92e6b0 0000000000000000 ffffffffffff8000 000003e000c77d88
+[   10.210816]            0000000000000000 000003ff80023000 00000000fc92e2e0 000003ff800ce900
+[   10.210851]            00000000feabc400 0000000000000c78 00000000001008c0 000003e000c77b98
+[   10.211255] Krnl Code: 000003ff800092aa: 0000		illegal	
+[   10.211255]            000003ff800092ac: 0000		illegal	
+[   10.211255]           #000003ff800092ae: 0000		illegal	
+[   10.211255]           >000003ff800092b0: 0000		illegal	
+[   10.211255]            000003ff800092b2: 0000		illegal	
+[   10.211255]            000003ff800092b4: 0000		illegal	
+[   10.211255]            000003ff800092b6: 0000		illegal	
+[   10.211255]            000003ff800092b8: 0000		illegal	
+[   10.211478] Call Trace:
+[   10.211641] ([<00000000001008c0>] do_one_initcall+0x40/0x200)
+[   10.211729]  [<000000000022b0a6>] do_init_module+0x66/0x270 
+[   10.211752]  [<000000000022d4be>] load_module+0x139e/0x16b0 
+[   10.211773]  [<000000000022da04>] __do_sys_finit_module+0xa4/0xf0 
+[   10.211798]  [<00000000009e9d48>] system_call+0xdc/0x2c8 
+[   10.211858] Last Breaking-Event-Address:
+[   10.212110]  [<000003ff8002306c>] cpu_feature_match_MSA_init+0x6c/0x1000 [pkey]
+[   10.212429] ---[ end trace a13da1e565c5f2cb ]---
+
+<< next boot >>
+
+qemu-system-s390x: warning: 'msa5-base' requires 'kimd-sha-512'.
+qemu-system-s390x: warning: 'msa5-base' requires 'klmd-sha-512'.
+qemu-system-s390x: warning: 'msa5-base' requires 'kimd-sha-512'.
+qemu-system-s390x: warning: 'msa5-base' requires 'klmd-sha-512'.
+qemu-system-s390x: warning: 'msa5-base' requires 'kimd-sha-512'.
+qemu-system-s390x: warning: 'msa5-base' requires 'klmd-sha-512'.
+qemu-system-s390x: warning: 'msa5-base' requires 'kimd-sha-512'.
+qemu-system-s390x: warning: 'msa5-base' requires 'klmd-sha-512'.
+LOADPARM=[        ]
+Using virtio-blk.
+Using SCSI scheme.
+........
+KASLR disabled: CPU has no PRNG
+
