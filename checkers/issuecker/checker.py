@@ -48,13 +48,31 @@ class ErrorChecker:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        if exc_type is None:
+            return True
+
         if exc_type:
             print(exc_type)
             print(exc_value.__dict__)
 
-            self.verdict = Verdict.CHECKER_ERROR('error')
             traceback.print_tb(exc_traceback, file=sys.stdout)
 
+        if isinstance(exc_value, (json.decoder.JSONDecodeError, KeyError)):
+            self.verdict = Verdict.MUMBLE('Incorrect json: {} {}'.format(exc_type, exc_value))
+            return True
+
+        if isinstance(exc_value, (requests.exceptions.ConnectionError,)):
+            self.verdict = Verdict.DOWN('Connection error: {}'.format(exc_value))
+            return True
+
+        if isinstance(exc_value, (requests.exceptions.HTTPError,)):
+            if exc_value.response.status_code // 100 == 5:
+                self.verdict = Verdict.DOWN(str(exc_value))
+            else:
+                self.verdict = Verdict.MUMBLE('Incorrect status code: {}'.format(exc_value))
+            return True
+
+        self.verdict = Verdict.CHECKER_ERROR('Checker error')
         return True
 
 
@@ -83,6 +101,16 @@ class CryptoChecker(VulnChecker):
                 cookies=cookies,
                 data={'queue_name': queue_name},
             )
+
+            if not isinstance(resp_data, dict):
+                return Verdict.MUMBLE("Incorrect resp_data type: {}".format(type(resp_data)))
+
+            if not isinstance(resp_data["queue_key"], str):
+                return Verdict.MUMBLE("Incorrect {} type: {}".format("queue_key", type(resp_data["queue_key"])))
+
+            if not isinstance(resp_data["queue_id"], int):
+                return Verdict.MUMBLE("Incorrect {} type: {}".format("queue_id", type(resp_data["queue_id"])))
+
             queue_id = resp_data['queue_id']
             queue_key = resp_data['queue_key']
 
@@ -103,6 +131,10 @@ class CryptoChecker(VulnChecker):
                     'description': ticket_description,
                 },
             )
+
+            if not isinstance(resp_data, dict):
+                return Verdict.MUMBLE("Incorrect resp_data type: {}".format(type(resp_data)))
+
             ticket_id = resp_data['ticket_id']
             flag_id = json.dumps(
                 {
@@ -138,9 +170,8 @@ class CryptoChecker(VulnChecker):
             }
             _, res_data = make_request(request.hostname, 'find_tickets', data, cookies=cookies)
 
-            print("resp data: {}".format(res_data))
             if not isinstance(res_data, list):
-                return Verdict.MUMBLE('Wrong resp data type')
+                return Verdict.MUMBLE('Wrong response data type')
 
             if len(res_data) != 1:
                 return Verdict.CORRUPT('Can not find related ticket')
