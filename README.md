@@ -18,7 +18,7 @@ You can read details on official contest website: https://ctf.hackerdom.ru/hitb-
 
 Official conference website: https://conference.hitb.org/hitbsecconf2022sin/.
 
-### This repository contains
+# This repository contains
 
 * source of all services in folder [services/](services/)
 * checkers for [checksystem](https://github.com/Hackerdom/checksystem) in folder [checkers/](checkers/)
@@ -30,7 +30,9 @@ Also, we bring to you some of our internal infrastructure magic:
 * CI/CD for Digital Ocean's images services' packing and proxies deploying. See [vuln_images/](vuln_images/) and [.github/workflows/](.github/workflows).
 * our CTF Cloud and VPN Infrastructure in [ctf-cloud/](ctf-cloud/).
 
-Final scoreboard:
+All materials are licensed under [MIT License](LICENSE).
+
+# Final scoreboard
 
 <img src="static/scoreboard.png" alt="Final scoreboard">
 
@@ -56,15 +58,16 @@ This CTF is brought to you by these amazing guys:
 * [Alexander Bersenev](https://github.com/alexbers) aka `bay`, the author of the service `obscurity`, also our Cloud and VPN master
 * [Andrey Gein](https://github.com/andgein) aka `andgein`, out teamleader, DevOps and support for teams
 * [Andrey Khozov](https://github.com/avkhozov) aka `and`, the author of the service `sh`, also our checksystem master
+* [Artem Deikov](https://github.com/hx0day) aka `hx0day`, the author of the service `wallet`
 * [Artem Zinenko](https://github.com/ar7z1) aka `art`, the author of the service `n0tes`
 * [Artur Khanov](https://github.com/awengar) aka `awengar`, the author of the service `mypack`
+* [Daniil Sharko](https://github.com/werelaxe) aka `werelaxe`, the author of the service `issuecker`
 * [Dmitry Simonov](https://github.com/dimmo) aka `dimmo`, the author of the service `crs`
 * [Dmitry Titarenko](https://github.com/dscheg) aka `dscheg`, the author of the service `smallword`
 * [Konstantin Plotnikov](https://github.com/kostteg) aka `kost`, the author of the service `linkextractor`
-* [Daniil Sharko](https://github.com/werelaxe) aka `werelaxe`, the author of the service `issuecker`
 * [Nikolay Zhuravlev](https://github.com/znick) aka `znick`, the author of the service `kv`
-* [Artem Deikov](https://github.com/hx0day) aka `hx0day`, the author of the service `wallet`
 
-If you have any question about services write us an email to [info@hackerdom.ru](mailto:info@hackerdom.ru).
+If you have any question about services, platform or competition 
+write us an email to [info@hackerdom.ru](mailto:info@hackerdom.ru) or [ctf@hitb.org](mailto:ctf@hitb.org).
 
 © 2022 [HackerDom](http://hackerdom.ru)
