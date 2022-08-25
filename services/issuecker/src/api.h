@@ -8,8 +8,6 @@
 #include "modesl.h"
 #include "session_manager.h"
 
-using csl = const std::string&;
-
 
 int get_ticket_sub_id(const std::string& ticket_id);
 
@@ -30,11 +28,11 @@ public:
 
     std::vector<Ticket> find_tickets(unsigned long queue_id, const std::string& ticket_id, const std::string& title, const std::string& description);
 
-    bool is_user_exists(csl username);
+    bool is_user_exists(const std::string& username);
 
-    void register_user(csl username, csl password);
+    void register_user(const std::string& username, const std::string& password);
 
-    bool validate_password(csl username, csl password);
+    bool validate_password(const std::string& username, const std::string& password);
 
     CFlyRedisClient redis_client;
     SessionManager sm;
