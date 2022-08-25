@@ -57,6 +57,7 @@ void handle_client(int client, char *client_str) {
             time_t delta_seconds = time(0) - last_cmd_time;
             if (delta_seconds < CMD_DELAY) {
                 say(client, "ERROR. Too fast command retransmission.\n\n");
+                last_cmd_time = time(0);
                 continue;
             }
         }
