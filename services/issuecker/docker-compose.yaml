@@ -4,8 +4,9 @@ services:
   httpd:
     build: .
     volumes:
+      - "./data:/tmp_data"
       - "./apache2:/etc/apache2"
-      - "./build:/var/www/html"
+      - "./server:/var/www/html"
     ports:
       - "80:80"
     tty: true

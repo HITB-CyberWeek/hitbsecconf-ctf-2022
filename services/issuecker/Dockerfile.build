@@ -9,6 +9,6 @@ RUN wget "http://ftp.gnu.org/gnu/cgicc/cgicc-3.2.19.tar.gz" \
     && make install
 
 
-COPY . /app
+COPY ./src /app
 WORKDIR /app
 CMD ["sh", "-c", "/app/build.sh"]

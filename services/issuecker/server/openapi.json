@@ -1,0 +1,346 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Issuecker",
+    "description": "Simple issue tracker",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "/app.cgi"
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth"
+    },
+    {
+      "name": "content"
+    }
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register a new user",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPair"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful registration",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string",
+                  "example": "username=username; secret=abcde12345;"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid username or password"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Log in into existing account",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPair"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful registration",
+            "headers": {
+              "Set-Cookie": {
+                "schema": {
+                  "type": "string",
+                  "example": "username=username; secret=abcde12345;"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid username or password"
+          }
+        }
+      }
+    },
+    "/add_queue": {
+      "post": {
+        "security": [
+          {
+            "cookieSecret": []
+          },
+          {
+            "cookieName": []
+          }
+        ],
+        "tags": [
+          "content"
+        ],
+        "summary": "Add new queue",
+        "operationId": "add_queue",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddQueueReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful queue creation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddQueueRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed auth or invalid queue name"
+          }
+        }
+      }
+    },
+    "/add_ticket": {
+      "post": {
+        "security": [
+          {
+            "cookieSecret": []
+          },
+          {
+            "cookieName": []
+          }
+        ],
+        "tags": [
+          "content"
+        ],
+        "summary": "Add new ticket",
+        "operationId": "add_ticket",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTicketReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful ticket creation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddTicketRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed auth or invalid ticket title or description"
+          }
+        }
+      }
+    },
+    "/find_tickets": {
+      "post": {
+        "security": [
+          {
+            "cookieSecret": []
+          },
+          {
+            "cookieName": []
+          }
+        ],
+        "tags": [
+          "content"
+        ],
+        "summary": "Find tickets",
+        "operationId": "find_tickets",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindTicketsReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful ticket search result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FindTicketsRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed auth or invalid queue_id or invalid ticket_id, title or description"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieSecret": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "secret"
+      },
+      "cookieName": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "name"
+      }
+    },
+    "schemas": {
+      "UserPair": {
+        "required": [
+          "username",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "username"
+          },
+          "password": {
+            "type": "string",
+            "example": "password"
+          }
+        }
+      },
+      "AddQueueReq": {
+        "required": [
+          "queue_name"
+        ],
+        "type": "object",
+        "properties": {
+          "queue_name": {
+            "type": "string",
+            "example": "My queue"
+          }
+        }
+      },
+      "AddQueueRes": {
+        "required": [
+          "queue_id",
+          "queue_key"
+        ],
+        "type": "object",
+        "properties": {
+          "queue_id": {
+            "type": "string"
+          },
+          "queue_key": {
+            "type": "string"
+          }
+        }
+      },
+      "AddTicketReq": {
+        "required": [
+          "queue_id",
+          "title",
+          "description"
+        ],
+        "type": "object",
+        "properties": {
+          "queue_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "FindTicketsReq": {
+        "required": [
+          "queue_id"
+        ],
+        "type": "object",
+        "properties": {
+          "queue_id": {
+            "type": "string"
+          },
+          "ticket_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "FindTicketsRes": {
+        "required": [
+          "description",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "AddTicketRes": {
+        "required": [
+          "ticket_id"
+        ],
+        "type": "object",
+        "properties": {
+          "ticket_id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

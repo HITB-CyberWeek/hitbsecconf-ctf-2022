@@ -11,14 +11,14 @@ scripts:
     docker compose -f /home/$USERNAME/docker-compose.yaml up -d
 files:
   - sources:
-      - docker-compose.yaml
-      - build
-      - lighttpd
-      - api.cpp
-      - validators.cpp
-      - hasher.cpp
-      - session_manager.cpp
-      - utils.cpp
+      - src/docker-compose.yaml
+      - src/build
+      - src/lighttpd
+      - src/api.cpp
+      - src/validators.cpp
+      - src/hasher.cpp
+      - src/session_manager.cpp
+      - src/utils.cpp
     destination: /home/$USERNAME
 
 proxies:
