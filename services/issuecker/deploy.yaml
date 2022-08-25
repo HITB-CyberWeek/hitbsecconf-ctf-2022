@@ -11,7 +11,7 @@ scripts:
     docker compose -f /home/$USERNAME/docker-compose.yaml up -d
 files:
   - sources:
-      - src/docker-compose.yaml
+      - docker-compose.yaml
       - src/build
       - src/lighttpd
       - src/api.cpp
