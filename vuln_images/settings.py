@@ -17,7 +17,7 @@ n0tes = pathlib.Path("../checkers/n0tes/")
 PROXY_CERTIFICATES = {
     "wildcard.ctf.hitb.org": {
         tuple(range(1, 101)): (teams1_100_ctf_hitb_org / "fullchain.pem", teams1_100_ctf_hitb_org / "privkey.pem"),
-        tuple(range(100, 201)): (teams101_200_ctf_hitb_org / "fullchain.pem", teams1_100_ctf_hitb_org / "privkey.pem"),
+        tuple(range(100, 201)): (teams101_200_ctf_hitb_org / "fullchain.pem", teams101_200_ctf_hitb_org / "privkey.pem"),
     },
     "n0tes_client": (n0tes / "n0tes-admin.crt", n0tes / "n0tes-admin.key"),
     "admin.n0tes.ctf.hitb.org": (admin_n0tes_ctf_hitb_org / "fullchain.pem", admin_n0tes_ctf_hitb_org / "privkey.pem"),

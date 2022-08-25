@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 prepared=0
 for deploy_yaml in ../services/*/deploy.yaml
 do
@@ -11,5 +13,5 @@ do
   fi
 
   # Skip preparation (because it's done already) and deploy proxies!
-  ./deploy_proxies.py --skip-preparation "$deploy_yaml"
+  ./deploy_proxies.py --skip-preparation --skip-dns "$deploy_yaml"
 done

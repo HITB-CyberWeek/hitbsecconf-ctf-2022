@@ -83,7 +83,7 @@ jobs:
   #       with:
   #         requirements: vuln_images/requirements.txt
   #     - name: Deploy proxies
-  #       run: python3 deploy_proxies.py --skip-preparation ../services/${{ github.event.inputs.service_name }}/deploy.yaml
+  #       run: python3 deploy_proxies.py --skip-preparation --skip-dns ../services/${{ github.event.inputs.service_name }}/deploy.yaml
   #       working-directory: "${{ github.workspace }}/vuln_images/"
   #       env:
   #         DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}

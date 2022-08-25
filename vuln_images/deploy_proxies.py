@@ -358,7 +358,7 @@ async def create_dns_record(hostname: str, value: str, ttl: int = 60):
 
 
 async def deploy_proxies_for_team(
-    config: DeployConfig, host: str, skip_preparation: bool, prepare_only: bool, team_id: int
+    config: DeployConfig, host: str, skip_preparation: bool, prepare_only: bool, skip_dns: bool, team_id: int
 ):
     # 1. Prepare host
     if not skip_preparation:
@@ -376,13 +376,15 @@ async def deploy_proxies_for_team(
             typer.echo(f"[{host}] Disabling proxy {config.service}:{proxy.name}")
             upstream_ip = get_upstream_ip_address(proxy, team_id)
             await disable_proxy(host, proxy, upstream_ip)
-            for dns_record_prefix in proxy.dns_records:
-                await create_dns_record(dns_record_prefix + f".team{team_id}", str(upstream_ip))
+            if not skip_dns:
+                for dns_record_prefix in proxy.dns_records:
+                    await create_dns_record(dns_record_prefix + f".team{team_id}", str(upstream_ip))
             continue
 
         await deploy_proxy(host, team_id, config.service, proxy)
-        for dns_record_prefix in proxy.dns_records:
-            await create_dns_record(dns_record_prefix + f".team{team_id}", host)
+        if not skip_dns:
+            for dns_record_prefix in proxy.dns_records:
+                await create_dns_record(dns_record_prefix + f".team{team_id}", host)
 
     http_proxies = [proxy for proxy in config.proxies if proxy.listener.protocol == ListenerProtocol.HTTP and not proxy.disable]
     await deploy_http_monitoring_config(host, team_id, config.service, http_proxies)
@@ -392,7 +394,7 @@ async def deploy_proxies_for_team(
 
 
 async def deploy_proxies(
-    config: DeployConfig, skip_preparation: bool, prepare_only: bool, only_for_team_id: Optional[int]
+    config: DeployConfig, skip_preparation: bool, prepare_only: bool, skip_dns: bool, only_for_team_id: Optional[int]
 ):
     tasks = []
 
@@ -400,7 +402,7 @@ async def deploy_proxies(
         if only_for_team_id is not None and only_for_team_id != team_id:
             continue
 
-        tasks.append(deploy_proxies_for_team(config, host, skip_preparation, prepare_only, team_id))
+        tasks.append(deploy_proxies_for_team(config, host, skip_preparation, prepare_only, skip_dns, team_id))
 
     await asyncio.gather(*tasks)
 
@@ -416,6 +418,10 @@ def main(
         False, "--prepare-only",
         help="Run only preparation steps: generating dhparam, copying certificates, ..."
     ),
+    skip_dns: bool = typer.Option(
+        False, "--skip-dns",
+        help="Skip creating and updating DNS records"
+    ),
     team_id: Optional[int] = typer.Option(None, "--team-id", help="Deploy proxy only for specified team"),
 ):
     if skip_preparation and prepare_only:
@@ -426,7 +432,7 @@ def main(
     if check:
         raise typer.Exit()
 
-    asyncio.run(deploy_proxies(config, skip_preparation, prepare_only, team_id))
+    asyncio.run(deploy_proxies(config, skip_preparation, prepare_only, skip_dns, team_id))
 
 
 if __name__ == "__main__":
