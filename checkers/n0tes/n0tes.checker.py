@@ -211,7 +211,12 @@ def export_notes(host):
 
     trace("Successfully exported notes")
 
-    return (OK, "", "", json.loads(response.read()))
+    try:
+        notes = json.loads(response.read())
+    except json.decoder.JSONDecodeError as e:
+        return (MUMBLE, "Can't export notes", "JSONDecodeError while reading notes: %s" % e, None)
+
+    return (OK, "", "", notes)
 
 
 def check_export_without_certificate(host):
