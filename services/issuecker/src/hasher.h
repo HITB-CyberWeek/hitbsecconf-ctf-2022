@@ -6,7 +6,7 @@
 
 const uint MAX_TICKET_LEN = 50;
 const uint MAX_TITLE_LEN = 100;
-const uint MAX_DESCRIPTION_LEN = 1000;
+const uint MAX_DESCRIPTION_LEN = 1500;
 const uint MAX_BLOB_LEN = MAX_TICKET_LEN + MAX_TITLE_LEN + MAX_DESCRIPTION_LEN;
 const uint HASH_SIZE = 100;
 

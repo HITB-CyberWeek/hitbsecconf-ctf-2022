@@ -82,8 +82,8 @@ bool validate_add_queue_req(const nlohmann::basic_json<>& obj) {
 bool validate_add_ticket_req(const nlohmann::basic_json<>& obj) {
     return validate_json_object(obj, {
             {"queue_id", validate_json_number},
-            {"title", get_length_validator(0, 1000)},
-            {"description", get_length_validator(0, 10000)},
+            {"title", get_length_validator(0, 150)},
+            {"description", get_length_validator(0, 2000)},
     });
 }
 
@@ -92,8 +92,8 @@ bool validate_find_tickets_req(const nlohmann::basic_json<>& obj) {
             {
                 {"queue_id", validate_json_number},
                 {"ticket_id", dummy_validator},
-                {"title", get_length_validator(0, 1000)},
-                {"description", get_length_validator(0, 10000)},
+                {"title", get_length_validator(0, 150)},
+                {"description", get_length_validator(0, 2000)},
             },
             {
                 "ticket_id", "title", "description"
