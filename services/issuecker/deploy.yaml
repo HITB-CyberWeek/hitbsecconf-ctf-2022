@@ -11,6 +11,7 @@ scripts:
     docker compose -f /home/$USERNAME/docker-compose.yaml up -d
 files:
   - sources:
+      - Dockerfile
       - docker-compose.yaml
       - src/build
       - src/lighttpd
