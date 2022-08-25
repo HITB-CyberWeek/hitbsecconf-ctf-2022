@@ -17,7 +17,7 @@ requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.
 OK, CORRUPT, MUMBLE, DOWN, CHECKER_ERROR = 101, 102, 103, 104, 110
 
 PORT = 80
-TIMEOUT = 5
+TIMEOUT = 10
 
 def verdict(exit_code, public="", private=""):
     if public:
