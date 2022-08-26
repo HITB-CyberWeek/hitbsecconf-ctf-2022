@@ -47,9 +47,9 @@ All materials are licensed under [MIT License](LICENSE).
 | n0tes          | Bushwhackers             |
 | sh             | Bushwhackers             |
 | crs            |                          |
-| wallet         |                          |
+| wallet         | Bushwhackers             |
 | mypack         |                          |
-| issuecker      |                          |
+| issuecker      | C4T BuT S4D              |
 
 # Authors
 
