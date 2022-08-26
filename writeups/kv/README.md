@@ -54,9 +54,9 @@ See Bitcoin [Block hashing algorithm](https://en.bitcoin.it/wiki/Block_hashing_a
 Use can file bitcoin blocks dumps at [Blockchair dumps site](https://gz.blockchair.com/bitcoin/blocks/) (or in many other places).
 
 ## Exploit
-See [kv/kv/exploit.py](https://github.com/HITB-CyberWeek/hitbsecconf-ctf-2022/blob/main/sploits/kv/exploit.py).
+See [sploits/kv/exploit.py](https://github.com/HITB-CyberWeek/hitbsecconf-ctf-2022/blob/main/sploits/kv/exploit.py).
 
-Download blockchain blocks to ```blocks/``` dir before running the exploit. See [READE.md](https://github.com/HITB-CyberWeek/hitbsecconf-ctf-2022/blob/main/sploits/kv/blocks/README.md) for details.
+Download blockchain blocks to ```blocks/``` dir before running the exploit. See [README.md](https://github.com/HITB-CyberWeek/hitbsecconf-ctf-2022/blob/main/sploits/kv/blocks/README.md) for details.
 
 ```
 ./exploit.py --url_prefix https://kv.team21.ctf.hitb.org --filename flag_filename --client_id 1337
