@@ -56,7 +56,7 @@ All materials are licensed under [MIT License](LICENSE).
 This CTF is brought to you by these amazing guys:
 
 * [Alexander Bersenev](https://github.com/alexbers) aka `bay`, the author of the service `obscurity`, also our Cloud and VPN master
-* [Andrey Gein](https://github.com/andgein) aka `andgein`, out teamleader, DevOps and support for teams
+* [Andrey Gein](https://github.com/andgein) aka `andgein`, our teamleader, DevOps and support for teams
 * [Andrey Khozov](https://github.com/avkhozov) aka `and`, the author of the service `sh`, also our checksystem master
 * [Artem Deikov](https://github.com/hx0day) aka `hx0day`, the author of the service `wallet`
 * [Artem Zinenko](https://github.com/ar7z1) aka `art`, the author of the service `n0tes`
