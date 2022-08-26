@@ -1,6 +1,6 @@
 # KV
 ## Service Description
-KV is a simple key-value service with 3 endpoints
+KV is a simple key-value storage with 3 endpoints
 
 * ```POST /register``` returns ```client_id``` and ```client_secret```
 * ```PUT /kv/{filename}``` to put the data
