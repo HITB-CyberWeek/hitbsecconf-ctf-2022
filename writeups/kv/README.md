@@ -50,7 +50,7 @@ Note. If you get [random bitcoin block](https://www.blockchain.com/btc/block/125
 
 See Bitcoin [block hashing algorithm](https://en.bitcoin.it/wiki/Block_hashing_algorithm) for detais.
 
-Use can file bitcoin blocks dumps at [Blockchair dumps site](https://gz.blockchair.com/bitcoin/blocks/) (or in many other places).
+Use can find bitcoin blocks dumps at [Blockchair dumps site](https://gz.blockchair.com/bitcoin/blocks/) (or in many other places).
 
 ## Exploit
 See [sploits/kv/exploit.py](https://github.com/HITB-CyberWeek/hitbsecconf-ctf-2022/blob/main/sploits/kv/exploit.py).
