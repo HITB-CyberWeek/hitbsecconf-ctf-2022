@@ -32,7 +32,7 @@ $ curl -X GET -H 'X-Client-ID:2502' -H 'X-Client-Secret:96c00edfccaa9f692cda5718
 ## Vulnerability Description
 #### TLDR
 0. You should somehow get data from special Redis key ```0``` to get all users' credentials
-1. Redis key is a hash from client_id and filename. So, you should generate such filename wich makes  ```hash(client_id + filename)``` an integer ending 8 zero bytes and then GET the filename.
+1. Redis key is a hash from client_id and filename. So, you should generate such filename which makes  ```hash(client_id + filename)``` an integer ending 8 zero bytes and then GET the filename.
 2. You can find a lot of hashes _ending_ with 8 zero bytes in bitcoin blocks data.
 3. After you get all client_ids and secrets, you can get any filename from the service (if you know filename :)
 4. During the competition you can get flag filenames using checksystem's [public flag id API](https://2022.ctf.hitb.org/hitb-ctf-singapore-2022/api).
