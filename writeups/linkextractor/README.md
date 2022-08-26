@@ -10,11 +10,11 @@ Service has 2 controllers:
 
 ### User
 
-It has endpoints to register/login user and to check current logged in user. 
+Endpoints to register/login user and to check current logged in user. 
 
 ### Page
 
-Endpoints for submitting webpage with url/content to parse, list all submitted pages and get back distinct parsed urls.
+Endpoints to submit webpage with url/content to parse, list all submitted pages and get back distinct parsed urls.
 
 ## Vuln class
 
