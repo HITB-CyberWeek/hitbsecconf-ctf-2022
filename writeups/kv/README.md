@@ -34,7 +34,7 @@ $ curl -X GET -H 'X-Client-ID:2502' -H 'X-Client-Secret:96c00edfccaa9f692cda5718
 0. You should somehow get data from special Redis key ```0``` to get all users' credentials
 1. Key is a hash from client_id and filename. So, you should generate such filename wich makes  ```hash(client_id + filename)``` an integer ending 8 zero bytes.
 2. You can find a lot of hashes _ending_ with 8 zero bytes in bitcoin blocks data.
-3. After getting all client_ids and secrets you can get any filename from the service (if you know filename :)
+3. After you get all client_ids and secrets, you can get any filename from the service (if you know filename :)
 4. During the competition you can get flag filenames using checksystem's [public flag id API](https://2022.ctf.hitb.org/hitb-ctf-singapore-2022/api).
 
 #### More details
@@ -44,7 +44,7 @@ Bitcoin hash is
 
 ```hash = sha256(sha256(Block_Header))```
 
-So you should find such ```Block_header``` wich sha256(Block_Header) starts with ```uint16(client_id)``` (bitcoin hashes always ends with a lot of zeros)
+So you should find such ```Block_header``` which sha256(Block_Header) starts with ```uint16(client_id)``` (bitcoin hashes always ends with a lot of zeros)
 
 Note. If you get [random bitcoin block](https://www.blockchain.com/btc/block/125552) you may see that the hash is _starting_ with zeros, not _ending_ with zeros. This because the hash is reversed at the last step of hash computation (acording to [block hashing algorithm](https://en.bitcoin.it/wiki/Block_hashing_algorithm)).
 
