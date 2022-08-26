@@ -7,10 +7,10 @@ and uses PostgreSQL db.
 
 ## Flags
 
-After user is register, she can draw geometric figures and text. Flags are
+After registration user can draw geometric figures and text. Flags are
 in text messages. Normally, to read the flag, user needs to know its password.
 
-## The Vuln
+## Vulnerability
 
 There is an SQL-injection in this code:
 
@@ -18,7 +18,7 @@ There is an SQL-injection in this code:
 $result = pg_query($db, "SELECT add_action(a:='".json_encode($action_data)."', u:=".$userid.")");
 ```
 
-The varable $action_data is partially controlled by the attacker, for example she can control this content:
+The varable `$action_data` is partially controlled by the attacker, for example she can control this content:
 
 ```
 "action_data":{
@@ -30,7 +30,8 @@ The varable $action_data is partially controlled by the attacker, for example sh
 }
 ```
 
-The function add\_action first argument type is json:
+First argument of function `add_action()` has type `json`:
+
 ```
     CREATE FUNCTION add_action(a json, u int)
         RETURNS int as $$
@@ -48,7 +49,7 @@ after the left argument is successfully converted to json.
 
 ## The Exploitation
 
-To exploit the service one need to use PostgreSQL syntax to convert arguments to different types in such way that the last type is valid json.
+To exploit the service one need to use PostgreSQL syntax to convert arguments to different types in such way that the last type is a valid json.
 
 The payload:
 
@@ -69,9 +70,9 @@ Other convertation chains are possible.
 The full sploit can be found at [/sploits/obscurity/spl.py](../../sploits/obscurity/spl.py).
 
 
-## The Patching
+## Patching
 
-To make sniffing more difficult, the parameters of api-calls are encrypted with RSA. The public key is in the frontend, the private key is in the backend.
+To make sniffing more difficult, the parameters of api-calls are encrypted with RSA. The public key is store in the frontend, the private key is in the backend.
 
-The backend is obfuscated with SourceGuardian. The unobfuscated version is also given, but without the private key. So, to patch the vuln,
+The backend is obfuscated with SourceGuardian. The unobfuscated version is also given, but without the private key. So, to patch the vulnerability,
 one need to get the key from the obfuscated version. The simplest way to do it is to import obfuscated php-file with php, dump the process memory and find the key in it.

@@ -1,6 +1,6 @@
 # n0tes
 
-## Service Description
+## Description
 `n0tes` is a service to create/edit notes. It is written in C# and uses MongoDB as a data storage and Nginx as a reverse proxy:
 
 ![schema](schema.png)
@@ -61,7 +61,8 @@ app.UseEndpoints(endpoints =>
 });
 ```
 
-## Vulnerability Description
+## Vulnerability
+
 To steal the flags, teams should somehow bypass the client certificate authentication in Nginx.
 
 This can be done by exploiting the difference in handling the `Host` header in the application and Nginx.

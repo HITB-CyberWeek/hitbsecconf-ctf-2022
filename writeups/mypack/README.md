@@ -1,4 +1,6 @@
-# Description
+# mypack
+
+## Description
 
 Service mypack is intended for parsing, storing and loading packages in msgpack format.
 User connects to service via 3777/tcp and sends commands interactively.
@@ -12,14 +14,14 @@ Prints content in json-like format
 4. "unload" - unloads cell from msgpack buffer and makes this cell empty
 5. "search" - prints all ids which contains specific substring
 
-# Flag
+## Flag
 
 "print" command has special improvement: if package is a map and it contains
 "flag" and "password" keys, then it asks user to enter password. If password is
 correct then service prints content of flag key. If package does not contain
 flag and password keys, then service prints string representation of package.
 
-# Vulnerability
+## Vulnerability
 
 In msgpack small strings may be encoded by following way:
 
@@ -34,7 +36,7 @@ try to force service to allocate chunks in heap so that buffer with flag would f
 right after buffer, where `YYYYYYY` is copied. So you can overwrite type of msgpack
 package to line type and in print command full package with flag will be be shown.
 
-# Scheme of chunks in heap
+## Scheme of chunks in heap
 
 ###  Before overwrite
 

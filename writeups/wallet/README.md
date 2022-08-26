@@ -1,8 +1,10 @@
 # Wallet
 
+## Description
+
 The wallet service is a wallet with candy wrappers in CTF currency. The following features is available on it: registration, authentication, password recovery, transactions to another user or system as a donating. For making transactions and recovering password, it was necessary to use the secret codes that the system generates after your registration.
 
-# Vulnerability
+## Vulnerability
 
 There is a vulnerability in the password recovery workflow. It allows to change the password of any user using your own secret codes. This vulnerability is able because  password recovery is multi-stage, and a PHP’s sessions are used to save the state between stages, in which the user id and secret code id are stored. When the user asks about password reset, the system did not perform any clearing or checking of previously used `$_SESSION`. It makes possible to mix the parameters of different password recovery attempts by replacing the user id in the `$_SESSION`, but leaving the secret code id unchanged. 
 
