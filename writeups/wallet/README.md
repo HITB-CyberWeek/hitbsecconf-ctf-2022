@@ -15,6 +15,7 @@ To do this, use the following steps:
    ![POST request for password recovery endpoint](image3.png)
 
 4. Send a POST request with changing the recovery type to a "code"
+
    ![POST request with changing the recovery type to a "code"](image1.png)
 
    We’ll receive a form with a "Secret code $<number>" as a response
