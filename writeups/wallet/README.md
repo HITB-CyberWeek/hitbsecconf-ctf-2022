@@ -9,6 +9,7 @@ There is a vulnerability in the password recovery workflow . It allows to change
 
 4. Send a POST request with changing the recovery type to a “code”
    ![POST request with changing the recovery type to a “code”](image1.png)
+
 We’ll receive a form with a “Secret code $<number>” as a response
    ![Response](image2.png)
 5. Re-send the POST request for password recovery, but with the received PHPSESSID and the email of the victim
