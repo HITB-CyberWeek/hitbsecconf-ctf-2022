@@ -2,8 +2,13 @@
 
 ## Description
 Issuecker is a simple issue tracker.
-Allowed method: `register`, `login`, `add_queue`, `add_ticket`, `find_tickets`
-See API more detailed description [there](https://github.com/HITB-CyberWeek/hitbsecconf-ctf-2022/blob/main/writeups/issuecker/API.md).
+Allowed method:
+* `/register` - register a new user by username and password (returns cookies in response), example: `curl -X POST "http://localhost/app.cgi/register" -d '{"username": "username", "password": "12345678"}'`; 
+* `/login` - login to an existing account (returns cookies in response), example: `curl -X POST "http://localhost/app.cgi/login" -d '{"username": "username", "password": "12345678"}'`;
+* `/add_queue` - add a new queue (require auth via cookies) and returns queue id, example: `curl -X POST "http://localhost/app.cgi/add_queue" -d '{"queue_name": "My queue"}'`;
+* `/add_ticket` - add ticket to the exising queue (require auth via cookies) and returns ticket id, example: `curl -X POST "http://localhost/app.cgi/add_ticket" -d '{"queue_id": 123, "title": "title", "descritpion": "description"}'`;
+* `/find_tickets` - find tickets(require auth via cookies) and returns list of pairs (title, description) for related tickets, example: `curl -X POST "http://localhost/app.cgi/add_ticket" -d '{"queue_id": 123, "ticket_id": "83746-87", "title": "title", "descritpion": "description"}'`.
+
 
 ## Ticket id
 Every ticket id has following format: `<queue_key>-<ticket_sub_id>`
