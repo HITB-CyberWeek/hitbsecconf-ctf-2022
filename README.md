@@ -8,13 +8,13 @@ The goal of each team is to find vulnerabilities, fix them in their services and
 
 This year we have had some innovations:
 
-* New scoring system (we will use it for the second time, first one was at [HITB PRO CTF 2021](https://github.com/HITB-CyberWeek/proctf-2021/))
+* New scoring system (we use it for the second time, first one was at [HITB PRO CTF 2021](https://github.com/HITB-CyberWeek/proctf-2021/))
 * New flag format: `TEAM042_PNFP4DKBOV6BTYL9YFGBQ9006582ADCX`
 * Non-playable teams
 * Reverse proxies with per-team limits for services
 * DNS names for all services (e.g. `example.team42.ctf.hitb.org`)
 
-You can read details on official contest website: https://ctf.hackerdom.ru/hitb-ctf-singapore-2022/.
+You can read the details on the official contest website: https://ctf.hackerdom.ru/hitb-ctf-singapore-2022/.
 
 Official conference website: https://conference.hitb.org/hitbsecconf2022sin/.
 
@@ -26,7 +26,7 @@ Official conference website: https://conference.hitb.org/hitbsecconf2022sin/.
 * exploits for all services in folder [sploits/](sploits/)
 * writeups with vulnerabilities and exploitation description for all services in folder [writeups/](writeups/)
 
-Also, we bring to you some of our internal infrastructure magic:
+Also, we share with you some of our internal infrastructure magic:
 * CI/CD for Digital Ocean's images services' packing and proxies deploying. See [vuln_images/](vuln_images/) and [.github/workflows/](.github/workflows).
 * our CTF Cloud and VPN Infrastructure in [ctf-cloud/](ctf-cloud/).
 
