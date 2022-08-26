@@ -34,6 +34,12 @@ All materials are licensed under [MIT License](LICENSE).
 
 # Final scoreboard
 
+Congratulations for 🇷🇺 Bushwhackers, hacked all services, for the first place!
+
+Second place: 🇷🇺 C4T BuT S4D
+
+Third place: 🇩🇪 saarsec
+
 <img src="static/scoreboard.png" alt="Final scoreboard">
 
 # First bloods
@@ -46,9 +52,9 @@ All materials are licensed under [MIT License](LICENSE).
 | smallword      | C4T BuT S4D              |
 | n0tes          | Bushwhackers             |
 | sh             | Bushwhackers             |
-| crs            |                          |
+| crs            | Bushwhackers             |
 | wallet         | Bushwhackers             |
-| mypack         |                          |
+| mypack         | RedRocket                |
 | issuecker      | C4T BuT S4D              |
 
 # Authors
