@@ -3,8 +3,8 @@
 KV is a simple key-value storage with 3 endpoints
 
 * ```POST /register``` returns ```client_id``` and ```client_secret```
-* ```PUT /kv/{filename}``` to put the data
-* ```GET /kv/{filename}``` to get the data
+* ```PUT /kv/{filename}``` to put data
+* ```GET /kv/{filename}``` to get data
 
 PUT and GET endpoints requires valid credentials in headers ```X-Client-ID``` and ```X-Client-Secret```  to proceed
 
