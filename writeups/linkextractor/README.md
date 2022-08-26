@@ -26,7 +26,7 @@ It's inspired by the ysoserial's [URLDNS](https://github.com/frohoff/ysoserial/b
 
 ### First try
 
-User authentication cookies contain Java-serialized service's `User` objects.
+User authentication cookies contain Base64-encoded Java-serialized service's `User` objects.
 In theory, hacker can pass any Java-serialized object instead.
 The aforementioned [ysoserial](https://github.com/frohoff/ysoserial) tool contains a lot of ready payloads for different popular Java libraries which are subject to Java Deserialization vulnerability.
 Most such payloads even provide RCE.
