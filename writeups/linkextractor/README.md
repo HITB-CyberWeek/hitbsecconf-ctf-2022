@@ -98,7 +98,7 @@ private URL toAbsoluteUrl(String page_url, String link_url) throws MalformedURLE
 }
 ```
 
-URL's equality checking can be triggered by putting them inside the HashSet<Link>.
+URL's equality checking can be triggered by putting Links with them inside the HashSet<Link>.
 
 There is a well-known gadget in ysoserial's [URLDNS](https://github.com/frohoff/ysoserial/blob/master/src/main/java/ysoserial/payloads/URLDNS.java) payload, which is based on the fact that Java's `URL` class **resolves DNS record** of the url so that urls are comared by thei ip-addresses.
 If hacker controls the DNS server, he can see all the requests. There exist publicly available services which provide you the DNS-zone and show the DNS-requests, like this one: https://requestbin.net/
