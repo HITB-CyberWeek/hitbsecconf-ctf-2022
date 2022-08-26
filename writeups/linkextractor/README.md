@@ -14,7 +14,7 @@ It has endpoints to register/login user and to check current logged in user.
 
 ### Page
 
-Endpoints for submitting webpage with url/content to parse, and get back distinct parsed urls.
+Endpoints for submitting webpage with url/content to parse, list all submitted pages and get back distinct parsed urls.
 
 ## Vuln class
 
