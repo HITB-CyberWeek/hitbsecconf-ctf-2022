@@ -110,7 +110,7 @@ This HashSet of Links should be stored in the Page object in it's `public HashSe
 If hacker serializes this crafted Page object and passes it in a user auth cookie to the service, it will be deserialized by the service and the following chain will be triggered:
 
 ```
-Page deserialization -> HashSet<Link> deserialization -> hashCode(resolveUrl()) => DNS resolution and leaking of the FLAG
+Page deserialization -> HashSet<Link> deserialization -> hashCode(resolveUrl()) -> URL's DNS resolution => leaking the FLAG
 ```
  
 You can see full exploit here: [EXPLOIT](../../sploits/linkextractor/src/main/java/ctf/linkextractor/Program.java)
