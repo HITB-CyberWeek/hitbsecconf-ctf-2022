@@ -6,7 +6,7 @@ KV is a simple key-value storage with 3 endpoints
 * ```PUT /kv/{filename}``` to put the data
 * ```GET /kv/{filename}``` to get the data
 
-PUT and GET endpoints requred valid credentials in headers ```X-Client-ID``` and ```X-Client-Secret```  to proceed
+PUT and GET endpoints requires valid credentials in headers ```X-Client-ID``` and ```X-Client-Secret```  to proceed
 
 Service uses Redis to store data:
 * Users' credentials are stored in the special key '0'
