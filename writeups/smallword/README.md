@@ -18,10 +18,10 @@ Including user profile into DOCX as an image through a path traversal in open so
 ## Exploitation
 
 There are some "hints" for the service in a code:
-* Master key [XOR'ing](../../../blob/583540b5e7421beaeef6648fe3e21dd54c8d407e/services/smallword/src/UserProfile.cs#L148) (as a pepper) with password hash => if someone get the possibility to connect the file to the DOCX, he will be able to steal the master key;
-* Setting a some [base URI](../../../blob/8d132cb4b86c69ac8bf557f4b3c62b03c43ce98a/services/smallword/src/Converter.cs#L13) for images, BTW there is no way to put such images;
-* [System.Drawing.Common](../../../blob/583540b5e7421beaeef6648fe3e21dd54c8d407e/services/smallword/src/smallword.csproj#L13) in deps, checker adds image on each PUT;
-* Weird large number of [useless fields](../../../blob/583540b5e7421beaeef6648fe3e21dd54c8d407e/services/smallword/src/UserProfile.cs#L12) in user profile.
+* Master key [XOR'ing](../../../../blob/583540b5e7421beaeef6648fe3e21dd54c8d407e/services/smallword/src/UserProfile.cs#L148) (as a pepper) with password hash => if someone get the possibility to connect the file to the DOCX, he will be able to steal the master key;
+* Setting a some [base URI](../../../../blob/8d132cb4b86c69ac8bf557f4b3c62b03c43ce98a/services/smallword/src/Converter.cs#L13) for images, BTW there is no way to put such images;
+* [System.Drawing.Common](../../../../blob/583540b5e7421beaeef6648fe3e21dd54c8d407e/services/smallword/src/smallword.csproj#L13) in deps, checker adds image on each PUT;
+* Weird large number of [useless fields](../../../../blob/583540b5e7421beaeef6648fe3e21dd54c8d407e/services/smallword/src/UserProfile.cs#L12) in user profile.
 
 Let's go in order
 
@@ -45,7 +45,7 @@ The service uses a master key as a pepper, so an attacker who steals a user prof
 The most dangerous functionality in the service is the HTML-to-DOCX conversion. The input HTML in the service is parsed as XML, the DOCX is also archived XML, and DOCX can include various types of nested objects.
 So it seems quite logical to check the service for XXE, SSRF and including files from disk during conversion.
 
-XML reading [settings](../../../blob/8d132cb4b86c69ac8bf557f4b3c62b03c43ce98a/services/smallword/src/Converter.cs#L36) are quite strict, not allowing us to achieve XXE. It also seems unlikely that the XXE vuln is present in the library when converting from HTML to DOCX.
+XML reading [settings](../../../../blob/8d132cb4b86c69ac8bf557f4b3c62b03c43ce98a/services/smallword/src/Converter.cs#L36) are quite strict, not allowing us to achieve XXE. It also seems unlikely that the XXE vuln is present in the library when converting from HTML to DOCX.
 ```cs
 XmlResolver = null,
 DtdProcessing = DtdProcessing.Prohibit,
@@ -107,4 +107,4 @@ After some experiments it can be found that a `string` type field with the numbe
 So, thats it! We can use `patronymic` field to generate a prefix of the bitmap, and the rest fields (including password hash and salt) will be the bitmap data, which can be read from image in DOCX converted from HTML.
 
 Also there are some pitfalls which we should take into account for example with UTF-8 encoding which is used to parse JSON serialized request of registration new user and so on.
-You can see full exploit here: [EXPLOIT](../../../blob/main/sploits/smallword/Program.cs)
+You can see full exploit here: [EXPLOIT](../../../../blob/main/sploits/smallword/Program.cs)
